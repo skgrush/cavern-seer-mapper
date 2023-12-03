@@ -1,1 +1,21 @@
-<p>open-dialog works!</p>
+<form (submit)="clickOpen($event)">
+  <h1 mat-dialog-title> Open a file </h1>
+  <div mat-dialog-content>
+    <mat-list>
+      <mat-list-item *ngFor="let file of files">
+        <span>{{ file.file.name }}</span> | <span>{{ file.file.size }}</span> | <span>{{ file.type }}</span>
+      </mat-list-item>
+    </mat-list>
+    <input #fileInput type="file" (change)="inputChanged($event)">
+
+    <div class="loading-container" *ngIf="uploadProgress as progress">
+      <p>{{ progress.loaded }} / {{ progress.total }}</p>
+      <mat-progress-bar mode="determinate" [value]="100 * progress.loaded / progress.total" />
+    </div>
+  </div>
+
+  <div mat-dialog-actions>
+    <button type="button" mat-button [disabled]="uploadProgress" mat-dialog-close cdkFocusInitial>Cancel</button>
+    <button type="submit" mat-button [disabled]="!fileInput.files?.length">Open</button>
+  </div>
+</form>

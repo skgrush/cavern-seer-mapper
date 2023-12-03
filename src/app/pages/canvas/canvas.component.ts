@@ -46,5 +46,7 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
     this.#themeService.backgroundColor$.pipe(
       map(bgColor => this.#canvasService.setBgColor(bgColor)),
     ).subscribe();
+
+    this.#canvasService.render$().subscribe();
   }
 }
