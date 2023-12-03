@@ -2,7 +2,8 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementR
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CanvasService } from '../../shared/services/canvas.service';
 import { ResizeService } from '../../shared/services/resize.service';
-import { debounceTime, tap } from 'rxjs';
+import { debounceTime, map, tap } from 'rxjs';
+import { ThemeService } from '../../shared/services/theme.service';
 
 @Component({
   selector: 'mapper-canvas',
@@ -21,6 +22,7 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
 
   readonly #canvasService = inject(CanvasService);
   readonly #resizeService = inject(ResizeService);
+  readonly #themeService = inject(ThemeService);
 
   ngAfterViewInit(): void {
     this.#init();
@@ -39,6 +41,10 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
       tap(size => this.#canvasService.resize(size)),
       tap(() => console.count('count')),
       takeUntilDestroyed(this.#destroyRef),
+    ).subscribe();
+
+    this.#themeService.backgroundColor$.pipe(
+      map(bgColor => this.#canvasService.setBgColor(bgColor)),
     ).subscribe();
   }
 }

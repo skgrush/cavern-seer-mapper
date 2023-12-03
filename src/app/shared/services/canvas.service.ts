@@ -28,6 +28,14 @@ export class CanvasService {
     this.#renderer.setSize(width, height);
   }
 
+  setBgColor(bgColor: string) {
+    if (!this.#renderer) {
+      throw new Error('Attempt to setBgColor() with no renderer');
+    }
+
+    this.#renderer.setClearColor(bgColor);
+  }
+
   initializeRenderer(
     canvas: HTMLCanvasElement,
     { width, height }: DOMRectReadOnly,
@@ -39,7 +47,6 @@ export class CanvasService {
     });
     this.#orthoCamera = this.#buildNewCamera(width, height);
 
-    this.#renderer.setClearColor(0xFFFFFF, 1);
     this.#renderer.setSize(width, height);
 
     this.#scene.add(this.#orthoCamera);
