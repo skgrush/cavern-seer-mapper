@@ -1,6 +1,15 @@
 {
   "name": "cavern-seer-mapper",
   "version": "0.0.0",
+  "homepage": "https://github.com/skgrush/cavern-seer-mapper#readme",
+  "license": "MIT",
+  "author": {
+    "name": "Samuel K. Grush"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skgrush/cavern-seer-mapper.git"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
