@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject, animationFrames, map, takeUntil } from 'rxjs';
-import { ACESFilmicToneMapping, AmbientLight, BoxHelper, Color, GridHelper, Mesh, MeshDepthMaterial, Object3D, OrthographicCamera, PMREMGenerator, Scene, WebGLRenderer } from 'three';
+import { ACESFilmicToneMapping, AmbientLight, BoxHelper, Color, DoubleSide, GridHelper, Mesh, MeshDepthMaterial, MeshNormalMaterial, Object3D, ObjectSpaceNormalMap, OrthographicCamera, PMREMGenerator, Scene, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
@@ -47,11 +47,19 @@ export class CanvasService {
     return animationFrames().pipe(
       takeUntil(rendererGone$),
       map(({ timestamp, elapsed }) => {
-        if (!this.#renderer) { rendererGone$.next(); return; }
-
-        this.#renderer.render(this.#scene, this.#orthoCamera!);
+        const rendered = this.render();
+        if (!rendered) {
+          rendererGone$.next();
+        }
       }),
     );
+  }
+
+  render() {
+    if (!this.#renderer) { return false; }
+
+    this.#renderer.render(this.#scene, this.#orthoCamera!);
+    return true;
   }
 
   setBgColor(bgColor: string) {
@@ -71,7 +79,10 @@ export class CanvasService {
     this.#scene.remove(...this.#currentModels);
     this.#currentModels.length = 0;
 
-    const material = new MeshDepthMaterial();
+    const material = new MeshNormalMaterial();
+    material.side = DoubleSide;
+    // material.normalMapType = ObjectSpaceNormalMap;
+
     console.info('material', material);
     model.traverse(child => {
       if (child instanceof Mesh) {
@@ -82,14 +93,14 @@ export class CanvasService {
     this.#currentModels.push(model);
     this.#scene.add(model);
 
-    const environment = new RoomEnvironment();
-    const pmremGen = new PMREMGenerator(this.#renderer);
+    // const environment = new RoomEnvironment();
+    // const pmremGen = new PMREMGenerator(this.#renderer);
 
-    // this.#scene.background = new Color(0xBBBBBB);
-    this.#scene.environment = pmremGen.fromScene(environment).texture;
+    // // this.#scene.background = new Color(0xBBBBBB);
+    // this.#scene.environment = pmremGen.fromScene(environment).texture;
 
-    this.#renderer.toneMapping = ACESFilmicToneMapping;
-    this.#renderer.toneMappingExposure = 1.2;
+    // this.#renderer.toneMapping = ACESFilmicToneMapping;
+    // this.#renderer.toneMappingExposure = 1.2;
 
     if (!this.#orthoCamera) {
       return;
@@ -111,11 +122,27 @@ export class CanvasService {
     this.#currentModels.push(gridHelper);
 
     // move the camera
-    this.#orthoCamera.position.x = 0;
-    this.#orthoCamera.position.y = boundsMax.y + 1;
-    this.#orthoCamera.position.z = 0;
+    const controls = this.#orthoControls!;
+
+    this.#orthoCamera.near = 0.1;
+    this.#orthoCamera.position.set(
+      0,
+      boundsMax.y,
+      0
+    );
     this.#orthoCamera.lookAt(0, 0, 0);
-    this.#orthoCamera.far = (boundsMax.y - boundsMin.y) + 2;
+
+    this.#orthoCamera.updateProjectionMatrix();
+
+    controls.update();
+
+    this.render();
+
+    console.info({
+      boundsMin,
+      boundsMax,
+      cam: this.#orthoCamera,
+    });
   }
 
   initializeRenderer(
@@ -144,8 +171,8 @@ export class CanvasService {
       width / 2,
       height / 2,
       height / -2,
-      1,
-      50,
+      0.1,
+      2000,
     );
   }
 }
