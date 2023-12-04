@@ -23,6 +23,7 @@
             "outputPath": "dist/cavern-seer-mapper",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "baseHref": "/mapper/",
             "polyfills": [
               "zone.js"
             ],
