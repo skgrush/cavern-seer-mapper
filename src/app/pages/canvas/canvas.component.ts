@@ -1,9 +1,10 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnDestroy, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnDestroy, PLATFORM_ID, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CanvasService } from '../../shared/services/canvas.service';
 import { ResizeService } from '../../shared/services/resize.service';
 import { debounceTime, map, tap } from 'rxjs';
 import { ThemeService } from '../../shared/services/theme.service';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'mapper-canvas',
@@ -18,6 +19,8 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   canvasElement!: ElementRef<HTMLCanvasElement>;
 
   readonly #destroyRef = inject(DestroyRef);
+  readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
   readonly #eleRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly #canvasService = inject(CanvasService);
@@ -33,6 +36,9 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   }
 
   #init() {
+    if (!this.#isBrowser) {
+      return;
+    }
     const rect = this.#eleRef.nativeElement.getBoundingClientRect();
     this.#canvasService.initializeRenderer(this.canvasElement.nativeElement, rect);
 

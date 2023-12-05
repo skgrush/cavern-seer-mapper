@@ -8,6 +8,10 @@
     height: 100%;
   }
 
+  mat-sidenav-content {
+    overflow: hidden;
+  }
+
   #open-sidenav-btn {
     position: absolute;
     margin: 1em;
