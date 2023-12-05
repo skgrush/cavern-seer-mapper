@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { FileLoadCompleteEvent, FileLoadProgressEvent, UploadFileModel, ModelService } from '../../services/model.service';
+import { UploadFileModel, ModelService } from '../../services/model.service';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatListModule } from '@angular/material/list';
 import { NgFor, NgIf } from '@angular/common';
 import { tap } from 'rxjs';
 import { CanvasService } from '../../services/canvas.service';
+import { FileLoadProgressEvent, FileLoadCompleteEvent } from '../../events/file-load-events';
 
 @Component({
   selector: 'mapper-open-dialog',

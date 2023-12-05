@@ -1,38 +1,16 @@
 import { Injectable, Type } from '@angular/core';
-import { MonoTypeOperatorFunction, Observable, OperatorFunction, defer, from, map, shareReplay, switchMap, tap, throwError } from 'rxjs';
-import { Group, Loader, LoadingManager, Object3D, Object3DEventMap } from 'three';
-import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
-
-export enum FileModelType {
-  unknown = '',
-  /** An OBJ file */
-  obj = 'obj',
-  /** gLTF or GLB file */
-  gLTF = 'gltf',
-}
+import { MonoTypeOperatorFunction, Observable, defer, map, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { Group, Loader } from 'three';
+import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { FileLoadCompleteEvent, FileLoadEvent, FileLoadProgressEvent, convertFileLoadEvent } from '../events/file-load-events';
+import { GltfModel } from '../models/gltf.model';
+import { FileModelType } from '../models/model-type.enum';
+import { ObjModel } from '../models/obj.model';
 
 export type UploadFileModel = {
   readonly file: File;
   readonly type: FileModelType;
 };
-
-export abstract class BaseFileLoadEvent<T> { }
-export class FileLoadStartEvent<T> extends BaseFileLoadEvent<T> { }
-export class FileLoadProgressEvent<T> extends BaseFileLoadEvent<T> {
-  constructor(readonly loaded: number, readonly total: number) {
-    super();
-  }
-}
-export class FileLoadCompleteEvent<T> extends BaseFileLoadEvent<T> {
-  constructor(readonly result: T) {
-    super();
-  }
-}
-export type FileLoadEvent<T> =
-  | FileLoadStartEvent<T>
-  | FileLoadProgressEvent<T>
-  | FileLoadCompleteEvent<T>;
 
 @Injectable()
 export class ModelService {
@@ -71,14 +49,14 @@ export class ModelService {
     return { file, type: FileModelType.unknown };
   }
 
-  loadFile(file: UploadFileModel): Observable<FileLoadEvent<Group<Object3DEventMap>>/* | GLTF*/> {
+  loadFile(file: UploadFileModel): Observable<FileLoadEvent<ObjModel | GltfModel>> {
     return defer(() => {
       if (file.type === FileModelType.obj) {
         return this.loadObj(file.file);
       }
-      // if (file.type === FileModelType.gLTF) {
-      //   return this.loadGltf(file.file);
-      // }
+      if (file.type === FileModelType.gLTF) {
+        return this.loadGltf(file.file);
+      }
       return throwError(() => new Error(`Unsupported file type for ${file.file.name}`));
     }).pipe(tap({
       next: v => console.info('loadFile.next', v),
@@ -87,35 +65,57 @@ export class ModelService {
     }));
   }
 
-  loadObj(file: File) {
-    const url = URL.createObjectURL(file);
-    return this.loadObjFromUrl(url).pipe(this.#revokeUrlOnEnd(url));
+  loadObj(file: File): Observable<FileLoadEvent<ObjModel>> {
+    const url = new URL(URL.createObjectURL(file));
+    return this.#rawLoadObjFromUrl(url).pipe(
+      this.#revokeUrlOnEnd(url),
+      map(event => convertFileLoadEvent(
+        event,
+        (inp: Group) => new ObjModel(file, inp),
+      ))
+    );
   }
 
-  loadObjFromUrl(url: string) {
+  loadObjFromUrl(url: URL) {
+    return this.#rawLoadObjFromUrl(url).pipe(
+      this.#revokeUrlOnEnd(url),
+      map(event => convertFileLoadEvent(
+        event,
+        (inp: Group) => new ObjModel(url, inp),
+      )),
+    );
+  }
+
+  #rawLoadObjFromUrl(url: URL) {
     return this.#objLoader.pipe(
       switchMap(OBJLoader => this.#load(OBJLoader, url)),
     );
   }
 
-  loadGltf(file: File) {
-    const url = URL.createObjectURL(file);
-    return this.loadGltfFromUrl(url).pipe(this.#revokeUrlOnEnd(url));
+  loadGltf(file: File): Observable<FileLoadEvent<GltfModel>> {
+    const url = new URL(URL.createObjectURL(file));
+    return this.#rawLoadGltfFromUrl(url).pipe(
+      this.#revokeUrlOnEnd(url),
+      map(event => convertFileLoadEvent(
+        event,
+        (inp: GLTF) => new GltfModel(file, inp),
+      )),
+    );
   }
 
-  loadGltfFromUrl(url: string) {
+  #rawLoadGltfFromUrl(url: URL) {
     return this.#gltfLoader.pipe(
       switchMap(GLTFLoader => this.#load(GLTFLoader, url))
     );
   }
 
-  #load<TLoader extends Type<Loader>>(loaderType: TLoader, url: string) {
+  #load<TLoader extends Type<Loader>>(loaderType: TLoader, url: URL) {
     type T = TLoader extends Type<Loader<infer TInner>> ? TInner : never;
 
     return new Observable<FileLoadEvent<T>>(subscriber => {
       const loader = new loaderType();
       loader.load(
-        url,
+        url.toString(),
         data => {
           subscriber.next(new FileLoadCompleteEvent(data));
           subscriber.complete();
@@ -126,9 +126,9 @@ export class ModelService {
     });
   }
 
-  #revokeUrlOnEnd<T>(url: string): MonoTypeOperatorFunction<T> {
+  #revokeUrlOnEnd<T>(url: URL): MonoTypeOperatorFunction<T> {
     const fn = () => {
-      URL.revokeObjectURL(url)
+      URL.revokeObjectURL(url.toString())
     };
     return tap({
       complete: fn,

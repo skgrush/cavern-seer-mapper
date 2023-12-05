@@ -1,8 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Subject, animationFrames, map, takeUntil } from 'rxjs';
-import { ACESFilmicToneMapping, AmbientLight, BoxHelper, Color, DoubleSide, GridHelper, Mesh, MeshDepthMaterial, MeshNormalMaterial, Object3D, ObjectSpaceNormalMap, OrthographicCamera, PMREMGenerator, Scene, WebGLRenderer } from 'three';
+import { AmbientLight, Box3, GridHelper, Material, Object3D, OrthographicCamera, Scene, Vector3, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { BaseModel } from '../models/base.model';
+import { GroupModel } from '../models/group.model';
+import { BaseMaterialService } from './3d-managers/base-material.service';
+import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 
 @Injectable()
 export class CanvasService {
@@ -12,11 +15,13 @@ export class CanvasService {
 
   #orthoCamera?: OrthographicCamera;
   #orthoControls?: MapControls;
-  #bgColor?: string;
 
-  readonly #currentModels: any[] = [];
+  readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
+  #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
 
-  constructor() { }
+  #bottomGrid = new GridHelper();
+
+  #currentModels = new GroupModel();
 
   cleanupRenderer() {
     if (!this.#renderer) {
@@ -67,82 +72,70 @@ export class CanvasService {
       throw new Error('Attempt to setBgColor() with no renderer');
     }
 
-    this.#bgColor = bgColor;
     this.#renderer.setClearColor(bgColor);
   }
 
-  resetModel(model: Object3D) {
-    if (!this.#renderer) {
+  resetModel(model: BaseModel<any>) {
+    if (!this.#renderer || !this.#orthoCamera || !this.#orthoControls) {
       throw new Error('Attempt to call resetModel() with no renderer');
     }
 
-    this.#scene.remove(...this.#currentModels);
-    this.#currentModels.length = 0;
+    this.#currentModels.removeFromScene(this.#scene);
+    this.#currentModels.dispose();
 
-    const material = new MeshNormalMaterial();
-    material.side = DoubleSide;
-    // material.normalMapType = ObjectSpaceNormalMap;
+    this.#currentModels = new GroupModel();
+    this.#currentModels.addModel(model);
+    this.#currentModels.addToScene(this.#scene);
 
-    console.info('material', material);
-    model.traverse(child => {
-      if (child instanceof Mesh) {
-        child.material = material;
-      }
-    });
+    model.setMaterial(this.#material);
 
-    this.#currentModels.push(model);
-    this.#scene.add(model);
+    const bounds = this.#currentModels.getBoundingBox();
 
-    // const environment = new RoomEnvironment();
-    // const pmremGen = new PMREMGenerator(this.#renderer);
+    this.#rebuildBottomGrid(bounds);
+    this.#refocusCamera(bounds);
 
-    // // this.#scene.background = new Color(0xBBBBBB);
-    // this.#scene.environment = pmremGen.fromScene(environment).texture;
+    this.render();
+  }
 
-    // this.#renderer.toneMapping = ACESFilmicToneMapping;
-    // this.#renderer.toneMappingExposure = 1.2;
-
-    if (!this.#orthoCamera) {
-      return;
+  #refocusCamera(bounds: Box3) {
+    const controls = this.#orthoControls;
+    const camera = this.#orthoCamera;
+    if (!controls || !camera) {
+      throw new Error('missing controls/camera');
     }
 
-    const bounds = new BoxHelper(model);
-    bounds.geometry.computeBoundingBox();
-    const { max: boundsMax, min: boundsMin } = bounds.geometry.boundingBox!;
+    camera.near = 0.1;
+    camera.position.set(
+      0,
+      bounds.max.y,
+      0
+    );
+    camera.lookAt(0, 0, 0);
+
+    camera.updateProjectionMatrix();
+
+    controls.update();
+  }
+
+  #rebuildBottomGrid(bounds: Box3) {
+    this.#scene.remove(this.#bottomGrid);
+    this.#bottomGrid.dispose();
+
+    const sizeBox = new Vector3();
+    bounds.getSize(sizeBox);
+    const { max: boundsMax, min: boundsMin } = bounds;
 
     // create a grid
-    const sizeX = boundsMax.x - boundsMin.x;
-    const sizeZ = boundsMax.z - boundsMin.z;
+    const sizeX = sizeBox.x;
+    const sizeZ = sizeBox.z;
     const size = Math.max(sizeX, sizeZ);
-    const gridHelper = new GridHelper(size, size);
+
+    this.#scene.remove(this.#bottomGrid);
+    const gridHelper = this.#bottomGrid = new GridHelper(size, size);
     gridHelper.position.x = boundsMin.x + sizeX / 2;
     gridHelper.position.y = boundsMin.y;
     gridHelper.position.z = boundsMin.z + sizeZ / 2;
     this.#scene.add(gridHelper);
-    this.#currentModels.push(gridHelper);
-
-    // move the camera
-    const controls = this.#orthoControls!;
-
-    this.#orthoCamera.near = 0.1;
-    this.#orthoCamera.position.set(
-      0,
-      boundsMax.y,
-      0
-    );
-    this.#orthoCamera.lookAt(0, 0, 0);
-
-    this.#orthoCamera.updateProjectionMatrix();
-
-    controls.update();
-
-    this.render();
-
-    console.info({
-      boundsMin,
-      boundsMax,
-      cam: this.#orthoCamera,
-    });
   }
 
   initializeRenderer(

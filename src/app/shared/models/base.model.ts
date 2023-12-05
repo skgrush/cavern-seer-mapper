@@ -1,0 +1,15 @@
+import { Group } from "three";
+import { BaseMaterialService } from "../services/3d-managers/base-material.service";
+import { FileModelType } from "./model-type.enum";
+
+export abstract class BaseModel<T extends FileModelType> {
+
+  abstract readonly type: T;
+
+  abstract setMaterial(material: BaseMaterialService<any>): void;
+
+  abstract addToGroup(group: Group): void;
+  abstract removeFromGroup(group: Group): void;
+
+  abstract dispose(): void;
+}
