@@ -3,15 +3,15 @@ import { UploadFileModel, ModelService } from '../../services/model.service';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatListModule } from '@angular/material/list';
-import { NgFor, NgIf } from '@angular/common';
-import { tap } from 'rxjs';
+import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { BehaviorSubject, tap } from 'rxjs';
 import { CanvasService } from '../../services/canvas.service';
 import { FileLoadProgressEvent, FileLoadCompleteEvent } from '../../events/file-load-events';
 
 @Component({
   selector: 'mapper-open-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatListModule, NgFor, NgIf, MatProgressBarModule],
+  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule],
   templateUrl: './open-dialog.component.html',
   styleUrl: './open-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -22,10 +22,10 @@ export class OpenDialogComponent {
   readonly #canvasService = inject(CanvasService);
   readonly #dialogRef = inject<MatDialogRef<OpenDialogComponent>>(MatDialogRef<OpenDialogComponent>);
 
-  uploadProgress?: {
+  protected readonly uploadProgress = new BehaviorSubject<{
     loaded: number;
     total: number;
-  };
+  } | undefined>(undefined);
   uploadError?: any;
 
   files: UploadFileModel[] | null = null;
@@ -46,7 +46,7 @@ export class OpenDialogComponent {
   clickOpen(e: SubmitEvent) {
     e.preventDefault();
 
-    if (!this.files?.length || this.uploadProgress) {
+    if (!this.files?.length || this.uploadProgress.value) {
       return;
     }
 
@@ -57,19 +57,19 @@ export class OpenDialogComponent {
     console.info('clickOpen', e, this.files);
 
     this.#dialogRef.disableClose = true;
-    this.uploadProgress = {
+    this.uploadProgress.next({
       loaded: 0,
       total: file.file.size,
-    };
+    });
     this.uploadError = undefined;
 
     this.#modelService.loadFile(file).pipe(
       tap(event => {
         if (event instanceof FileLoadProgressEvent) {
-          this.uploadProgress = {
+          this.uploadProgress.next({
             loaded: event.loaded,
             total: event.total,
-          };
+          });
         }
         else if (event instanceof FileLoadCompleteEvent) {
           this.#canvasService.resetModel(event.result);
@@ -83,7 +83,7 @@ export class OpenDialogComponent {
         error: (err) => {
           console.error('open error', err);
           this.#dialogRef.disableClose = false;
-          this.uploadProgress = undefined;
+          this.uploadProgress.next(undefined);
           this.uploadError = err;
         }
       }),

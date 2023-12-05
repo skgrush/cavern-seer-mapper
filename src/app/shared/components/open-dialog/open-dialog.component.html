@@ -8,7 +8,7 @@
     </mat-list>
     <input #fileInput type="file" (change)="inputChanged($event)">
 
-    <div class="loading-container" *ngIf="uploadProgress as progress">
+    <div class="loading-container" *ngIf="uploadProgress | async as progress">
       <p>{{ progress.loaded }} / {{ progress.total }}</p>
       <mat-progress-bar mode="determinate" [value]="100 * progress.loaded / progress.total" />
     </div>
