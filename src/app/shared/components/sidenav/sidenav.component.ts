@@ -22,9 +22,10 @@ export class SidenavComponent {
     OpenDialogComponent.open(this.#dialog, {
       submitText: 'Open',
       titleText: 'Open a file',
+      multiple: false,
     }).afterClosed().subscribe(result => {
       if (result) {
-        this.#modelManager.resetToNonGroupModel(result);
+        this.#modelManager.resetToNonGroupModel(result[0]);
       }
     });
   }

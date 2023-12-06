@@ -6,7 +6,7 @@
         <span>{{ file.file.name }}</span> | <span>{{ file.file.size }}</span> | <span>{{ file.type }}</span>
       </mat-list-item>
     </mat-list>
-    <input #fileInput type="file" (change)="inputChanged($event)">
+    <input #fileInput type="file" [multiple]="!!multiple" (change)="inputChanged($event)">
 
     <div class="loading-container" *ngIf="uploadProgress | async as progress">
       <p>{{ progress.loaded }} / {{ progress.total }}</p>
