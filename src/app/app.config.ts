@@ -7,7 +7,7 @@ import { CanvasService } from './shared/services/canvas.service';
 import { ResizeService } from './shared/services/resize.service';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ThemeService } from './shared/services/theme.service';
-import { ModelService } from './shared/services/model.service';
+import { ModelLoadService } from './shared/services/model-load.service';
 import { MeshNormalMaterialService } from './shared/services/3d-managers/mesh-normal-material.service';
 
 export const appConfig: ApplicationConfig = {
@@ -18,7 +18,7 @@ export const appConfig: ApplicationConfig = {
     CanvasService,
     ResizeService,
     ThemeService,
-    ModelService,
+    ModelLoadService,
     MeshNormalMaterialService,
     {
       provide: ErrorHandler,

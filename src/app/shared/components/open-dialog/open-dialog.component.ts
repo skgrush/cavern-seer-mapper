@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { UploadFileModel, ModelService } from '../../services/model.service';
+import { UploadFileModel, ModelLoadService } from '../../services/model-load.service';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatListModule } from '@angular/material/list';
@@ -18,7 +18,7 @@ import { FileLoadProgressEvent, FileLoadCompleteEvent } from '../../events/file-
 })
 export class OpenDialogComponent {
 
-  readonly #modelService = inject(ModelService);
+  readonly #modelService = inject(ModelLoadService);
   readonly #canvasService = inject(CanvasService);
   readonly #dialogRef = inject<MatDialogRef<OpenDialogComponent>>(MatDialogRef<OpenDialogComponent>);
 

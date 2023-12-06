@@ -13,7 +13,7 @@ export type UploadFileModel = {
 };
 
 @Injectable()
-export class ModelService {
+export class ModelLoadService {
 
   readonly #objLoader = defer(() =>
     import('three/examples/jsm/loaders/OBJLoader.js')
