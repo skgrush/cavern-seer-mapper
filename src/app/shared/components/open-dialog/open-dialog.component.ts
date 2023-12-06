@@ -7,6 +7,7 @@ import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { BehaviorSubject, tap } from 'rxjs';
 import { CanvasService } from '../../services/canvas.service';
 import { FileLoadProgressEvent, FileLoadCompleteEvent } from '../../events/file-load-events';
+import { ModelManagerService } from '../../services/model-manager.service';
 
 @Component({
   selector: 'mapper-open-dialog',
@@ -19,6 +20,7 @@ import { FileLoadProgressEvent, FileLoadCompleteEvent } from '../../events/file-
 export class OpenDialogComponent {
 
   readonly #modelService = inject(ModelLoadService);
+  readonly #modelManager = inject(ModelManagerService);
   readonly #canvasService = inject(CanvasService);
   readonly #dialogRef = inject<MatDialogRef<OpenDialogComponent>>(MatDialogRef<OpenDialogComponent>);
 
@@ -72,7 +74,7 @@ export class OpenDialogComponent {
           });
         }
         else if (event instanceof FileLoadCompleteEvent) {
-          this.#canvasService.resetModel(event.result);
+          this.#modelManager.resetToNonGroupModel(event.result);
         }
       }),
       tap({

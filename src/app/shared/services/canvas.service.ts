@@ -1,14 +1,17 @@
 import { Injectable, inject } from '@angular/core';
-import { Subject, animationFrames, map, takeUntil } from 'rxjs';
-import { AmbientLight, Box3, GridHelper, Material, Object3D, OrthographicCamera, Scene, Vector3, WebGLRenderer } from 'three';
+import { Subject, animationFrames, distinctUntilChanged, map, takeUntil, tap } from 'rxjs';
+import { AmbientLight, Box3, GridHelper, Material, OrthographicCamera, Scene, Vector3, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { BaseRenderModel } from '../models/render/base.render-model';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
+import { ModelManagerService } from './model-manager.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable()
 export class CanvasService {
+
+  readonly #modelManager = inject(ModelManagerService);
 
   readonly #scene = new Scene();
   #renderer?: WebGLRenderer;
@@ -21,7 +24,34 @@ export class CanvasService {
 
   #bottomGrid = new GridHelper();
 
-  #currentModels = new GroupRenderModel();
+  #currentGroupInScene?: GroupRenderModel;
+
+  constructor() {
+    this.#modelManager.currentOpenGroup$.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      tap(group => {
+        // clean up the existing group if any
+        this.#currentGroupInScene?.removeFromScene(this.#scene);
+        this.#currentGroupInScene?.dispose();
+
+        this.#currentGroupInScene = group;
+        // if there's a group, update the scene
+        if (group) {
+          group.addToScene(this.#scene);
+          group.setMaterial(this.#material);
+
+          const bounds = group.getBoundingBox();
+
+          this.#rebuildBottomGrid(bounds);
+          this.#refocusCamera(bounds);
+        }
+
+        // regardless, update the renderer
+        this.render();
+      }),
+    ).subscribe();
+  }
 
   cleanupRenderer() {
     if (!this.#renderer) {
@@ -75,33 +105,13 @@ export class CanvasService {
     this.#renderer.setClearColor(bgColor);
   }
 
-  resetModel(model: BaseRenderModel<any>) {
-    if (!this.#renderer || !this.#orthoCamera || !this.#orthoControls) {
-      throw new Error('Attempt to call resetModel() with no renderer');
-    }
-
-    this.#currentModels.removeFromScene(this.#scene);
-    this.#currentModels.dispose();
-
-    this.#currentModels = new GroupRenderModel();
-    this.#currentModels.addModel(model);
-    this.#currentModels.addToScene(this.#scene);
-
-    model.setMaterial(this.#material);
-
-    const bounds = this.#currentModels.getBoundingBox();
-
-    this.#rebuildBottomGrid(bounds);
-    this.#refocusCamera(bounds);
-
-    this.render();
-  }
-
+  // TODO: refocus doesn't seem to actually reposition the camera? I expect lookAt to do that but it's not
   #refocusCamera(bounds: Box3) {
     const controls = this.#orthoControls;
     const camera = this.#orthoCamera;
     if (!controls || !camera) {
-      throw new Error('missing controls/camera');
+      console.error('missing controls/camera', this);
+      return;
     }
 
     camera.near = 0.1;

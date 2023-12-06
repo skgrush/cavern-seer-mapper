@@ -14,6 +14,7 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
     if (this.models.has(model)) {
       return false;
     }
+
     model.addToGroup(this.#group);
     this.models.add(model);
 

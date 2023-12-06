@@ -9,6 +9,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { ThemeService } from './shared/services/theme.service';
 import { ModelLoadService } from './shared/services/model-load.service';
 import { MeshNormalMaterialService } from './shared/services/3d-managers/mesh-normal-material.service';
+import { ModelManagerService } from './shared/services/model-manager.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,6 +20,7 @@ export const appConfig: ApplicationConfig = {
     ResizeService,
     ThemeService,
     ModelLoadService,
+    ModelManagerService,
     MeshNormalMaterialService,
     {
       provide: ErrorHandler,
