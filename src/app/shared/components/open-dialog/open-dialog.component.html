@@ -1,5 +1,5 @@
 <form (submit)="clickOpen($event)">
-  <h1 mat-dialog-title> Open a file </h1>
+  <h1 mat-dialog-title> {{ titleText }} </h1>
   <div mat-dialog-content>
     <mat-list>
       <mat-list-item *ngFor="let file of files">
@@ -16,6 +16,6 @@
 
   <div mat-dialog-actions>
     <button type="button" mat-button [disabled]="uploadProgress" mat-dialog-close cdkFocusInitial>Cancel</button>
-    <button type="submit" mat-button [disabled]="!fileInput.files?.length">Open</button>
+    <button type="submit" mat-button [disabled]="!fileInput.files?.length">{{ submitText }}</button>
   </div>
 </form>

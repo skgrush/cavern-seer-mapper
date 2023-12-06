@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { UploadFileModel, ModelLoadService } from '../../services/model-load.service';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatListModule } from '@angular/material/list';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
@@ -8,6 +8,12 @@ import { BehaviorSubject, tap } from 'rxjs';
 import { CanvasService } from '../../services/canvas.service';
 import { FileLoadProgressEvent, FileLoadCompleteEvent } from '../../events/file-load-events';
 import { ModelManagerService } from '../../services/model-manager.service';
+import { BaseRenderModel } from '../../models/render/base.render-model';
+
+export type IOpenDialogData = {
+  readonly titleText: string;
+  readonly submitText: string;
+};
 
 @Component({
   selector: 'mapper-open-dialog',
@@ -20,9 +26,11 @@ import { ModelManagerService } from '../../services/model-manager.service';
 export class OpenDialogComponent {
 
   readonly #modelService = inject(ModelLoadService);
-  readonly #modelManager = inject(ModelManagerService);
-  readonly #canvasService = inject(CanvasService);
-  readonly #dialogRef = inject<MatDialogRef<OpenDialogComponent>>(MatDialogRef<OpenDialogComponent>);
+  readonly #dialogRef = inject<MatDialogRef<OpenDialogComponent, BaseRenderModel<any>>>(MatDialogRef);
+  readonly #dialogData: IOpenDialogData = inject(MAT_DIALOG_DATA);
+
+  readonly titleText = this.#dialogData.titleText;
+  readonly submitText = this.#dialogData.submitText;
 
   protected readonly uploadProgress = new BehaviorSubject<{
     loaded: number;
@@ -31,6 +39,18 @@ export class OpenDialogComponent {
   uploadError?: any;
 
   files: UploadFileModel[] | null = null;
+
+  static open(
+    dialog: MatDialog,
+    data: IOpenDialogData
+  ) {
+    return dialog.open<OpenDialogComponent, IOpenDialogData, BaseRenderModel<any>>(
+      OpenDialogComponent,
+      {
+        data,
+      }
+    );
+  }
 
   inputChanged(event: Event) {
     console.info('', event);
@@ -54,10 +74,6 @@ export class OpenDialogComponent {
 
     const file = this.files[0];
 
-
-
-    console.info('clickOpen', e, this.files);
-
     this.#dialogRef.disableClose = true;
     this.uploadProgress.next({
       loaded: 0,
@@ -74,13 +90,12 @@ export class OpenDialogComponent {
           });
         }
         else if (event instanceof FileLoadCompleteEvent) {
-          this.#modelManager.resetToNonGroupModel(event.result);
+          this.#dialogRef.close(event.result);
         }
       }),
       tap({
         complete: () => {
           console.info('open complete');
-          this.#dialogRef.close(true);
         },
         error: (err) => {
           console.error('open error', err);

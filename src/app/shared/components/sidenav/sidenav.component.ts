@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { OpenDialogComponent } from '../open-dialog/open-dialog.component';
+import { ModelManagerService } from '../../services/model-manager.service';
 
 
 @Component({
@@ -14,9 +15,17 @@ import { OpenDialogComponent } from '../open-dialog/open-dialog.component';
 })
 export class SidenavComponent {
 
+  readonly #modelManager = inject(ModelManagerService);
   readonly #dialog = inject(MatDialog);
 
   open() {
-    this.#dialog.open(OpenDialogComponent);
+    OpenDialogComponent.open(this.#dialog, {
+      submitText: 'Open',
+      titleText: 'Open a file',
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        this.#modelManager.resetToNonGroupModel(result);
+      }
+    });
   }
 }
