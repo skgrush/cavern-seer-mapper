@@ -29,6 +29,9 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
   }
 
   override addToGroup(group: Group): void {
+    if (this.#object.parent !== null) {
+      throw new Error('attempt to add ObjRenderModel to group while model already has a parent');
+    }
     group.add(this.#object);
   }
   override removeFromGroup(group: Group): void {
