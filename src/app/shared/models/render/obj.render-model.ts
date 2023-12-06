@@ -1,9 +1,9 @@
 import { BoxHelper, Group, Mesh } from "three";
-import { BaseModel } from "./base.model";
-import { FileModelType } from "./model-type.enum";
-import { BaseMaterialService } from "../services/3d-managers/base-material.service";
+import { BaseRenderModel } from "./base.render-model";
+import { FileModelType } from "../model-type.enum";
+import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 
-export class ObjModel extends BaseModel<FileModelType.obj> {
+export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
 
   readonly #fileOrUrl: File | URL;

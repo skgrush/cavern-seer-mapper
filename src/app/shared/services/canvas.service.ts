@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Subject, animationFrames, map, takeUntil } from 'rxjs';
 import { AmbientLight, Box3, GridHelper, Material, Object3D, OrthographicCamera, Scene, Vector3, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { BaseModel } from '../models/base.model';
-import { GroupModel } from '../models/group.model';
+import { BaseRenderModel } from '../models/render/base.render-model';
+import { GroupRenderModel } from '../models/render/group.render-model';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 
@@ -21,7 +21,7 @@ export class CanvasService {
 
   #bottomGrid = new GridHelper();
 
-  #currentModels = new GroupModel();
+  #currentModels = new GroupRenderModel();
 
   cleanupRenderer() {
     if (!this.#renderer) {
@@ -75,7 +75,7 @@ export class CanvasService {
     this.#renderer.setClearColor(bgColor);
   }
 
-  resetModel(model: BaseModel<any>) {
+  resetModel(model: BaseRenderModel<any>) {
     if (!this.#renderer || !this.#orthoCamera || !this.#orthoControls) {
       throw new Error('Attempt to call resetModel() with no renderer');
     }
@@ -83,7 +83,7 @@ export class CanvasService {
     this.#currentModels.removeFromScene(this.#scene);
     this.#currentModels.dispose();
 
-    this.#currentModels = new GroupModel();
+    this.#currentModels = new GroupRenderModel();
     this.#currentModels.addModel(model);
     this.#currentModels.addToScene(this.#scene);
 

@@ -3,9 +3,9 @@ import { MonoTypeOperatorFunction, Observable, defer, map, shareReplay, switchMa
 import { Group, Loader } from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FileLoadCompleteEvent, FileLoadEvent, FileLoadProgressEvent, convertFileLoadEvent } from '../events/file-load-events';
-import { GltfModel } from '../models/gltf.model';
+import { GltfRenderModel } from '../models/render/gltf.render-model';
 import { FileModelType } from '../models/model-type.enum';
-import { ObjModel } from '../models/obj.model';
+import { ObjRenderModel } from '../models/render/obj.render-model';
 
 export type UploadFileModel = {
   readonly file: File;
@@ -49,7 +49,7 @@ export class ModelLoadService {
     return { file, type: FileModelType.unknown };
   }
 
-  loadFile(file: UploadFileModel): Observable<FileLoadEvent<ObjModel | GltfModel>> {
+  loadFile(file: UploadFileModel): Observable<FileLoadEvent<ObjRenderModel | GltfRenderModel>> {
     return defer(() => {
       if (file.type === FileModelType.obj) {
         return this.loadObj(file.file);
@@ -65,13 +65,13 @@ export class ModelLoadService {
     }));
   }
 
-  loadObj(file: File): Observable<FileLoadEvent<ObjModel>> {
+  loadObj(file: File): Observable<FileLoadEvent<ObjRenderModel>> {
     const url = new URL(URL.createObjectURL(file));
     return this.#rawLoadObjFromUrl(url).pipe(
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
-        (inp: Group) => new ObjModel(file, inp),
+        (inp: Group) => new ObjRenderModel(file, inp),
       ))
     );
   }
@@ -81,7 +81,7 @@ export class ModelLoadService {
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
-        (inp: Group) => new ObjModel(url, inp),
+        (inp: Group) => new ObjRenderModel(url, inp),
       )),
     );
   }
@@ -92,13 +92,13 @@ export class ModelLoadService {
     );
   }
 
-  loadGltf(file: File): Observable<FileLoadEvent<GltfModel>> {
+  loadGltf(file: File): Observable<FileLoadEvent<GltfRenderModel>> {
     const url = new URL(URL.createObjectURL(file));
     return this.#rawLoadGltfFromUrl(url).pipe(
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
-        (inp: GLTF) => new GltfModel(file, inp),
+        (inp: GLTF) => new GltfRenderModel(file, inp),
       )),
     );
   }

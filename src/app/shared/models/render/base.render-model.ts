@@ -1,8 +1,8 @@
 import { Group } from "three";
-import { BaseMaterialService } from "../services/3d-managers/base-material.service";
-import { FileModelType } from "./model-type.enum";
+import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
+import { FileModelType } from "../model-type.enum";
 
-export abstract class BaseModel<T extends FileModelType> {
+export abstract class BaseRenderModel<T extends FileModelType> {
 
   abstract readonly type: T;
 

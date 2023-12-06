@@ -1,13 +1,13 @@
 import { BoxHelper, Group, Scene } from "three";
-import { BaseModel } from "./base.model";
+import { BaseRenderModel } from "./base.render-model";
 
 
-export class GroupModel {
+export class GroupRenderModel {
 
   readonly group = new Group();
-  readonly models = new Set<BaseModel<any>>();
+  readonly models = new Set<BaseRenderModel<any>>();
 
-  addModel(model: BaseModel<any>): boolean {
+  addModel(model: BaseRenderModel<any>): boolean {
     if (this.models.has(model)) {
       return false;
     }
@@ -16,7 +16,7 @@ export class GroupModel {
 
     return true;
   }
-  removeModel(model: BaseModel<any>) {
+  removeModel(model: BaseRenderModel<any>) {
     if (!this.models.has(model)) {
       return false;
     }

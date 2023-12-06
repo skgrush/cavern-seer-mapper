@@ -1,10 +1,10 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { BaseModel } from "./base.model";
-import { FileModelType } from "./model-type.enum";
-import { BaseMaterialService } from "../services/3d-managers/base-material.service";
+import { BaseRenderModel } from "./base.render-model";
+import { FileModelType } from "../model-type.enum";
+import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Group, Object3DEventMap } from "three";
 
-export class GltfModel extends BaseModel<FileModelType.gLTF> {
+export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
   override readonly type = FileModelType.gLTF;
 
   readonly #fileOrUrl: File | URL;
