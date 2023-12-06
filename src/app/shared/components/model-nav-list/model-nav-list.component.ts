@@ -7,14 +7,15 @@ import { NestedTreeControl } from '@angular/cdk/tree';
 import { GroupRenderModel } from '../../models/render/group.render-model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, NgIf } from '@angular/common';
+import { ModelDetailFormComponent } from "../model-detail-form/model-detail-form.component";
 
 @Component({
   selector: 'mapper-model-nav-list',
   standalone: true,
-  imports: [MatTreeModule, NgIf, AsyncPipe],
   templateUrl: './model-nav-list.component.html',
   styleUrl: './model-nav-list.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatTreeModule, NgIf, AsyncPipe, ModelDetailFormComponent]
 })
 export class ModelNavListComponent {
 
@@ -43,8 +44,10 @@ export class ModelNavListComponent {
     ).subscribe();
   }
 
-  selectModel(model?: BaseRenderModel<any>) {
+  selectModel(event: MouseEvent, model: undefined | BaseRenderModel<any>) {
+    console.info('selectModel', event, model);
     this.selectedModel.next(model);
+    event.stopPropagation();
   }
 
   protected trackBy(this: unknown, i: number, item: BaseRenderModel<any>) {
