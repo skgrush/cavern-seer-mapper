@@ -1,5 +1,5 @@
 import { BoxHelper, Group, Mesh } from "three";
-import { BaseRenderModel } from "./base.render-model";
+import { BaseRenderModel, ISimpleVector3 } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Subject } from "rxjs";
@@ -9,6 +9,9 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
+  override get position() {
+    return this.#object.position;
+  }
 
   readonly #fileOrUrl: File | URL;
   readonly #object: Group;
@@ -26,6 +29,12 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
     this.identifier = this.#fileOrUrl instanceof URL
       ? this.#fileOrUrl.toString()
       : this.#fileOrUrl.name;
+  }
+
+  override setPosition({ x, y, z }: ISimpleVector3): boolean {
+    this.#object.position.set(x, y, z);
+    this.#childOrPropertyChanged.next();
+    return true;
   }
 
   override setMaterial(material: BaseMaterialService<any>): void {

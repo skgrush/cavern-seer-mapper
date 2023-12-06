@@ -1,5 +1,5 @@
 import { BoxHelper, Group, Object3DEventMap, Scene } from "three";
-import { BaseRenderModel } from "./base.render-model";
+import { BaseRenderModel, ISimpleVector3 } from "./base.render-model";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { FileModelType } from "../model-type.enum";
 import { Subject, Subscription } from "rxjs";
@@ -10,6 +10,9 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
+  override get position() {
+    return this.#group.position;
+  }
 
   readonly #group = new Group();
   readonly #models = new Set<BaseRenderModel<any>>();
@@ -87,6 +90,11 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
     }
   }
 
+  override setPosition(pos: ISimpleVector3): boolean {
+    this.#group.position.set(pos.x, pos.y, pos.z);
+    this.#childOrPropertyChanged.next();
+    return true;
+  }
   override setMaterial(material: BaseMaterialService<any>): void {
     for (const model of this.#models) {
       model.setMaterial(material);
