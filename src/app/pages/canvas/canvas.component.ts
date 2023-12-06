@@ -45,7 +45,7 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
     this.#resizeService.observe$(this.#eleRef).pipe(
       debounceTime(100),
       tap(size => this.#canvasService.resize(size)),
-      tap(() => console.count('count')),
+      tap(() => console.count('canvas resize')),
       takeUntilDestroyed(this.#destroyRef),
     ).subscribe();
 

@@ -1,5 +1,5 @@
 <mat-sidenav-container>
-  <mat-sidenav #sidenav>
+  <mat-sidenav #sidenav id="left-sidenav">
     <mapper-sidenav></mapper-sidenav>
   </mat-sidenav>
 
@@ -9,4 +9,8 @@
     </button>
     <mapper-canvas />
   </mat-sidenav-content>
+
+  <mat-sidenav opened mode="side" position="end" id="right-sidenav">
+    <mapper-model-nav-list />
+  </mat-sidenav>
 </mat-sidenav-container>

@@ -1,0 +1,18 @@
+<mat-tree class="model-nav-tree" [dataSource]="dataSource" [treeControl]="treeControl" [trackBy]="trackBy">
+  <mat-tree-node *matTreeNodeDef="let node" (click)="selectModel(node)">
+    {{ node.identifier }} | {{ node.type }}
+  </mat-tree-node>
+
+  <mat-nested-tree-node *matTreeNodeDef="let node; when: canHaveChildren">
+    <div class="mat-tree-node" (click)="selectModel(node)">
+      {{ node.identifier }} | {{ node.type }}
+    </div>
+    <div class="children">
+      <ng-container matTreeNodeOutlet />
+    </div>
+  </mat-nested-tree-node>
+</mat-tree>
+
+<!-- <form class="model-control" *ngIf="selectedModel | async as selectedModel">
+
+</form> -->
