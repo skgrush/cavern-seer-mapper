@@ -29,4 +29,16 @@ export class SidenavComponent {
       }
     });
   }
+
+  import() {
+    OpenDialogComponent.open(this.#dialog, {
+      submitText: 'Import',
+      titleText: 'Import one or more files',
+      multiple: true,
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        this.#modelManager.importModels(result);
+      }
+    });
+  }
 }

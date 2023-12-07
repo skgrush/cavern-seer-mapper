@@ -18,6 +18,8 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
   readonly #models = new Set<BaseRenderModel<any>>();
   readonly #modelsSubscriptions = new WeakMap<BaseRenderModel<any>, Subscription>();
 
+  #currentMaterial?: BaseMaterialService<any>;
+
   get children(): Array<BaseRenderModel<any>> {
     return [...this.#models];
   }
@@ -38,6 +40,10 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
 
     model.addToGroup(this.#group);
     this.#models.add(model);
+
+    if (this.#currentMaterial) {
+      model.setMaterial(this.#currentMaterial);
+    }
 
     this.#modelsSubscriptions.set(
       model,
@@ -96,6 +102,7 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
     return true;
   }
   override setMaterial(material: BaseMaterialService<any>): void {
+    this.#currentMaterial = material;
     for (const model of this.#models) {
       model.setMaterial(material);
     }

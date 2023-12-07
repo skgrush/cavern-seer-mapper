@@ -27,4 +27,16 @@ export class ModelManagerService {
     group.addModel(model);
     this.resetCurrentGroup(group);
   }
+
+  importModels(models: BaseRenderModel<any>[]) {
+    let currentOpenGroup = this.#currentOpenGroup.value;
+    if (!currentOpenGroup) {
+      currentOpenGroup = new GroupRenderModel();
+      this.#currentOpenGroup.next(currentOpenGroup);
+    }
+
+    for (const model of models) {
+      currentOpenGroup.addModel(model);
+    }
+  }
 }

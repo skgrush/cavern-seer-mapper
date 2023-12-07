@@ -8,6 +8,25 @@ import { GroupRenderModel } from '../../models/render/group.render-model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { ModelDetailFormComponent } from "../model-detail-form/model-detail-form.component";
+import { FileModelType } from '../../models/model-type.enum';
+
+interface INode {
+  identifier: string;
+  type: FileModelType;
+  model: BaseRenderModel<any>;
+  children?: INode[];
+}
+
+function transformToNode(model: BaseRenderModel<any>): INode {
+  return {
+    identifier: model.identifier,
+    type: model.type,
+    model,
+    children: model instanceof GroupRenderModel
+      ? model.children.map(c => transformToNode(c))
+      : undefined
+  }
+}
 
 @Component({
   selector: 'mapper-model-nav-list',
@@ -29,10 +48,10 @@ export class ModelNavListComponent {
     ),
   );
 
-  readonly treeControl = new NestedTreeControl<BaseRenderModel<any>>(
-    m => this.canHaveChildren(0, m) ? m.children : null
+  readonly treeControl = new NestedTreeControl<INode>(
+    m => m.children
   );
-  readonly dataSource = new MatTreeNestedDataSource<BaseRenderModel<any>>();
+  readonly dataSource = new MatTreeNestedDataSource<INode>();
 
   readonly selectedModel = new BehaviorSubject<BaseRenderModel<any> | undefined>(undefined);
 
@@ -40,21 +59,25 @@ export class ModelNavListComponent {
     this.currentOpenOrChildOrPropChanged$.pipe(
       takeUntilDestroyed(),
       switchMap(() => this.currentOpen$.pipe(take(1))),
-      tap(group => this.dataSource.data = group ? [group] : []),
+      tap(group => {
+        this.dataSource.data = group
+          ? [transformToNode(group)]
+          : [];
+      }),
     ).subscribe();
   }
 
-  selectModel(event: MouseEvent, model: undefined | BaseRenderModel<any>) {
-    console.info('selectModel', event, model);
-    this.selectedModel.next(model);
+  selectModel(event: MouseEvent, node: undefined | INode) {
+    console.info('selectModel', event, node);
+    this.selectedModel.next(node?.model);
     event.stopPropagation();
   }
 
-  protected trackBy(this: unknown, i: number, item: BaseRenderModel<any>) {
+  protected trackBy(this: unknown, i: number, item: INode) {
     return item;
   }
 
-  protected canHaveChildren(this: unknown, i: number, item: BaseRenderModel<any>): item is GroupRenderModel {
-    return item instanceof GroupRenderModel;
+  protected canHaveChildren(this: unknown, i: number, item: INode) {
+    return !!item.children?.length;
   }
 }
