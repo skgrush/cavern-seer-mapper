@@ -109,6 +109,10 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
     }
   }
 
+  override serialize(): never {
+    throw new Error('Call to GroupRenderModel#serialize()');
+  }
+
   override setPosition(pos: ISimpleVector3): boolean {
     this.#group.position.set(pos.x, pos.y, pos.z);
     this.#childOrPropertyChanged.next();

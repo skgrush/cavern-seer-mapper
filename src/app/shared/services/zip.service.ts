@@ -1,8 +1,7 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable, defer, map } from 'rxjs';
-import JSZip, { loadAsync, JSZipObject } from 'jszip';
+import { Injectable } from '@angular/core';
+import JSZip, { JSZipObject, loadAsync } from 'jszip';
+import { defer, from, last, map, switchMap, tap } from 'rxjs';
 import { UploadFileModel } from '../models/upload-file-model';
-import { FileTypeService } from './file-type.service';
 
 export type IUnzipEntry = IUnzipDirEntry | IUnzipFileEntry;
 export type IUnzipDirEntry = {
@@ -22,13 +21,47 @@ export type IUnzipFileEntry = {
   readonly loader: () => Promise<Blob>;
 }
 
+export type IZipEntry = {
+  readonly path: string;
+  readonly comment: string | null;
+  readonly data: string | Blob;
+}
+
 @Injectable({
   // necessary to be providedIn:root for dynamic injection
   providedIn: 'root',
 })
 export class ZipService {
 
-  readonly #fileTypeService = inject(FileTypeService);
+  zip$({ generator, fileComment, compressionLevel }: {
+    generator: AsyncGenerator<IZipEntry>,
+    fileComment: string | null,
+    compressionLevel: number,
+  }) {
+    const zip = new JSZip();
+
+    if (compressionLevel < 1 || compressionLevel > 9) {
+      throw new Error(`Invalid compressionLevel ${compressionLevel}`);
+    }
+
+    return from(generator).pipe(
+      tap(entry => console.info('adding zip entry', entry)),
+      map(({ path, data, comment }) =>
+        zip.file(path, data, {
+          comment: comment ?? undefined,
+        }),
+      ),
+      last(),
+      tap(() => console.info('zip entries complete', zip)),
+      switchMap(() => zip.generateAsync({
+        comment: fileComment ?? undefined,
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: compressionLevel },
+      })),
+      tap(() => console.info('zipping complete')),
+    );
+  }
 
   /**
    * Unzip and recurse the zip file, emitting once

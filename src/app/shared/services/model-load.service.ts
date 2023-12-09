@@ -1,5 +1,5 @@
 import { Injectable, Injector, Type, inject } from '@angular/core';
-import { MonoTypeOperatorFunction, Observable, defer, filter, forkJoin, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { MonoTypeOperatorFunction, Observable, defer, filter, first, firstValueFrom, forkJoin, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { Group, Loader } from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FileLoadCompleteEvent, FileLoadEvent, FileLoadProgressEvent, convertFileLoadEvent } from '../events/file-load-events';
@@ -11,9 +11,9 @@ import { GroupRenderModel } from '../models/render/group.render-model';
 import { UploadFileModel } from '../models/upload-file-model';
 import { UnknownRenderModel } from '../models/render/unknown.render-model';
 import { AnyRenderModel } from '../models/render/any-render-model';
-import { IUnzipDirEntry, IUnzipEntry } from './zip.service';
+import type { IUnzipDirEntry, IUnzipEntry, IZipEntry } from './zip.service';
 import { BaseRenderModel } from '../models/render/base.render-model';
-import { BaseModelManifest, modelManifestParse } from '../models/model-manifest';
+import { BaseModelManifest, ModelManifestV0, modelManifestParse } from '../models/model-manifest';
 import { ManifestRenderModel } from '../models/manifest.render-model';
 
 @Injectable()
@@ -42,6 +42,10 @@ export class ModelLoadService {
     map(({ ZipService }) => this.#injector.get(ZipService)),
     shareReplay(1),
   );
+
+  exportModelForSerializing(model: BaseRenderModel<any>): Observable<null | string | Blob> {
+    return of(model.serialize());
+  }
 
   loadFile(file: UploadFileModel): Observable<FileLoadEvent<AnyRenderModel>> {
     return defer(() => {
@@ -76,7 +80,7 @@ export class ModelLoadService {
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
-        (inp: Group) => new ObjRenderModel(file.identifier, inp),
+        (inp: Group) => new ObjRenderModel(file.identifier, inp, file.blob),
       ))
     );
   }
@@ -118,7 +122,7 @@ export class ModelLoadService {
     if (this.#fileTypeService.isZip(file.mime, file.identifier)) {
       return this.#zipService$.pipe(
         switchMap(zs => zs.unzip$(file)),
-        switchMap(({ file, ...dirEntry }) => this.#readManifest$(dirEntry)),
+        switchMap(({ file, ...dirEntry }) => this.#readAndRemoveManifest$(dirEntry)),
         switchMap(({ dirEntry, manifest }) => this.#loadZipEntriesRecursively$(dirEntry, manifest)),
         map(group => new FileLoadCompleteEvent(group)),
         tap(compl => console.info('group complete')),
@@ -126,6 +130,60 @@ export class ModelLoadService {
     }
 
     return throwError(() => new Error(`loadGroup doesn't support file ${file.type} of ${file.identifier}`));
+  }
+
+  writeGroupToZip$(group: GroupRenderModel, compressionLevel: number) {
+    const fileComment = null;
+
+    const manifest = ModelManifestV0.fromModel(group);
+    const manifestEntry: IZipEntry = {
+      data: manifest.serialize(),
+      comment: null,
+      path: this.#fileTypeService.manifestFileName,
+    };
+
+    const entriesGenerator = this.#recursivelyExportModelZipEntries(
+      group,
+      ''
+    );
+    async function* fullGenerator() {
+      yield manifestEntry;
+      yield* entriesGenerator;
+    }
+
+    return this.#zipService$.pipe(
+      first(),
+      switchMap(zipService => zipService.zip$({
+        generator: fullGenerator(),
+        fileComment,
+        compressionLevel,
+      })),
+    );
+  }
+
+  async *#recursivelyExportModelZipEntries(
+    entry: GroupRenderModel,
+    parentPath: string,
+  ): AsyncGenerator<IZipEntry> {
+    console.assert(!parentPath || parentPath.endsWith('/'), 'whoops, parentPath should be empty or slash-suffixed!');
+    for (const child of entry.children) {
+      const path = `${parentPath}${child.identifier}`;
+      const data = await firstValueFrom(this.exportModelForSerializing(child));
+      if (data !== null) {
+        yield {
+          path,
+          comment: null,
+          data,
+        };
+      }
+
+      if (child instanceof GroupRenderModel) {
+        yield* this.#recursivelyExportModelZipEntries(
+          child,
+          path,
+        );
+      }
+    }
   }
 
   #loadZipEntriesRecursively$(unzipEntry: IUnzipEntry, manifest?: BaseModelManifest): Observable<BaseRenderModel<any>> {
@@ -161,14 +219,16 @@ export class ModelLoadService {
     )
   }
 
-  #readManifest$(dirEntry: IUnzipDirEntry): Observable<{ dirEntry: IUnzipDirEntry, manifest?: BaseModelManifest }> {
+  #readAndRemoveManifest$(dirEntry: IUnzipDirEntry): Observable<{ dirEntry: IUnzipDirEntry, manifest?: BaseModelManifest }> {
     const fallback$ = () => of({ dirEntry });
 
     const manifestIdx = dirEntry.children.findIndex(entry => entry.name === this.#fileTypeService.manifestFileName);
     if (manifestIdx === -1) {
       return fallback$();
     }
-    const manifestEntry = dirEntry.children[manifestIdx];
+
+    const newChildren = dirEntry.children.slice();
+    const [manifestEntry] = newChildren.splice(manifestIdx, 1);
 
     if (manifestEntry.dir) {
       console.error('manifest file appears to be a directory?', manifestEntry);
@@ -180,7 +240,10 @@ export class ModelLoadService {
       map(jsonString => modelManifestParse(jsonString)),
       map(manifest => ({
         manifest,
-        dirEntry,
+        dirEntry: {
+          ...dirEntry,
+          children: newChildren,
+        },
       })),
     )
   }

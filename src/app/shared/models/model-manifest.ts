@@ -1,3 +1,5 @@
+import { BaseRenderModel } from "./render/base.render-model";
+import { GroupRenderModel } from "./render/group.render-model";
 import { ISimpleVector3 } from "./simple-types";
 
 
@@ -43,7 +45,56 @@ export class ModelManifestV0 extends BaseModelManifest {
     );
   }
 
+  static fromModel(model: GroupRenderModel): ModelManifestV0 {
+    const buildingManifest: IBuildingManifest = { metadata: {} };
+    this.#recursivelyBuildManifestFromModel(model, '', buildingManifest, true);
+
+    return new ModelManifestV0(
+      buildingManifest.metadata,
+    );
+  }
+
+  static #recursivelyBuildManifestFromModel(
+    model: BaseRenderModel<any>,
+    parentPath: string,
+    buildingManifest: IBuildingManifest,
+    isTopGroup: boolean,
+  ) {
+    console.assert(!parentPath || parentPath.endsWith('/'), 'whoops, parentPath should be empty or slash-suffixed!');
+
+    const path = isTopGroup
+      ? parentPath
+      : `${parentPath}${model.identifier}`;
+    const storePosition = model.position.length() !== 0;
+
+    const shouldStoreMetadata = storePosition;
+    if (shouldStoreMetadata) {
+      const { x, y, z } = model.position;
+      const metadata: IMetadataEntryV0 = {
+        position: { x, y, z },
+      };
+
+      buildingManifest.metadata[path] = metadata;
+    }
+
+    if (model instanceof GroupRenderModel) {
+      for (const child of model.children) {
+        this.#recursivelyBuildManifestFromModel(child, path, buildingManifest, false);
+      }
+    }
+  }
+
+  serialize(): string {
+    return JSON.stringify({
+      metadata: this.metadata,
+    });
+  }
+
   override getPosition(path: string): ISimpleVector3 | undefined {
     return this.metadata[path]?.position;
   }
+}
+
+type IBuildingManifest = {
+  readonly metadata: Partial<Record<string, IMetadataEntryV0>>;
 }

@@ -21,6 +21,10 @@ export class ManifestRenderModel extends BaseRenderModel<FileModelType.manifest>
     super();
   }
 
+  override serialize(): never {
+    throw new Error('Call to ManifestRenderModel#serialize()');
+  }
+
   override setPosition(pos: ISimpleVector3): boolean {
     return false;
   }

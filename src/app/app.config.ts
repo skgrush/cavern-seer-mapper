@@ -12,6 +12,7 @@ import { MeshNormalMaterialService } from './shared/services/3d-managers/mesh-no
 import { ModelManagerService } from './shared/services/model-manager.service';
 import { FileTypeService } from './shared/services/file-type.service';
 import { FileIconModule } from './shared/components/file-icon/file-icon.module';
+import { ExportService } from './shared/services/export.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,6 +21,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     CanvasService,
     ResizeService,
+    ExportService,
     ThemeService,
     importProvidersFrom(FileIconModule),
     FileTypeService,

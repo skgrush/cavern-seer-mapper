@@ -17,16 +17,23 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
 
   readonly #object: Group;
   readonly #boxHelper: BoxHelper;
+  readonly #blob: Blob;
 
   constructor(
     identifier: string,
     object: Group,
+    blob: Blob,
   ) {
     super();
     this.#object = object;
+    this.#blob = blob;
     this.#boxHelper = new BoxHelper(object);
 
     this.identifier = identifier
+  }
+
+  override serialize() {
+    return this.#blob;
   }
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {

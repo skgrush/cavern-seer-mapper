@@ -21,6 +21,10 @@ export class UnknownRenderModel extends BaseRenderModel<FileModelType.unknown> {
     super();
   }
 
+  override serialize() {
+    return this.uploadModel.blob;
+  }
+
   override setPosition(pos: ISimpleVector3): boolean {
     return false;
   }

@@ -27,6 +27,10 @@ export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
     this.#object = object;
   }
 
+  override serialize(): string {
+    return JSON.stringify(this.#object);
+  }
+
   override setPosition(pos: ISimpleVector3): boolean {
     throw new Error("Method not implemented in GltfModel.");
   }
