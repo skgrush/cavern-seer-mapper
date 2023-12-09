@@ -10,6 +10,7 @@ import { ThemeService } from './shared/services/theme.service';
 import { ModelLoadService } from './shared/services/model-load.service';
 import { MeshNormalMaterialService } from './shared/services/3d-managers/mesh-normal-material.service';
 import { ModelManagerService } from './shared/services/model-manager.service';
+import { FileTypeService } from './shared/services/file-type.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,6 +20,7 @@ export const appConfig: ApplicationConfig = {
     CanvasService,
     ResizeService,
     ThemeService,
+    FileTypeService,
     ModelLoadService,
     ModelManagerService,
     MeshNormalMaterialService,

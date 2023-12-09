@@ -1,10 +1,14 @@
 <form (submit)="clickOpen($event)">
   <h1 mat-dialog-title> {{ titleText }} </h1>
   <div mat-dialog-content>
-    <mat-list>
-      <mat-list-item *ngFor="let file of files">
-        <span>{{ file.file.name }}</span> | <span>{{ file.file.size }}</span> | <span>{{ file.type }}</span>
+    <mat-list class="file-list">
+      @for (file of files; track file) {
+      <mat-list-item [class.invalid-file-type]="file.type === ''">
+        <mat-icon matListItemIcon>{{ iconMap[file.type] }}</mat-icon>
+        <div matListItemTitle>{{ file.identifier }}</div>
+        <div matListItemLine>{{ file.blob.size }}</div>
       </mat-list-item>
+      }
     </mat-list>
     <input #fileInput type="file" [multiple]="!!multiple" (change)="inputChanged($event)">
 

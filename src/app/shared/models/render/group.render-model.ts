@@ -29,6 +29,14 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
     this.identifier = Math.random().toString();
   }
 
+  public static fromModels(models: BaseRenderModel<any>[]) {
+    const group = new GroupRenderModel();
+    for (const model of models) {
+      group.addModel(model);
+    }
+    return group;
+  }
+
   /**
    * Add the model to this group.
    * Emits {@link childOrPropertyChanged$} before returning.

@@ -14,20 +14,15 @@ export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
     throw new Error('position not implemented in GltfModel');
   }
 
-  readonly #fileOrUrl: File | URL;
   readonly #object: GLTF;
 
   constructor(
-    fileOrUrl: File | URL,
+    identifier: string,
     object: GLTF,
   ) {
     super();
-    this.#fileOrUrl = fileOrUrl;
+    this.identifier = identifier;
     this.#object = object;
-
-    this.identifier = this.#fileOrUrl instanceof URL
-      ? this.#fileOrUrl.toString()
-      : this.#fileOrUrl.name;
   }
 
   override setPosition(pos: ISimpleVector3): boolean {

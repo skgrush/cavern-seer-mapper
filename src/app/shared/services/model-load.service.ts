@@ -1,63 +1,64 @@
-import { Injectable, Type } from '@angular/core';
-import { MonoTypeOperatorFunction, Observable, defer, map, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { Injectable, Injector, Type, inject } from '@angular/core';
+import { MonoTypeOperatorFunction, Observable, defer, filter, forkJoin, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { Group, Loader } from 'three';
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FileLoadCompleteEvent, FileLoadEvent, FileLoadProgressEvent, convertFileLoadEvent } from '../events/file-load-events';
 import { GltfRenderModel } from '../models/render/gltf.render-model';
 import { FileModelType } from '../models/model-type.enum';
 import { ObjRenderModel } from '../models/render/obj.render-model';
-
-export type UploadFileModel = {
-  readonly file: File;
-  readonly type: FileModelType;
-};
+import { FileTypeService } from './file-type.service';
+import { GroupRenderModel } from '../models/render/group.render-model';
+import { UploadFileModel } from '../models/upload-file-model';
+import { UnknownRenderModel } from '../models/render/unknown.render-model';
+import { AnyRenderModel } from '../models/render/any-render-model';
+import { IUnzipEntry } from './zip.service';
+import { BaseRenderModel } from '../models/render/base.render-model';
 
 @Injectable()
 export class ModelLoadService {
 
-  readonly #objLoader = defer(() =>
+  readonly #fileTypeService = inject(FileTypeService);
+  readonly #injector = inject(Injector);
+
+  readonly #objLoader$ = defer(() =>
     import('three/examples/jsm/loaders/OBJLoader.js')
   ).pipe(
     map(({ OBJLoader }) => OBJLoader),
     shareReplay(1),
   );
 
-  readonly #gltfLoader = defer(() =>
+  readonly #gltfLoader$ = defer(() =>
     import('three/examples/jsm/loaders/GLTFLoader.js')
   ).pipe(
     map(({ GLTFLoader }) => GLTFLoader),
     shareReplay(1),
   );
 
-  *mapFileList(files: FileList) {
-    for (let i = 0; i < files.length; ++i) {
-      yield this.mapFileModel(files[i]);
-    }
-  }
+  readonly #zipService$ = defer(() =>
+    import('./zip.service')
+  ).pipe(
+    map(({ ZipService }) => this.#injector.get(ZipService)),
+    shareReplay(1),
+  );
 
-  mapFileModel(file: File): UploadFileModel {
-    const filenameLower = file.name.toLowerCase();
-    if (file.type === 'model/obj' || filenameLower.endsWith('.obj')) {
-      return { file, type: FileModelType.obj };
-    }
-    if (
-      file.type === 'model/gltf+json' || filenameLower.endsWith('gltf') ||
-      file.type === 'model/gltf-binary' || filenameLower.endsWith('glb')
-    ) {
-      return { file, type: FileModelType.gLTF };
-    }
-    return { file, type: FileModelType.unknown };
-  }
-
-  loadFile(file: UploadFileModel): Observable<FileLoadEvent<ObjRenderModel | GltfRenderModel>> {
+  loadFile(file: UploadFileModel): Observable<FileLoadEvent<AnyRenderModel>> {
     return defer(() => {
-      if (file.type === FileModelType.obj) {
-        return this.loadObj(file.file);
+      switch (file.type) {
+
+        case FileModelType.obj:
+          return this.loadObj(file);
+
+        case FileModelType.gLTF:
+          return this.loadGltf(file);
+
+        case FileModelType.group:
+          return this.loadGroup(file);
+
+        default:
+          return of(
+            new FileLoadCompleteEvent(new UnknownRenderModel(file))
+          );
       }
-      if (file.type === FileModelType.gLTF) {
-        return this.loadGltf(file.file);
-      }
-      return throwError(() => new Error(`Unsupported file type for ${file.file.name}`));
     }).pipe(tap({
       next: v => console.info('loadFile.next', v),
       complete: () => console.info('loadFile.complete'),
@@ -65,48 +66,88 @@ export class ModelLoadService {
     }));
   }
 
-  loadObj(file: File): Observable<FileLoadEvent<ObjRenderModel>> {
-    const url = new URL(URL.createObjectURL(file));
+  loadObj(file: UploadFileModel): Observable<FileLoadEvent<ObjRenderModel>> {
+    const url = new URL(URL.createObjectURL(file.blob));
     return this.#rawLoadObjFromUrl(url).pipe(
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
-        (inp: Group) => new ObjRenderModel(file, inp),
+        (inp: Group) => new ObjRenderModel(file.identifier, inp),
       ))
     );
   }
 
-  loadObjFromUrl(url: URL) {
-    return this.#rawLoadObjFromUrl(url).pipe(
-      this.#revokeUrlOnEnd(url),
-      map(event => convertFileLoadEvent(
-        event,
-        (inp: Group) => new ObjRenderModel(url, inp),
-      )),
-    );
-  }
+  // loadObjFromUrl(url: URL) {
+  //   return this.#rawLoadObjFromUrl(url).pipe(
+  //     this.#revokeUrlOnEnd(url),
+  //     map(event => convertFileLoadEvent(
+  //       event,
+  //       (inp: Group) => new ObjRenderModel(url, inp),
+  //     )),
+  //   );
+  // }
 
   #rawLoadObjFromUrl(url: URL) {
-    return this.#objLoader.pipe(
+    return this.#objLoader$.pipe(
       switchMap(OBJLoader => this.#load(OBJLoader, url)),
     );
   }
 
-  loadGltf(file: File): Observable<FileLoadEvent<GltfRenderModel>> {
-    const url = new URL(URL.createObjectURL(file));
+  loadGltf(file: UploadFileModel): Observable<FileLoadEvent<GltfRenderModel>> {
+    const url = new URL(URL.createObjectURL(file.blob));
     return this.#rawLoadGltfFromUrl(url).pipe(
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
-        (inp: GLTF) => new GltfRenderModel(file, inp),
+        (inp: GLTF) => new GltfRenderModel(file.identifier, inp),
       )),
     );
   }
 
   #rawLoadGltfFromUrl(url: URL) {
-    return this.#gltfLoader.pipe(
+    return this.#gltfLoader$.pipe(
       switchMap(GLTFLoader => this.#load(GLTFLoader, url))
     );
+  }
+
+  loadGroup(file: UploadFileModel): Observable<FileLoadEvent<GroupRenderModel>> {
+    if (this.#fileTypeService.isZip(file.mime, file.identifier)) {
+      return this.#zipService$.pipe(
+        switchMap(zs => zs.unzip$(file)),
+        switchMap(({ file, ...dirEntry }) =>
+          this.#loadZipEntriesRecursively$(dirEntry),
+        ),
+        map(group => new FileLoadCompleteEvent(group)),
+        tap(compl => console.info('group complete')),
+      )
+    }
+
+    return throwError(() => new Error(`loadGroup doesn't support file ${file.type} of ${file.identifier}`));
+  }
+
+  #loadZipEntriesRecursively$(unzipEntry: IUnzipEntry): Observable<BaseRenderModel<any>> {
+    if (unzipEntry.dir) {
+      if (unzipEntry.children.length === 0) {
+        return of(new GroupRenderModel());
+      } else {
+        return forkJoin(
+          unzipEntry.children.map(child => this.#loadZipEntriesRecursively$(child)),
+        ).pipe(
+          map(results => GroupRenderModel.fromModels(results)),
+        );
+      }
+    } else {
+      return defer(() => unzipEntry.loader()).pipe(
+        switchMap(blob => this.loadFile({
+          blob,
+          identifier: unzipEntry.name,
+          mime: blob.type,
+          type: this.#fileTypeService.getType(blob.type, unzipEntry.name),
+        })),
+        filter((event): event is FileLoadCompleteEvent<any> => event instanceof FileLoadCompleteEvent),
+        map(event => event.result),
+      );
+    }
   }
 
   #load<TLoader extends Type<Loader>>(loaderType: TLoader, url: URL) {

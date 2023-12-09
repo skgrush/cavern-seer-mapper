@@ -13,22 +13,18 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
     return this.#object.position;
   }
 
-  readonly #fileOrUrl: File | URL;
   readonly #object: Group;
   readonly #boxHelper: BoxHelper;
 
   constructor(
-    fileOrUrl: File | URL,
+    identifier: string,
     object: Group,
   ) {
     super();
-    this.#fileOrUrl = fileOrUrl;
     this.#object = object;
     this.#boxHelper = new BoxHelper(object);
 
-    this.identifier = this.#fileOrUrl instanceof URL
-      ? this.#fileOrUrl.toString()
-      : this.#fileOrUrl.name;
+    this.identifier = identifier
   }
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {

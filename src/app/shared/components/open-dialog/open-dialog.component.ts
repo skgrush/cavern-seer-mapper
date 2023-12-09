@@ -1,14 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { UploadFileModel, ModelLoadService } from '../../services/model-load.service';
-import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatListModule } from '@angular/material/list';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { BehaviorSubject, catchError, combineLatest, filter, forkJoin, map, tap } from 'rxjs';
-import { CanvasService } from '../../services/canvas.service';
-import { FileLoadProgressEvent, FileLoadCompleteEvent } from '../../events/file-load-events';
-import { ModelManagerService } from '../../services/model-manager.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { BehaviorSubject, filter, forkJoin, map, tap } from 'rxjs';
+import { FileLoadCompleteEvent, FileLoadProgressEvent } from '../../events/file-load-events';
 import { BaseRenderModel } from '../../models/render/base.render-model';
+import { UploadFileModel } from '../../models/upload-file-model';
+import { FileTypeService } from '../../services/file-type.service';
+import { ModelLoadService } from '../../services/model-load.service';
 
 export type IOpenDialogData = {
   readonly titleText: string;
@@ -19,7 +20,7 @@ export type IOpenDialogData = {
 @Component({
   selector: 'mapper-open-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule],
+  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, MatIconModule],
   templateUrl: './open-dialog.component.html',
   styleUrl: './open-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -27,12 +28,15 @@ export type IOpenDialogData = {
 export class OpenDialogComponent {
 
   readonly #modelService = inject(ModelLoadService);
+  readonly #fileTypeService = inject(FileTypeService);
   readonly #dialogRef = inject<MatDialogRef<OpenDialogComponent, BaseRenderModel<any>[]>>(MatDialogRef);
   readonly #dialogData: IOpenDialogData = inject(MAT_DIALOG_DATA);
 
   readonly titleText = this.#dialogData.titleText;
   readonly submitText = this.#dialogData.submitText;
   readonly multiple = this.#dialogData.multiple;
+
+  readonly iconMap = this.#fileTypeService.fileTypeIcons;
 
   protected readonly uploadProgress = new BehaviorSubject<{
     loaded: number;
@@ -65,7 +69,7 @@ export class OpenDialogComponent {
       return;
     }
 
-    this.files = [...this.#modelService.mapFileList(event.target.files)];
+    this.files = [...this.#fileTypeService.mapFileList(event.target.files)];
   }
 
   clickOpen(e: SubmitEvent) {
@@ -76,7 +80,7 @@ export class OpenDialogComponent {
     }
 
     const files = this.files;
-    const totalSize = files.reduce((acc, curr) => acc + curr.file.size, 0);
+    const totalSize = files.reduce((acc, curr) => acc + curr.blob.size, 0);
 
     this.#dialogRef.disableClose = true;
     this.uploadProgress.next({
