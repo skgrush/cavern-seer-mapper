@@ -11,11 +11,14 @@ import { GroupRenderModel } from '../models/render/group.render-model';
 import { UploadFileModel } from '../models/upload-file-model';
 import { UnknownRenderModel } from '../models/render/unknown.render-model';
 import { AnyRenderModel } from '../models/render/any-render-model';
-import { IUnzipEntry } from './zip.service';
+import { IUnzipDirEntry, IUnzipEntry } from './zip.service';
 import { BaseRenderModel } from '../models/render/base.render-model';
+import { BaseModelManifest, modelManifestParse } from '../models/model-manifest';
 
 @Injectable()
 export class ModelLoadService {
+
+  readonly manifestFileName = '__cavern-seer-manifest.json';
 
   readonly #fileTypeService = inject(FileTypeService);
   readonly #injector = inject(Injector);
@@ -114,9 +117,8 @@ export class ModelLoadService {
     if (this.#fileTypeService.isZip(file.mime, file.identifier)) {
       return this.#zipService$.pipe(
         switchMap(zs => zs.unzip$(file)),
-        switchMap(({ file, ...dirEntry }) =>
-          this.#loadZipEntriesRecursively$(dirEntry),
-        ),
+        switchMap(({ file, ...dirEntry }) => this.#readManifest$(dirEntry)),
+        switchMap(({ dirEntry, manifest }) => this.#loadZipEntriesRecursively$(dirEntry, manifest)),
         map(group => new FileLoadCompleteEvent(group)),
         tap(compl => console.info('group complete')),
       )
@@ -125,29 +127,61 @@ export class ModelLoadService {
     return throwError(() => new Error(`loadGroup doesn't support file ${file.type} of ${file.identifier}`));
   }
 
-  #loadZipEntriesRecursively$(unzipEntry: IUnzipEntry): Observable<BaseRenderModel<any>> {
-    if (unzipEntry.dir) {
-      if (unzipEntry.children.length === 0) {
-        return of(new GroupRenderModel());
+  #loadZipEntriesRecursively$(unzipEntry: IUnzipEntry, manifest?: BaseModelManifest): Observable<BaseRenderModel<any>> {
+    return defer(() => {
+      if (unzipEntry.dir) {
+        if (unzipEntry.children.length === 0) {
+          return of(GroupRenderModel.fromModels(unzipEntry.name, []));
+        } else {
+          return forkJoin(
+            unzipEntry.children.map(child => this.#loadZipEntriesRecursively$(child, manifest)),
+          ).pipe(
+            map(results => GroupRenderModel.fromModels(unzipEntry.name, results)),
+          );
+        }
       } else {
-        return forkJoin(
-          unzipEntry.children.map(child => this.#loadZipEntriesRecursively$(child)),
-        ).pipe(
-          map(results => GroupRenderModel.fromModels(results)),
+        return defer(() => unzipEntry.loader()).pipe(
+          switchMap(blob => this.loadFile({
+            blob,
+            identifier: unzipEntry.name,
+            mime: blob.type,
+            type: this.#fileTypeService.getType(blob.type, unzipEntry.name),
+          })),
+          filter((event): event is FileLoadCompleteEvent<BaseRenderModel<any>> => event instanceof FileLoadCompleteEvent),
+          map(event => event.result),
         );
       }
-    } else {
-      return defer(() => unzipEntry.loader()).pipe(
-        switchMap(blob => this.loadFile({
-          blob,
-          identifier: unzipEntry.name,
-          mime: blob.type,
-          type: this.#fileTypeService.getType(blob.type, unzipEntry.name),
-        })),
-        filter((event): event is FileLoadCompleteEvent<any> => event instanceof FileLoadCompleteEvent),
-        map(event => event.result),
-      );
+    }).pipe(
+      tap(model => {
+        if (manifest) {
+          model.setFromManifest(manifest, unzipEntry.path);
+        }
+      }),
+    )
+  }
+
+  #readManifest$(dirEntry: IUnzipDirEntry): Observable<{ dirEntry: IUnzipDirEntry, manifest?: BaseModelManifest }> {
+    const fallback$ = () => of({ dirEntry });
+
+    const manifestIdx = dirEntry.children.findIndex(entry => entry.name === this.manifestFileName);
+    if (manifestIdx === -1) {
+      return fallback$();
     }
+    const manifestEntry = dirEntry.children[manifestIdx];
+
+    if (manifestEntry.dir) {
+      console.error('manifest file appears to be a directory?', manifestEntry);
+      return fallback$();
+    }
+
+    return defer(() => manifestEntry.loader()).pipe(
+      switchMap(jsonBlob => jsonBlob.text()),
+      map(jsonString => modelManifestParse(jsonString)),
+      map(manifest => ({
+        manifest,
+        dirEntry,
+      })),
+    )
   }
 
   #load<TLoader extends Type<Loader>>(loaderType: TLoader, url: URL) {

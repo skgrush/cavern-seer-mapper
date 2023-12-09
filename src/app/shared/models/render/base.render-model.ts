@@ -20,4 +20,13 @@ export abstract class BaseRenderModel<T extends FileModelType> {
   abstract removeFromGroup(group: Group): void;
 
   abstract dispose(): void;
+
+  setFromManifest(manifest: BaseModelManifest, path: string): void {
+    const pos = manifest.getPosition(path);
+    debugger;
+
+    if (pos) {
+      this.setPosition(pos);
+    }
+  }
 }

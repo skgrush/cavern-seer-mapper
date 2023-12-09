@@ -23,15 +23,14 @@ export class ModelManagerService {
       return;
     }
 
-    const group = new GroupRenderModel();
-    group.addModel(model);
+    const group = GroupRenderModel.fromModels('from resetToNonGroupModel()', [model]);
     this.resetCurrentGroup(group);
   }
 
   importModels(models: BaseRenderModel<any>[]) {
     let currentOpenGroup = this.#currentOpenGroup.value;
     if (!currentOpenGroup) {
-      currentOpenGroup = new GroupRenderModel();
+      currentOpenGroup = new GroupRenderModel('from importModels()');
       this.#currentOpenGroup.next(currentOpenGroup);
     }
 

@@ -1,8 +1,9 @@
 import { BoxHelper, Group, Object3DEventMap, Scene } from "three";
-import { BaseRenderModel, ISimpleVector3 } from "./base.render-model";
+import { BaseRenderModel } from "./base.render-model";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { FileModelType } from "../model-type.enum";
 import { Subject, Subscription } from "rxjs";
+import { ISimpleVector3 } from "../simple-types";
 
 
 export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
@@ -24,13 +25,16 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
     return [...this.#models];
   }
 
-  constructor() {
+  constructor(
+    identifier: string,
+  ) {
     super();
-    this.identifier = Math.random().toString();
+    this.identifier = identifier;
   }
 
-  public static fromModels(models: BaseRenderModel<any>[]) {
-    const group = new GroupRenderModel();
+  public static fromModels(identifier: string, models: BaseRenderModel<any>[]) {
+    const group = new GroupRenderModel(identifier);
+
     for (const model of models) {
       group.addModel(model);
     }
