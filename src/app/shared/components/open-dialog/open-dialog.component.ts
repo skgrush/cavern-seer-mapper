@@ -1,7 +1,6 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BehaviorSubject, filter, forkJoin, map, tap } from 'rxjs';
@@ -10,6 +9,7 @@ import { BaseRenderModel } from '../../models/render/base.render-model';
 import { UploadFileModel } from '../../models/upload-file-model';
 import { FileTypeService } from '../../services/file-type.service';
 import { ModelLoadService } from '../../services/model-load.service';
+import { FileIconComponent } from '../file-icon/file-icon.component';
 
 export type IOpenDialogData = {
   readonly titleText: string;
@@ -20,7 +20,7 @@ export type IOpenDialogData = {
 @Component({
   selector: 'mapper-open-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, MatIconModule],
+  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, FileIconComponent],
   templateUrl: './open-dialog.component.html',
   styleUrl: './open-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -35,8 +35,6 @@ export class OpenDialogComponent {
   readonly titleText = this.#dialogData.titleText;
   readonly submitText = this.#dialogData.submitText;
   readonly multiple = this.#dialogData.multiple;
-
-  readonly iconMap = this.#fileTypeService.fileTypeIcons;
 
   protected readonly uploadProgress = new BehaviorSubject<{
     loaded: number;

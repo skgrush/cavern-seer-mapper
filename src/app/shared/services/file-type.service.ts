@@ -5,13 +5,6 @@ import { FileModelType } from '../models/model-type.enum';
 @Injectable()
 export class FileTypeService {
 
-  readonly fileTypeIcons = Object.freeze({
-    '': 'question',
-    group: 'folder_zip',
-    gltf: 'data_object',
-    obj: 'deployed_code',
-  } satisfies Record<FileModelType, string>);
-
   *mapFileList(files: FileList) {
     for (let i = 0; i < files.length; ++i) {
       yield this.mapFileModel(files[i]);

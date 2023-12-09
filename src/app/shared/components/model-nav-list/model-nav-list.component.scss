@@ -14,6 +14,12 @@
 
   .clickable-node {
     cursor: pointer;
+
+    column-gap: 2px;
+
+    &.selected-node {
+      background-color: var(--mat-ripple-color);
+    }
   }
 }
 

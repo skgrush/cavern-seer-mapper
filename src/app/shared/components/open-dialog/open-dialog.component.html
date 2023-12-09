@@ -4,7 +4,7 @@
     <mat-list class="file-list">
       @for (file of files; track file) {
       <mat-list-item [class.invalid-file-type]="file.type === ''">
-        <mat-icon matListItemIcon>{{ iconMap[file.type] }}</mat-icon>
+        <mapper-file-icon matListItemIcon [type]="file.type" />
         <div matListItemTitle>{{ file.identifier }}</div>
         <div matListItemLine>{{ file.blob.size }}</div>
       </mat-list-item>
