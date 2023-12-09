@@ -7,15 +7,17 @@ import { FileTypeService } from './file-type.service';
 export type IUnzipEntry = IUnzipDirEntry | IUnzipFileEntry;
 export type IUnzipDirEntry = {
   readonly dir: true;
+  readonly path: string;
   readonly name: string;
-  readonly comment: string;
+  readonly comment: string | null;
   readonly children: IUnzipEntry[];
   readonly loader?: undefined;
 };
 export type IUnzipFileEntry = {
   readonly dir: false;
+  readonly path: string;
   readonly name: string;
-  readonly comment: string;
+  readonly comment: string | null;
   readonly children?: never;
   readonly loader: () => Promise<Blob>;
 }
@@ -34,13 +36,13 @@ export class ZipService {
   unzip$(file: UploadFileModel) {
     return defer(() => loadAsync(file.blob)).pipe(
       map(jszip => {
-        debugger;
 
         const children = [...this.recursivelyBuildHierarchy(jszip)];
         const result = {
           file,
           dir: true as const,
-          name: jszip.name,
+          path: '',
+          name: file.identifier,
           comment: '',
           children,
         };
@@ -78,6 +80,7 @@ export class ZipService {
       yield {
         dir: false,
         comment: fileEntry.comment,
+        path: fileEntry.name,
         name,
         loader: () => fileEntry.async('blob'),
       }
@@ -92,6 +95,7 @@ export class ZipService {
       yield {
         dir: true,
         comment: dirEntry.comment,
+        path: dirEntry.name,
         name,
         children: [...this.recursivelyBuildHierarchy(folderJSZip)],
       };
