@@ -5,6 +5,8 @@ import { FileModelType } from '../models/model-type.enum';
 @Injectable()
 export class FileTypeService {
 
+  readonly manifestFileName = '__cavern-seer-manifest.json';
+
   *mapFileList(files: FileList) {
     for (let i = 0; i < files.length; ++i) {
       yield this.mapFileModel(files[i]);
@@ -19,6 +21,9 @@ export class FileTypeService {
   }
 
   getType(mime: string, name: string): FileModelType {
+    if (name === this.manifestFileName) {
+      return FileModelType.manifest;
+    }
     if (this.isObj(mime, name)) {
       return FileModelType.obj;
     }

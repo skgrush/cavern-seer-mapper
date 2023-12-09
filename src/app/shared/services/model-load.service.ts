@@ -14,11 +14,10 @@ import { AnyRenderModel } from '../models/render/any-render-model';
 import { IUnzipDirEntry, IUnzipEntry } from './zip.service';
 import { BaseRenderModel } from '../models/render/base.render-model';
 import { BaseModelManifest, modelManifestParse } from '../models/model-manifest';
+import { ManifestRenderModel } from '../models/manifest.render-model';
 
 @Injectable()
 export class ModelLoadService {
-
-  readonly manifestFileName = '__cavern-seer-manifest.json';
 
   readonly #fileTypeService = inject(FileTypeService);
   readonly #injector = inject(Injector);
@@ -56,6 +55,8 @@ export class ModelLoadService {
 
         case FileModelType.group:
           return this.loadGroup(file);
+        case FileModelType.manifest:
+          return of(new FileLoadCompleteEvent(new ManifestRenderModel(file)));
 
         default:
           return of(
@@ -163,7 +164,7 @@ export class ModelLoadService {
   #readManifest$(dirEntry: IUnzipDirEntry): Observable<{ dirEntry: IUnzipDirEntry, manifest?: BaseModelManifest }> {
     const fallback$ = () => of({ dirEntry });
 
-    const manifestIdx = dirEntry.children.findIndex(entry => entry.name === this.manifestFileName);
+    const manifestIdx = dirEntry.children.findIndex(entry => entry.name === this.#fileTypeService.manifestFileName);
     if (manifestIdx === -1) {
       return fallback$();
     }
