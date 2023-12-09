@@ -1,9 +1,10 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { BaseRenderModel, ISimpleVector3 } from "./base.render-model";
+import { BaseRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Group, Object3DEventMap, Vector3 } from "three";
 import { Subject } from "rxjs";
+import { ISimpleVector3 } from "../simple-types";
 
 export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
   override readonly type = FileModelType.gLTF;

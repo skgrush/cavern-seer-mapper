@@ -1,8 +1,9 @@
 import { BoxHelper, Group, Mesh } from "three";
-import { BaseRenderModel, ISimpleVector3 } from "./base.render-model";
+import { BaseRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Subject } from "rxjs";
+import { ISimpleVector3 } from "../simple-types";
 
 export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;

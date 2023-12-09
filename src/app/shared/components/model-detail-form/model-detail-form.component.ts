@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
-import { BaseRenderModel, ISimpleVector3 } from '../../models/render/base.render-model';
+import { BaseRenderModel } from '../../models/render/base.render-model';
 
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, debounceTime, startWith, switchMap, tap } from 'rxjs';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ISimpleVector3 } from '../../models/simple-types';
 
 const zeroVec = Object.freeze({
   x: 0,
