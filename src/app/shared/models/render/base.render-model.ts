@@ -11,6 +11,7 @@ export abstract class BaseRenderModel<T extends FileModelType> {
   abstract readonly childOrPropertyChanged$: Observable<void>;
   abstract readonly identifier: string;
   abstract readonly position: Readonly<Vector3>;
+  abstract readonly rendered: boolean;
 
   abstract setPosition(pos: ISimpleVector3): boolean;
 
@@ -23,7 +24,6 @@ export abstract class BaseRenderModel<T extends FileModelType> {
 
   setFromManifest(manifest: BaseModelManifest, path: string): void {
     const pos = manifest.getPosition(path);
-    debugger;
 
     if (pos) {
       this.setPosition(pos);

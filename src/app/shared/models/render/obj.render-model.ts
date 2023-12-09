@@ -10,6 +10,7 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
+  override readonly rendered = true;
   override get position() {
     return this.#object.position;
   }

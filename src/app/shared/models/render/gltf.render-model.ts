@@ -11,6 +11,7 @@ export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
+  override readonly rendered = true;
   override get position(): Readonly<Vector3> {
     throw new Error('position not implemented in GltfModel');
   }

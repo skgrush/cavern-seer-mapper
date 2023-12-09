@@ -11,6 +11,7 @@ export class UnknownRenderModel extends BaseRenderModel<FileModelType.unknown> {
   override readonly type = FileModelType.unknown;
   override readonly childOrPropertyChanged$ = NEVER;
   override readonly position: Readonly<Vector3> = new Vector3();
+  override readonly rendered = false;
 
   override readonly identifier = this.uploadModel.identifier;
 

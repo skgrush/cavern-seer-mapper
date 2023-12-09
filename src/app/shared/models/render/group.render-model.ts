@@ -11,6 +11,7 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
+  override readonly rendered = true;
   override get position() {
     return this.#group.position;
   }
