@@ -84,9 +84,13 @@ export class ModelManifestV0 extends BaseModelManifest {
     }
   }
 
-  serialize(): string {
-    return JSON.stringify({
-      metadata: this.metadata,
+  serialize() {
+    return new Blob([
+      JSON.stringify({
+        metadata: this.metadata,
+      }),
+    ], {
+      type: 'application/json',
     });
   }
 

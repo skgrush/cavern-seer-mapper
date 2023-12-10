@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import JSZip, { JSZipObject, loadAsync } from 'jszip';
-import { defer, from, last, map, switchMap, tap } from 'rxjs';
+import { Observable, defer, from, last, map, switchMap, tap } from 'rxjs';
 import { UploadFileModel } from '../models/upload-file-model';
+import { TransportProgressHandler } from '../models/transport-progress-handler';
 
 export type IUnzipEntry = IUnzipDirEntry | IUnzipFileEntry;
 export type IUnzipDirEntry = {
@@ -24,7 +25,7 @@ export type IUnzipFileEntry = {
 export type IZipEntry = {
   readonly path: string;
   readonly comment: string | null;
-  readonly data: string | Blob;
+  readonly data: Blob;
 }
 
 @Injectable({
@@ -33,11 +34,12 @@ export type IZipEntry = {
 })
 export class ZipService {
 
-  zip$({ generator, fileComment, compressionLevel }: {
+  zip$({ generator, fileComment, compressionLevel, progress }: {
     generator: AsyncGenerator<IZipEntry>,
     fileComment: string | null,
     compressionLevel: number,
-  }) {
+    progress?: TransportProgressHandler,
+  }): Observable<Blob> {
     const zip = new JSZip();
 
     if (compressionLevel < 1 || compressionLevel > 9) {
@@ -46,20 +48,40 @@ export class ZipService {
 
     return from(generator).pipe(
       tap(entry => console.info('adding zip entry', entry)),
-      map(({ path, data, comment }) =>
-        zip.file(path, data, {
+      tap(({ path, data, comment }) => {
+        progress?.addToTotal(data.size, true);
+        return zip.file(path, data, {
           comment: comment ?? undefined,
-        }),
-      ),
+        });
+      }),
       last(),
-      tap(() => console.info('zip entries complete', zip)),
-      switchMap(() => zip.generateAsync({
-        comment: fileComment ?? undefined,
-        type: 'blob',
-        compression: 'DEFLATE',
-        compressionOptions: { level: compressionLevel },
+      switchMap(() => this.zipZipWithTransportProgress({
+        zip,
+        fileComment,
+        compressionLevel,
+        progress,
       })),
       tap(() => console.info('zipping complete')),
+    );
+  }
+
+  zipZipWithTransportProgress({
+    zip, fileComment, compressionLevel, progress,
+  }: {
+    zip: JSZip,
+    fileComment: string | null,
+    compressionLevel: number,
+    progress?: TransportProgressHandler,
+  }) {
+    const streamHelper = zip.generateInternalStream({
+      comment: fileComment ?? undefined,
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: compressionLevel },
+    });
+
+    return streamHelper.accumulate(
+      ({ percent, currentFile }) => progress?.setLoadPercent(percent, currentFile ?? undefined)
     );
   }
 

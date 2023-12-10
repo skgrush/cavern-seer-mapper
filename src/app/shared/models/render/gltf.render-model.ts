@@ -16,19 +16,22 @@ export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
     throw new Error('position not implemented in GltfModel');
   }
 
+  readonly #blob: Blob;
   readonly #object: GLTF;
 
   constructor(
     identifier: string,
+    blob: Blob,
     object: GLTF,
   ) {
     super();
     this.identifier = identifier;
+    this.#blob = blob;
     this.#object = object;
   }
 
-  override serialize(): string {
-    return JSON.stringify(this.#object);
+  override serialize() {
+    return this.#blob;
   }
 
   override setPosition(pos: ISimpleVector3): boolean {

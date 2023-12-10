@@ -1,8 +1,9 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
-import { catchError, map, of, switchMap, tap, timer } from 'rxjs';
+import { Subject, first, map, of, switchMap, tap, timer } from 'rxjs';
 import { ModelManagerService } from './model-manager.service';
 import { ModelLoadService } from './model-load.service';
+import { TransportProgressHandler } from '../models/transport-progress-handler';
 
 @Injectable()
 export class ExportService {
@@ -11,9 +12,15 @@ export class ExportService {
   readonly #modelManager = inject(ModelManagerService);
   readonly #modelLoad = inject(ModelLoadService);
 
-  downloadZip$(compressionLevel: number) {
-    alert('This is experimental and can take a SIGNIFICANT amount of time. Do not change the model until the button is re-enabled!');
+  /**
+   * Trigger a browser download of the currentOpenGroup.
+   *
+   * @returns Observable of a descriptive object on success or undefined if there is no group.
+   *  The observable will raise any errors during the zip process.
+   */
+  downloadZip$(compressionLevel: number, progress: TransportProgressHandler) {
     return this.#modelManager.currentOpenGroup$.pipe(
+      first(),
       switchMap(currentGroup => {
         if (!currentGroup) {
           return of(undefined);
@@ -22,6 +29,7 @@ export class ExportService {
         return this.#modelLoad.writeGroupToZip$(
           currentGroup,
           compressionLevel,
+          progress,
         ).pipe(
           map(blob => ({ blob, currentGroup }))
         );
@@ -31,9 +39,11 @@ export class ExportService {
           return of(info);
         }
         const { blob, currentGroup } = info;
+        const name = currentGroup.identifier;
+        const size = blob.size;
 
         const anchor = this.#document.createElement('a');
-        anchor.download = currentGroup.identifier;
+        anchor.download = name;
 
         const url = URL.createObjectURL(blob);
         anchor.href = url;
@@ -41,13 +51,9 @@ export class ExportService {
 
         return timer(10).pipe(
           tap(() => URL.revokeObjectURL(url)),
-          map(() => true),
+          map(() => ({ name, size })),
         );
       }),
-      catchError(err => {
-        console.error('Error downloading zip', err);
-        return of(false);
-      })
     )
   }
 }

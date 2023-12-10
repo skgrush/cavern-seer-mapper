@@ -19,7 +19,7 @@
   </div>
 
   <div mat-dialog-actions>
-    <button type="button" mat-button [disabled]="uploadProgress" mat-dialog-close cdkFocusInitial>Cancel</button>
+    <button type="button" mat-button [disabled]="uploadProgress.value" mat-dialog-close cdkFocusInitial>Cancel</button>
     <button type="submit" mat-button [disabled]="!fileInput.files?.length">{{ submitText }}</button>
   </div>
 </form>

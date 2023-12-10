@@ -15,6 +15,7 @@ import type { IUnzipDirEntry, IUnzipEntry, IZipEntry } from './zip.service';
 import { BaseRenderModel } from '../models/render/base.render-model';
 import { BaseModelManifest, ModelManifestV0, modelManifestParse } from '../models/model-manifest';
 import { ManifestRenderModel } from '../models/manifest.render-model';
+import { TransportProgressHandler } from '../models/transport-progress-handler';
 
 @Injectable()
 export class ModelLoadService {
@@ -43,7 +44,7 @@ export class ModelLoadService {
     shareReplay(1),
   );
 
-  exportModelForSerializing(model: BaseRenderModel<any>): Observable<null | string | Blob> {
+  exportModelForSerializing(model: BaseRenderModel<any>): Observable<null | Blob> {
     return of(model.serialize());
   }
 
@@ -85,16 +86,6 @@ export class ModelLoadService {
     );
   }
 
-  // loadObjFromUrl(url: URL) {
-  //   return this.#rawLoadObjFromUrl(url).pipe(
-  //     this.#revokeUrlOnEnd(url),
-  //     map(event => convertFileLoadEvent(
-  //       event,
-  //       (inp: Group) => new ObjRenderModel(url, inp),
-  //     )),
-  //   );
-  // }
-
   #rawLoadObjFromUrl(url: URL) {
     return this.#objLoader$.pipe(
       switchMap(OBJLoader => this.#load(OBJLoader, url)),
@@ -107,7 +98,7 @@ export class ModelLoadService {
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
-        (inp: GLTF) => new GltfRenderModel(file.identifier, inp),
+        (inp: GLTF) => new GltfRenderModel(file.identifier, file.blob, inp),
       )),
     );
   }
@@ -132,7 +123,7 @@ export class ModelLoadService {
     return throwError(() => new Error(`loadGroup doesn't support file ${file.type} of ${file.identifier}`));
   }
 
-  writeGroupToZip$(group: GroupRenderModel, compressionLevel: number) {
+  writeGroupToZip$(group: GroupRenderModel, compressionLevel: number, progress: TransportProgressHandler) {
     const fileComment = null;
 
     const manifest = ModelManifestV0.fromModel(group);
@@ -157,6 +148,7 @@ export class ModelLoadService {
         generator: fullGenerator(),
         fileComment,
         compressionLevel,
+        progress,
       })),
     );
   }

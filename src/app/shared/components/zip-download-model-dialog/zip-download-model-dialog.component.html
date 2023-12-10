@@ -1,0 +1,37 @@
+<form (submit)="submit($event)">
+  <h1 mat-dialog-title>{{ titleText }}</h1>
+  <div mat-dialog-content>
+    <div>
+      <h2>!!!WARNING!!!</h2>
+      <div>This is experimental; do not override canonical datasets with this or trust the output!</div>
+      <div>This can also take a <b>significant</b> amount of time; be careful.</div>
+    </div>
+
+    <mat-form-field>
+      <mat-label>Compression level</mat-label>
+      <input matInput type="number" [formControl]="formGroup.controls.compressionLevel" [step]="1">
+    </mat-form-field>
+
+    <ng-container *ngIf="uploadProgress.progress$ | async as progress">
+      <div class="loading-container" *ngIf="progress.active">
+        <div *ngIf="progress.stage">Stage: {{ progress.stage }}</div>
+        <div>{{ progress.loaded }} / {{ progress.total }}</div>
+        <mat-progress-bar [mode]="progress.determinate ? 'determinate' : 'indeterminate'"
+          [value]="100 * progress.loaded / progress.total" />
+      </div>
+    </ng-container>
+    <div class="success-container" *ngIf="resultSubject | async as result">
+      Successfully downloaded {{ result.name }}, compressed to {{ result.size }}.
+    </div>
+    <div class="error-container" *ngIf="errorSubject | async as error">
+      <h3>Error</h3>
+      <div>{{ error.name }}</div>
+      <div>{{ error.toString() }}</div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions>
+    <button type="button" mat-button [disabled]="isUploading$ | async" mat-dialog-close cdkFocusInitial>Cancel</button>
+    <button type="submit" mat-button [disabled]="!formGroup.valid">Zip</button>
+  </div>
+</form>
