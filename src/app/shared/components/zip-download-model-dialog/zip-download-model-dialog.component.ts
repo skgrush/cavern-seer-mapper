@@ -37,10 +37,6 @@ export class ZipDownloadModelDialogComponent {
   readonly errorSubject = new BehaviorSubject<any | undefined>(undefined);
 
   protected readonly uploadProgress = new TransportProgressHandler();
-  protected readonly isUploading$ = this.uploadProgress.progress$.pipe(
-    map(prog => prog.active),
-    distinctUntilChanged(),
-  )
 
   readonly formGroup = new FormGroup({
     compressionLevel: new FormControl(5, {
@@ -68,7 +64,7 @@ export class ZipDownloadModelDialogComponent {
   submit(event: SubmitEvent) {
     event.preventDefault();
 
-    if (!this.formGroup.valid) {
+    if (!this.formGroup.valid || this.uploadProgress.isActive) {
       return;
     }
 
@@ -86,6 +82,9 @@ export class ZipDownloadModelDialogComponent {
           this.resultSubject.next(result);
         },
         error: err => this.errorSubject.next(err),
+        complete: () => {
+          this.#dialogRef.disableClose = false;
+        },
       });
   }
 }

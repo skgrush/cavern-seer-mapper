@@ -1,4 +1,4 @@
-import { BehaviorSubject, InteropObservable } from "rxjs";
+import { BehaviorSubject, distinctUntilChanged, map } from "rxjs";
 
 type IProgress = {
   readonly loaded: number;
@@ -22,8 +22,12 @@ export class TransportProgressHandler {
   #progress = new BehaviorSubject(TransportProgressHandler.#newProgress());
 
   readonly progress$ = this.#progress.asObservable();
+  readonly isActive$ = this.progress$.pipe(
+    map(({ active }) => active),
+    distinctUntilChanged(),
+  );
 
-  get inProgress() {
+  get isActive() {
     return this.#progress.value.active;
   }
 

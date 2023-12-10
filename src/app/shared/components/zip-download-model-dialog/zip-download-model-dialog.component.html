@@ -31,7 +31,9 @@
   </div>
 
   <div mat-dialog-actions>
-    <button type="button" mat-button [disabled]="isUploading$ | async" mat-dialog-close cdkFocusInitial>Cancel</button>
+    <button type="button" mat-button [disabled]="uploadProgress.isActive$| async" mat-dialog-close cdkFocusInitial>
+      Cancel
+    </button>
     <button type="submit" mat-button [disabled]="!formGroup.valid">Zip</button>
   </div>
 </form>

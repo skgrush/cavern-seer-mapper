@@ -48,25 +48,26 @@ export class ModelLoadService {
     return of(model.serialize());
   }
 
-  loadFile(file: UploadFileModel): Observable<FileLoadEvent<AnyRenderModel>> {
+  loadFile(
+    file: UploadFileModel,
+    progress?: TransportProgressHandler,
+  ): Observable<FileLoadEvent<AnyRenderModel>> {
     return defer(() => {
       switch (file.type) {
 
         case FileModelType.obj:
-          return this.loadObj(file);
+          return this.loadObj(file, progress);
 
         case FileModelType.gLTF:
-          return this.loadGltf(file);
+          return this.loadGltf(file, progress);
 
         case FileModelType.group:
-          return this.loadGroup(file);
+          return this.loadGroup(file, progress);
         case FileModelType.manifest:
           return of(new FileLoadCompleteEvent(new ManifestRenderModel(file)));
 
         default:
-          return of(
-            new FileLoadCompleteEvent(new UnknownRenderModel(file))
-          );
+          return of(new FileLoadCompleteEvent(new UnknownRenderModel(file)));
       }
     }).pipe(tap({
       next: v => console.info('loadFile.next', v),
@@ -75,9 +76,12 @@ export class ModelLoadService {
     }));
   }
 
-  loadObj(file: UploadFileModel): Observable<FileLoadEvent<ObjRenderModel>> {
+  loadObj(
+    file: UploadFileModel,
+    progress?: TransportProgressHandler,
+  ): Observable<FileLoadEvent<ObjRenderModel>> {
     const url = new URL(URL.createObjectURL(file.blob));
-    return this.#rawLoadObjFromUrl(url).pipe(
+    return this.#rawLoadObjFromUrl(url, progress).pipe(
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
@@ -86,15 +90,21 @@ export class ModelLoadService {
     );
   }
 
-  #rawLoadObjFromUrl(url: URL) {
+  #rawLoadObjFromUrl(
+    url: URL,
+    progress?: TransportProgressHandler,
+  ) {
     return this.#objLoader$.pipe(
-      switchMap(OBJLoader => this.#load(OBJLoader, url)),
+      switchMap(OBJLoader => this.#load(OBJLoader, url, progress)),
     );
   }
 
-  loadGltf(file: UploadFileModel): Observable<FileLoadEvent<GltfRenderModel>> {
+  loadGltf(
+    file: UploadFileModel,
+    progress?: TransportProgressHandler,
+  ): Observable<FileLoadEvent<GltfRenderModel>> {
     const url = new URL(URL.createObjectURL(file.blob));
-    return this.#rawLoadGltfFromUrl(url).pipe(
+    return this.#rawLoadGltfFromUrl(url, progress).pipe(
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
@@ -103,18 +113,26 @@ export class ModelLoadService {
     );
   }
 
-  #rawLoadGltfFromUrl(url: URL) {
+  #rawLoadGltfFromUrl(
+    url: URL,
+    progress?: TransportProgressHandler,
+  ) {
     return this.#gltfLoader$.pipe(
-      switchMap(GLTFLoader => this.#load(GLTFLoader, url))
+      switchMap(GLTFLoader => this.#load(GLTFLoader, url, progress))
     );
   }
 
-  loadGroup(file: UploadFileModel): Observable<FileLoadEvent<GroupRenderModel>> {
+  loadGroup(
+    file: UploadFileModel,
+    progress?: TransportProgressHandler,
+  ): Observable<FileLoadEvent<GroupRenderModel>> {
     if (this.#fileTypeService.isZip(file.mime, file.identifier)) {
       return this.#zipService$.pipe(
+        tap(() => progress?.setLoadedCount(0, `Unzipping...`)),
         switchMap(zs => zs.unzip$(file)),
+        tap(() => progress?.setLoadedCount(0, `Unzipped! Preparing models...`)),
         switchMap(({ file, ...dirEntry }) => this.#readAndRemoveManifest$(dirEntry)),
-        switchMap(({ dirEntry, manifest }) => this.#loadZipEntriesRecursively$(dirEntry, manifest)),
+        switchMap(({ dirEntry, manifest }) => this.#loadZipEntriesRecursively$(dirEntry, manifest, progress)),
         map(group => new FileLoadCompleteEvent(group)),
         tap(compl => console.info('group complete')),
       )
@@ -178,14 +196,18 @@ export class ModelLoadService {
     }
   }
 
-  #loadZipEntriesRecursively$(unzipEntry: IUnzipEntry, manifest?: BaseModelManifest): Observable<BaseRenderModel<any>> {
+  #loadZipEntriesRecursively$(
+    unzipEntry: IUnzipEntry,
+    manifest?: BaseModelManifest,
+    progress?: TransportProgressHandler,
+  ): Observable<BaseRenderModel<any>> {
     return defer(() => {
       if (unzipEntry.dir) {
         if (unzipEntry.children.length === 0) {
           return of(GroupRenderModel.fromModels(unzipEntry.name, []));
         } else {
           return forkJoin(
-            unzipEntry.children.map(child => this.#loadZipEntriesRecursively$(child, manifest)),
+            unzipEntry.children.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress)),
           ).pipe(
             map(results => GroupRenderModel.fromModels(unzipEntry.name, results)),
           );
@@ -197,7 +219,7 @@ export class ModelLoadService {
             identifier: unzipEntry.name,
             mime: blob.type,
             type: this.#fileTypeService.getType(blob.type, unzipEntry.name),
-          })),
+          }, progress)),
           filter((event): event is FileLoadCompleteEvent<BaseRenderModel<any>> => event instanceof FileLoadCompleteEvent),
           map(event => event.result),
         );
@@ -240,7 +262,11 @@ export class ModelLoadService {
     )
   }
 
-  #load<TLoader extends Type<Loader>>(loaderType: TLoader, url: URL) {
+  #load<TLoader extends Type<Loader>>(
+    loaderType: TLoader,
+    url: URL,
+    progress?: TransportProgressHandler,
+  ) {
     type T = TLoader extends Type<Loader<infer TInner>> ? TInner : never;
 
     return new Observable<FileLoadEvent<T>>(subscriber => {
@@ -251,7 +277,10 @@ export class ModelLoadService {
           subscriber.next(new FileLoadCompleteEvent(data));
           subscriber.complete();
         },
-        prog => subscriber.next(new FileLoadProgressEvent(prog.loaded, prog.total)),
+        prog => {
+          progress?.addToLoadedCount(prog.loaded);
+          subscriber.next(new FileLoadProgressEvent(prog.loaded, prog.total));
+        },
         err => subscriber.error(err),
       );
     });
