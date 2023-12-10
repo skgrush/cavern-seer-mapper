@@ -11,6 +11,7 @@ import { FileTypeService } from '../../services/file-type.service';
 import { ModelLoadService } from '../../services/model-load.service';
 import { FileIconComponent } from '../file-icon/file-icon.component';
 import { TransportProgressHandler } from '../../models/transport-progress-handler';
+import { MatButtonModule } from '@angular/material/button';
 
 export type IOpenDialogData = {
   readonly titleText: string;
@@ -21,7 +22,7 @@ export type IOpenDialogData = {
 @Component({
   selector: 'mapper-open-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, FileIconComponent],
+  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, FileIconComponent, MatButtonModule],
   templateUrl: './open-dialog.component.html',
   styleUrl: './open-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

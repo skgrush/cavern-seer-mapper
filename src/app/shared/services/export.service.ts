@@ -18,7 +18,11 @@ export class ExportService {
    * @returns Observable of a descriptive object on success or undefined if there is no group.
    *  The observable will raise any errors during the zip process.
    */
-  downloadZip$(compressionLevel: number, progress: TransportProgressHandler) {
+  downloadZip$(
+    compressionLevel: number,
+    fileName: string | null,
+    progress: TransportProgressHandler,
+  ) {
     return this.#modelManager.currentOpenGroup$.pipe(
       first(),
       switchMap(currentGroup => {
@@ -39,7 +43,7 @@ export class ExportService {
           return of(info);
         }
         const { blob, currentGroup } = info;
-        const name = currentGroup.identifier;
+        const name = this.normalizeName(fileName, currentGroup.identifier);
         const size = blob.size;
 
         const anchor = this.#document.createElement('a');
@@ -55,5 +59,15 @@ export class ExportService {
         );
       }),
     )
+  }
+
+  normalizeName(inputName: string | null, groupIdentifier: string) {
+    // if inputName is falsy, use groupIdentifier
+    const name = inputName || groupIdentifier;
+
+    if (name.toLowerCase().endsWith('.zip')) {
+      return name;
+    }
+    return `${name}.zip`;
   }
 }

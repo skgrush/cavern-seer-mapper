@@ -141,7 +141,11 @@ export class ModelLoadService {
     return throwError(() => new Error(`loadGroup doesn't support file ${file.type} of ${file.identifier}`));
   }
 
-  writeGroupToZip$(group: GroupRenderModel, compressionLevel: number, progress: TransportProgressHandler) {
+  writeGroupToZip$(
+    group: GroupRenderModel,
+    compressionLevel: number,
+    progress: TransportProgressHandler,
+  ) {
     const fileComment = null;
 
     const manifest = ModelManifestV0.fromModel(group);
