@@ -1,21 +1,29 @@
 <form (submit)="clickOpen($event)">
   <h1 mat-dialog-title> {{ titleText }} </h1>
   <div mat-dialog-content>
-    <mat-list>
-      <mat-list-item *ngFor="let file of files">
-        <span>{{ file.file.name }}</span> | <span>{{ file.file.size }}</span> | <span>{{ file.type }}</span>
+    <mat-list class="file-list">
+      @for (file of files; track file) {
+      <mat-list-item>
+        <mapper-file-icon matListItemIcon [type]="file.type" />
+        <div matListItemTitle>{{ file.identifier }}</div>
+        <div matListItemLine>{{ file.blob.size }}</div>
       </mat-list-item>
+      }
     </mat-list>
     <input #fileInput type="file" [multiple]="!!multiple" (change)="inputChanged($event)">
 
-    <div class="loading-container" *ngIf="uploadProgress | async as progress">
-      <p>{{ progress.loaded }} / {{ progress.total }}</p>
-      <mat-progress-bar mode="determinate" [value]="100 * progress.loaded / progress.total" />
-    </div>
+    <ng-container *ngIf="uploadProgress.progress$ | async as progress">
+      <div class="loading-container" *ngIf="progress.active">
+        <p>{{ progress.loaded }} / {{ progress.total }}</p>
+        <mat-progress-bar mode="determinate" [value]="100 * progress.loaded / progress.total" />
+      </div>
+    </ng-container>
   </div>
 
   <div mat-dialog-actions>
-    <button type="button" mat-button [disabled]="uploadProgress" mat-dialog-close cdkFocusInitial>Cancel</button>
+    <button type="button" mat-button [disabled]="uploadProgress.isActive$ | async" mat-dialog-close cdkFocusInitial>
+      Cancel
+    </button>
     <button type="submit" mat-button [disabled]="!fileInput.files?.length">{{ submitText }}</button>
   </div>
 </form>

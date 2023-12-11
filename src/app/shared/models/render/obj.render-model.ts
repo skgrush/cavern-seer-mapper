@@ -1,34 +1,58 @@
 import { BoxHelper, Group, Mesh } from "three";
-import { BaseRenderModel, ISimpleVector3 } from "./base.render-model";
+import { BaseRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Subject } from "rxjs";
+import { ISimpleVector3 } from "../simple-types";
+import { UploadFileModel } from "../upload-file-model";
 
 export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
+  override comment: string | null;
+  override readonly rendered = true;
   override get position() {
     return this.#object.position;
   }
 
-  readonly #fileOrUrl: File | URL;
   readonly #object: Group;
   readonly #boxHelper: BoxHelper;
+  readonly #blob: Blob;
 
   constructor(
-    fileOrUrl: File | URL,
+    identifier: string,
     object: Group,
+    blob: Blob,
+    comment: string | null,
   ) {
     super();
-    this.#fileOrUrl = fileOrUrl;
     this.#object = object;
+    this.#blob = blob;
     this.#boxHelper = new BoxHelper(object);
 
-    this.identifier = this.#fileOrUrl instanceof URL
-      ? this.#fileOrUrl.toString()
-      : this.#fileOrUrl.name;
+    this.identifier = identifier;
+    this.comment = comment;
+  }
+
+  static fromUploadModel(uploadModel: UploadFileModel, object: Group) {
+    const { identifier, blob, comment } = uploadModel;
+    return new ObjRenderModel(
+      identifier,
+      object,
+      blob,
+      comment,
+    );
+  }
+
+  override serialize() {
+    return this.#blob;
+  }
+
+  override setComment(comment: string | null): boolean {
+    this.comment = comment;
+    return true;
   }
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {

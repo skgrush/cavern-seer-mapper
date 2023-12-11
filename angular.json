@@ -37,6 +37,9 @@
               "@angular/material/prebuilt-themes/purple-green.css",
               "src/styles.scss"
             ],
+            "allowedCommonJsDependencies": [
+              "jszip"
+            ],
             "scripts": [],
             "server": "src/main.server.ts",
             "prerender": true,
@@ -50,7 +53,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumError": "8mb"
                 },
                 {
                   "type": "anyComponentStyle",

@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
-import { BaseRenderModel, ISimpleVector3 } from '../../models/render/base.render-model';
+import { BaseRenderModel } from '../../models/render/base.render-model';
 
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, debounceTime, startWith, switchMap, tap } from 'rxjs';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ISimpleVector3 } from '../../models/simple-types';
+import { NgIf } from '@angular/common';
 
 const zeroVec = Object.freeze({
   x: 0,
@@ -16,7 +18,7 @@ const zeroVec = Object.freeze({
 @Component({
   selector: 'mapper-model-detail-form',
   standalone: true,
-  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule],
+  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf],
   templateUrl: './model-detail-form.component.html',
   styleUrl: './model-detail-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -39,8 +41,6 @@ export class ModelDetailFormComponent implements OnInit {
       y: new FormControl(0, { nonNullable: true }),
       z: new FormControl(0, { nonNullable: true }),
     }),
-  }, {
-    updateOn: 'blur'
   });
 
   ngOnInit(): void {

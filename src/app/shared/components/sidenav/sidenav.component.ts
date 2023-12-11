@@ -1,14 +1,16 @@
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { MatListModule } from '@angular/material/list';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { OpenDialogComponent } from '../open-dialog/open-dialog.component';
+import { MatListModule } from '@angular/material/list';
 import { ModelManagerService } from '../../services/model-manager.service';
+import { OpenDialogComponent } from '../open-dialog/open-dialog.component';
+import { ZipDownloadModelDialogComponent } from '../zip-download-model-dialog/zip-download-model-dialog.component';
 
 
 @Component({
   selector: 'mapper-sidenav',
   standalone: true,
-  imports: [MatListModule, MatDialogModule],
+  imports: [MatListModule, MatDialogModule, AsyncPipe],
   templateUrl: './sidenav.component.html',
   styleUrl: './sidenav.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -39,6 +41,12 @@ export class SidenavComponent {
       if (result) {
         this.#modelManager.importModels(result);
       }
+    });
+  }
+
+  save() {
+    ZipDownloadModelDialogComponent.open(this.#dialog, {
+      titleText: 'Zip and download group',
     });
   }
 }

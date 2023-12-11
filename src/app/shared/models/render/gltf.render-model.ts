@@ -1,33 +1,56 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { BaseRenderModel, ISimpleVector3 } from "./base.render-model";
+import { BaseRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Group, Object3DEventMap, Vector3 } from "three";
 import { Subject } from "rxjs";
+import { ISimpleVector3 } from "../simple-types";
+import { UploadFileModel } from "../upload-file-model";
 
 export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
   override readonly type = FileModelType.gLTF;
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
+  override comment: string | null;
+  override readonly rendered = true;
   override get position(): Readonly<Vector3> {
     throw new Error('position not implemented in GltfModel');
   }
 
-  readonly #fileOrUrl: File | URL;
+  readonly #blob: Blob;
   readonly #object: GLTF;
 
   constructor(
-    fileOrUrl: File | URL,
+    identifier: string,
+    blob: Blob,
     object: GLTF,
+    comment: string | null,
   ) {
     super();
-    this.#fileOrUrl = fileOrUrl;
+    this.identifier = identifier;
+    this.#blob = blob;
     this.#object = object;
+    this.comment = comment;
+  }
 
-    this.identifier = this.#fileOrUrl instanceof URL
-      ? this.#fileOrUrl.toString()
-      : this.#fileOrUrl.name;
+  static fromUploadModel(uploadModel: UploadFileModel, object: GLTF) {
+    const { identifier, blob, comment } = uploadModel;
+    return new GltfRenderModel(
+      identifier,
+      blob,
+      object,
+      comment,
+    );
+  }
+
+  override serialize() {
+    return this.#blob;
+  }
+
+  override setComment(comment: string | null) {
+    this.comment = comment;
+    return true;
   }
 
   override setPosition(pos: ISimpleVector3): boolean {

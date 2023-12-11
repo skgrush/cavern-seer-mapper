@@ -1,14 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { UploadFileModel, ModelLoadService } from '../../services/model-load.service';
-import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatListModule } from '@angular/material/list';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { BehaviorSubject, catchError, combineLatest, filter, forkJoin, map, tap } from 'rxjs';
-import { CanvasService } from '../../services/canvas.service';
-import { FileLoadProgressEvent, FileLoadCompleteEvent } from '../../events/file-load-events';
-import { ModelManagerService } from '../../services/model-manager.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatListModule } from '@angular/material/list';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { filter, forkJoin, map, tap } from 'rxjs';
+import { FileLoadCompleteEvent, FileLoadProgressEvent } from '../../events/file-load-events';
 import { BaseRenderModel } from '../../models/render/base.render-model';
+import { UploadFileModel } from '../../models/upload-file-model';
+import { FileTypeService } from '../../services/file-type.service';
+import { ModelLoadService } from '../../services/model-load.service';
+import { FileIconComponent } from '../file-icon/file-icon.component';
+import { TransportProgressHandler } from '../../models/transport-progress-handler';
+import { MatButtonModule } from '@angular/material/button';
 
 export type IOpenDialogData = {
   readonly titleText: string;
@@ -19,7 +22,7 @@ export type IOpenDialogData = {
 @Component({
   selector: 'mapper-open-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule],
+  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, FileIconComponent, MatButtonModule],
   templateUrl: './open-dialog.component.html',
   styleUrl: './open-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -27,6 +30,7 @@ export type IOpenDialogData = {
 export class OpenDialogComponent {
 
   readonly #modelService = inject(ModelLoadService);
+  readonly #fileTypeService = inject(FileTypeService);
   readonly #dialogRef = inject<MatDialogRef<OpenDialogComponent, BaseRenderModel<any>[]>>(MatDialogRef);
   readonly #dialogData: IOpenDialogData = inject(MAT_DIALOG_DATA);
 
@@ -34,10 +38,7 @@ export class OpenDialogComponent {
   readonly submitText = this.#dialogData.submitText;
   readonly multiple = this.#dialogData.multiple;
 
-  protected readonly uploadProgress = new BehaviorSubject<{
-    loaded: number;
-    total: number;
-  } | undefined>(undefined);
+  protected readonly uploadProgress = new TransportProgressHandler();
 
   uploadError?: any;
 
@@ -65,37 +66,31 @@ export class OpenDialogComponent {
       return;
     }
 
-    this.files = [...this.#modelService.mapFileList(event.target.files)];
+    this.files = [...this.#fileTypeService.mapFileList(event.target.files)];
   }
 
   clickOpen(e: SubmitEvent) {
     e.preventDefault();
 
-    if (!this.files?.length || this.uploadProgress.value) {
+    if (!this.files?.length || this.uploadProgress.isActive) {
       return;
     }
 
     const files = this.files;
-    const totalSize = files.reduce((acc, curr) => acc + curr.file.size, 0);
+    const totalSize = files.reduce((acc, curr) => acc + curr.blob.size, 0);
 
     this.#dialogRef.disableClose = true;
-    this.uploadProgress.next({
-      loaded: 0,
-      total: totalSize,
-    });
+    this.uploadProgress.reset(true);
+    this.uploadProgress.changeTotal(totalSize);
     this.uploadError = undefined;
 
     const fileObservables = files.map(file =>
-      this.#modelService.loadFile(file).pipe(
+      this.#modelService.loadFile(file, this.uploadProgress).pipe(
         map(event => {
           if (event instanceof FileLoadProgressEvent) {
-            this.uploadProgress.next({
-              loaded: event.loaded,
-              total: event.total,
-            });
+            this.uploadProgress.setLoadedCount(event.loaded, file.identifier);
           }
           else if (event instanceof FileLoadCompleteEvent) {
-            // this.#dialogRef.close(event.result);
             return event.result;
           }
           return null;
@@ -112,7 +107,7 @@ export class OpenDialogComponent {
         error: (err) => {
           console.error('open error', err);
           this.#dialogRef.disableClose = false;
-          this.uploadProgress.next(undefined);
+          this.uploadProgress.deactivate();
           this.uploadError = err;
         }
       }),

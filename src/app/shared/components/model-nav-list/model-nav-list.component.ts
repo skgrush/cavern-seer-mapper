@@ -9,6 +9,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { ModelDetailFormComponent } from "../model-detail-form/model-detail-form.component";
 import { FileModelType } from '../../models/model-type.enum';
+import { FileIconComponent } from '../file-icon/file-icon.component';
+import { MatRippleModule } from '@angular/material/core';
 
 interface INode {
   identifier: string;
@@ -34,7 +36,7 @@ function transformToNode(model: BaseRenderModel<any>): INode {
   templateUrl: './model-nav-list.component.html',
   styleUrl: './model-nav-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatTreeModule, NgIf, AsyncPipe, ModelDetailFormComponent]
+  imports: [MatTreeModule, NgIf, AsyncPipe, ModelDetailFormComponent, FileIconComponent, MatRippleModule]
 })
 export class ModelNavListComponent {
 
