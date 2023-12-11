@@ -26,6 +26,9 @@ export type IMetadataEntryV0 = {
   readonly position: ISimpleVector3,
 }
 
+/**
+ * Manifest V0 only stores positions of entries, and only if they are non-zero.
+ */
 export class ModelManifestV0 extends BaseModelManifest {
   readonly version = 0;
 
@@ -46,7 +49,10 @@ export class ModelManifestV0 extends BaseModelManifest {
   }
 
   static fromModel(model: GroupRenderModel): ModelManifestV0 {
-    const buildingManifest: IBuildingManifest = { metadata: {} };
+    const buildingManifest: IBuildingManifest = {
+      version: 0,
+      metadata: {},
+    };
     this.#recursivelyBuildManifestFromModel(model, '', buildingManifest, true);
 
     return new ModelManifestV0(
@@ -87,8 +93,9 @@ export class ModelManifestV0 extends BaseModelManifest {
   serialize() {
     return new Blob([
       JSON.stringify({
+        version: this.version,
         metadata: this.metadata,
-      }),
+      } satisfies IBuildingManifest),
     ], {
       type: 'application/json',
     });
@@ -100,5 +107,6 @@ export class ModelManifestV0 extends BaseModelManifest {
 }
 
 type IBuildingManifest = {
+  readonly version: number;
   readonly metadata: Partial<Record<string, IMetadataEntryV0>>;
 }
