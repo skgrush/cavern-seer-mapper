@@ -41,6 +41,11 @@
     <button type="button" mat-button [disabled]="uploadProgress.isActive$| async" mat-dialog-close cdkFocusInitial>
       Cancel
     </button>
-    <button type="submit" mat-button [disabled]="!formGroup.valid">Zip</button>
+    <button *ngIf="!(resultSubject | async)" type="submit" mat-button [disabled]="!formGroup.valid">
+      Zip
+    </button>
+    <button *ngIf="resultSubject | async" type="reset" mat-button mat-dialog-close>
+      Close
+    </button>
   </div>
 </form>
