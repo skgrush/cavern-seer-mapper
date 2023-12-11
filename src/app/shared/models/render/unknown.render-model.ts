@@ -11,18 +11,34 @@ export class UnknownRenderModel extends BaseRenderModel<FileModelType.unknown> {
   override readonly type = FileModelType.unknown;
   override readonly childOrPropertyChanged$ = NEVER;
   override readonly position: Readonly<Vector3> = new Vector3();
+  override readonly identifier: string;
+  override comment: string | null;
   override readonly rendered = false;
 
-  override readonly identifier = this.uploadModel.identifier;
+  readonly #blob: Blob;
 
   constructor(
-    readonly uploadModel: UploadFileModel,
+    identifier: string,
+    comment: string | null,
+    blob: Blob,
   ) {
     super();
+    this.identifier = identifier;
+    this.comment = comment;
+    this.#blob = blob;
+  }
+
+  static fromUploadModel(uploadModel: UploadFileModel) {
+    const { identifier, blob, comment } = uploadModel;
   }
 
   override serialize() {
-    return this.uploadModel.blob;
+    return this.#blob;
+  }
+
+  override setComment(comment: string | null): boolean {
+    this.comment = comment;
+    return true;
   }
 
   override setPosition(pos: ISimpleVector3): boolean {

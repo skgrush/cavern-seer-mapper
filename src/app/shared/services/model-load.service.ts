@@ -64,7 +64,7 @@ export class ModelLoadService {
           return this.loadGroup(file, progress);
 
         default:
-          return of(new FileLoadCompleteEvent(new UnknownRenderModel(file)));
+          return of(new FileLoadCompleteEvent(UnknownRenderModel.fromUploadModel(file)));
       }
     }).pipe(tap({
       next: v => console.info('loadFile.next', v),
@@ -82,7 +82,7 @@ export class ModelLoadService {
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
-        (inp: Group) => new ObjRenderModel(file.identifier, inp, file.blob),
+        (inp: Group) => ObjRenderModel.fromUploadModel(file, inp),
       ))
     );
   }
@@ -105,7 +105,7 @@ export class ModelLoadService {
       this.#revokeUrlOnEnd(url),
       map(event => convertFileLoadEvent(
         event,
-        (inp: GLTF) => new GltfRenderModel(file.identifier, file.blob, inp),
+        (inp: GLTF) => GltfRenderModel.fromUploadModel(file, inp),
       )),
     );
   }
@@ -215,12 +215,16 @@ export class ModelLoadService {
         }
       } else {
         return defer(() => unzipEntry.loader()).pipe(
-          switchMap(blob => this.loadFile({
-            blob,
-            identifier: unzipEntry.name,
-            mime: blob.type,
-            type: this.#fileTypeService.getType(blob.type, unzipEntry.name),
-          }, progress)),
+          switchMap(blob =>
+            this.loadFile(
+              UploadFileModel.fromUnzip(
+                unzipEntry,
+                blob,
+                this.#fileTypeService.getType(blob.type, unzipEntry.name),
+              ),
+              progress
+            ),
+          ),
           filter((event): event is FileLoadCompleteEvent<BaseRenderModel<any>> => event instanceof FileLoadCompleteEvent),
           map(event => event.result),
         );

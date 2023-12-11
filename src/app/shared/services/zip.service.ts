@@ -92,13 +92,16 @@ export class ZipService {
     return defer(() => loadAsync(file.blob)).pipe(
       map(jszip => {
 
+        // comment field exists on top-level JSZip but the type is not defined?
+        const comment = (jszip as any).comment ?? null;
+
         const children = [...this.recursivelyBuildHierarchy(jszip)];
         const result = {
           file,
           dir: true as const,
           path: '',
           name: file.identifier,
-          comment: '',
+          comment,
           children,
         };
         return result satisfies IUnzipDirEntry;

@@ -4,12 +4,14 @@ import { FileModelType } from "../model-type.enum";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
+import { UploadFileModel } from "../upload-file-model";
 
 export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
+  override comment: string | null;
   override readonly rendered = true;
   override get position() {
     return this.#object.position;
@@ -23,17 +25,34 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
     identifier: string,
     object: Group,
     blob: Blob,
+    comment: string | null,
   ) {
     super();
     this.#object = object;
     this.#blob = blob;
     this.#boxHelper = new BoxHelper(object);
 
-    this.identifier = identifier
+    this.identifier = identifier;
+    this.comment = comment;
+  }
+
+  static fromUploadModel(uploadModel: UploadFileModel, object: Group) {
+    const { identifier, blob, comment } = uploadModel;
+    return new ObjRenderModel(
+      identifier,
+      object,
+      blob,
+      comment,
+    );
   }
 
   override serialize() {
     return this.#blob;
+  }
+
+  override setComment(comment: string | null): boolean {
+    this.comment = comment;
+    return true;
   }
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {

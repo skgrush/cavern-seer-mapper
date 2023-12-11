@@ -12,7 +12,9 @@ export abstract class BaseRenderModel<T extends FileModelType> {
   abstract readonly identifier: string;
   abstract readonly position: Readonly<Vector3>;
   abstract readonly rendered: boolean;
+  abstract readonly comment: string | null;
 
+  abstract setComment(comment: string | null): boolean;
   abstract serialize(): Blob | null;
 
   abstract setPosition(pos: ISimpleVector3): boolean;

@@ -5,12 +5,14 @@ import { BaseMaterialService } from "../../services/3d-managers/base-material.se
 import { Group, Object3DEventMap, Vector3 } from "three";
 import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
+import { UploadFileModel } from "../upload-file-model";
 
 export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
   override readonly type = FileModelType.gLTF;
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
+  override comment: string | null;
   override readonly rendered = true;
   override get position(): Readonly<Vector3> {
     throw new Error('position not implemented in GltfModel');
@@ -23,15 +25,32 @@ export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
     identifier: string,
     blob: Blob,
     object: GLTF,
+    comment: string | null,
   ) {
     super();
     this.identifier = identifier;
     this.#blob = blob;
     this.#object = object;
+    this.comment = comment;
+  }
+
+  static fromUploadModel(uploadModel: UploadFileModel, object: GLTF) {
+    const { identifier, blob, comment } = uploadModel;
+    return new GltfRenderModel(
+      identifier,
+      blob,
+      object,
+      comment,
+    );
   }
 
   override serialize() {
     return this.#blob;
+  }
+
+  override setComment(comment: string | null) {
+    this.comment = comment;
+    return true;
   }
 
   override setPosition(pos: ISimpleVector3): boolean {
