@@ -87,15 +87,4 @@ export class TransportProgressHandler {
       active: false,
     });
   }
-
-  // reopen() {
-  //   if (!this.#progress.closed) {
-  //     this.#progress.complete();
-  //   }
-  //   this.#progress = TransportHandler.#newProgress();
-  // }
-
-  // close() {
-  //   this.#progress.complete();
-  // }
 }
