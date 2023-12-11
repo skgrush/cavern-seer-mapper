@@ -13,7 +13,6 @@ import { MatButtonModule } from '@angular/material/button';
 
 export type IZipDownloadModelDialogData = {
   readonly titleText: string;
-  readonly fileName: string;
 }
 
 @Component({

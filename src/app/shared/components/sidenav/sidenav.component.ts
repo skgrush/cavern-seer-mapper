@@ -46,7 +46,6 @@ export class SidenavComponent {
 
   save() {
     ZipDownloadModelDialogComponent.open(this.#dialog, {
-      fileName: 'unknown',
       titleText: 'Zip and download group',
     });
   }
