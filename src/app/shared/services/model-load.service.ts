@@ -14,7 +14,6 @@ import { AnyRenderModel } from '../models/render/any-render-model';
 import type { IUnzipDirEntry, IUnzipEntry, IZipEntry } from './zip.service';
 import { BaseRenderModel } from '../models/render/base.render-model';
 import { BaseModelManifest, ModelManifestV0, modelManifestParse } from '../models/model-manifest';
-import { ManifestRenderModel } from '../models/manifest.render-model';
 import { TransportProgressHandler } from '../models/transport-progress-handler';
 
 @Injectable()
@@ -63,8 +62,6 @@ export class ModelLoadService {
 
         case FileModelType.group:
           return this.loadGroup(file, progress);
-        case FileModelType.manifest:
-          return of(new FileLoadCompleteEvent(new ManifestRenderModel(file)));
 
         default:
           return of(new FileLoadCompleteEvent(new UnknownRenderModel(file)));

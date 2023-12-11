@@ -21,9 +21,6 @@ export class FileTypeService {
   }
 
   getType(mime: string, name: string): FileModelType {
-    if (name === this.manifestFileName) {
-      return FileModelType.manifest;
-    }
     if (this.isObj(mime, name)) {
       return FileModelType.obj;
     }

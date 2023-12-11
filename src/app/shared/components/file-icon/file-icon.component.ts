@@ -21,7 +21,6 @@ export class FileIconComponent {
     group: 'folder_zip',
     gltf: 'svg:glTF_White',
     obj: 'shape_line',
-    manifest: 'description',
   } satisfies Record<FileModelType, string>);
 
 
