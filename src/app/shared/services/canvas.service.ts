@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { Subject, animationFrames, distinctUntilChanged, map, takeUntil, tap } from 'rxjs';
-import { AmbientLight, Box3, GridHelper, Material, OrthographicCamera, Scene, Vector3, WebGLRenderer } from 'three';
+import { Subject, animationFrames, distinctUntilChanged, fromEvent, map, takeUntil, tap } from 'rxjs';
+import { AmbientLight, Box3, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { BaseMaterialService } from './3d-managers/base-material.service';
@@ -14,7 +14,11 @@ export class CanvasService {
   readonly #modelManager = inject(ModelManagerService);
 
   readonly #scene = new Scene();
+  readonly #raycaster = new Raycaster();
+
   #renderer?: WebGLRenderer;
+  /** Emits any time the renderer is created or destroyed. */
+  readonly #rendererChangedSubject = new Subject<void>();
 
   #orthoCamera?: OrthographicCamera;
   #orthoControls?: MapControls;
@@ -58,8 +62,54 @@ export class CanvasService {
       return;
     }
 
+    this.#rendererChangedSubject.next();
     this.#renderer.dispose();
     this.#renderer = undefined;
+  }
+
+  getRendererDimensions() {
+    const ele = this.#renderer?.domElement;
+    if (!ele) {
+      return null;
+    }
+    return new Vector2(ele.width, ele.height);
+  }
+
+  /**
+   * Get an event listener for the renderer target.
+   * Cuts off if the renderer is disposed.
+   *
+   * @returns null if there is no renderer target.
+   */
+  eventOnRenderer<K extends keyof HTMLElementEventMap>(
+    eventKey: K,
+  ) {
+    const ele = this.#renderer?.domElement
+    if (!ele) {
+      return null;
+    }
+    return fromEvent<HTMLElementEventMap[K]>(ele, eventKey).pipe(
+      takeUntil(this.#rendererChangedSubject),
+    );
+  }
+
+  raycastFromCamera(coords: Vector2) {
+    this.#raycaster.setFromCamera(coords, this.#orthoCamera!);
+
+    return this.#raycaster.intersectObjects(this.#scene.children, true);
+  }
+
+  raycast(origin: Vector3, direction: Vector3) {
+    this.#raycaster.set(origin, direction);
+
+    return this.#raycaster.intersectObjects(this.#scene.children, true);
+  }
+
+  enableControls(enable: boolean) {
+    if (!this.#orthoControls) {
+      return;
+    }
+    this.#orthoControls.enabled = enable;
   }
 
   resize({ width, height }: DOMRectReadOnly) {
@@ -80,12 +130,9 @@ export class CanvasService {
   render$() {
     const rendererGone$ = new Subject<void>();
     return animationFrames().pipe(
-      takeUntil(rendererGone$),
+      takeUntil(this.#rendererChangedSubject),
       map(({ timestamp, elapsed }) => {
         const rendered = this.render();
-        if (!rendered) {
-          rendererGone$.next();
-        }
       }),
     );
   }
@@ -165,6 +212,7 @@ export class CanvasService {
 
     this.#renderer.setSize(width, height);
 
+    this.#rendererChangedSubject.next();
     this.#renderer.render(this.#scene, this.#orthoCamera);
   }
 

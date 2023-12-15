@@ -38,6 +38,7 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
 
   static fromUploadModel(uploadModel: UploadFileModel, object: Group) {
     const { identifier, blob, comment } = uploadModel;
+    object.name = uploadModel.identifier;
     return new ObjRenderModel(
       identifier,
       object,

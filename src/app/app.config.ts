@@ -13,6 +13,8 @@ import { ModelManagerService } from './shared/services/model-manager.service';
 import { FileTypeService } from './shared/services/file-type.service';
 import { FileIconModule } from './shared/components/file-icon/file-icon.module';
 import { ExportService } from './shared/services/export.service';
+import { toolsProviders } from './shared/services/tools';
+import { ToolManagerService } from './shared/services/tool-manager.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,6 +30,8 @@ export const appConfig: ApplicationConfig = {
     ModelLoadService,
     ModelManagerService,
     MeshNormalMaterialService,
+    ToolManagerService,
+    toolsProviders(),
     {
       provide: ErrorHandler,
       useValue: {

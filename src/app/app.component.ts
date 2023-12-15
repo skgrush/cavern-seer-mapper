@@ -7,13 +7,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { CanvasComponent } from "./pages/canvas/canvas.component";
 import { SidenavComponent } from "./shared/components/sidenav/sidenav.component";
 import { ModelNavListComponent } from "./shared/components/model-nav-list/model-nav-list.component";
+import { ToolsBarComponent } from './shared/components/tools-bar/tools-bar.component';
 
 @Component({
   selector: 'mapper-root',
   standalone: true,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  imports: [CommonModule, RouterOutlet, CanvasComponent, MatSidenavModule, MatButtonModule, MatIconModule, SidenavComponent, ModelNavListComponent]
+  imports: [CommonModule, RouterOutlet, CanvasComponent, MatSidenavModule, MatButtonModule, MatIconModule, SidenavComponent, ModelNavListComponent, ToolsBarComponent]
 })
 export class AppComponent {
 }
