@@ -9,8 +9,10 @@ const services = [MeasureToolService, NoToolService];
 export function toolsProviders() {
   return makeEnvironmentProviders([
     NoToolService,
+    MeasureToolService,
+    RaycastDistanceToolService,
     { provide: TOOL_SERVICES, useExisting: NoToolService, multi: true },
-    { provide: TOOL_SERVICES, useClass: MeasureToolService, multi: true },
-    { provide: TOOL_SERVICES, useClass: RaycastDistanceToolService, multi: true },
+    { provide: TOOL_SERVICES, useExisting: MeasureToolService, multi: true },
+    { provide: TOOL_SERVICES, useExisting: RaycastDistanceToolService, multi: true },
   ]);
 }
