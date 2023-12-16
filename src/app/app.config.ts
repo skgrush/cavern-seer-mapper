@@ -20,27 +20,6 @@ import { INTL_LOCALE } from './shared/tokens/intl-locale.token';
 import { LOCAL_STORAGE } from './shared/tokens/local-storage.token';
 import { provideSettings } from './shared/services/settings';
 
-export class MockStorage implements Storage {
-
-  #values = new Map<string, string>();
-  get length() { return this.#values.size; }
-
-  clear() {
-    this.#values.clear();
-  }
-  getItem(key: string) {
-    return this.#values.get(key) ?? null;
-  }
-  setItem(key: string, value: string) {
-    this.#values.set(key, value);
-  }
-  removeItem(key: string) {
-    this.#values.delete(key);
-  }
-  key(idx: number) {
-    return [...this.#values.keys()][idx] ?? null;
-  }
-}
 
 
 export const appConfig: ApplicationConfig = {
@@ -61,9 +40,9 @@ export const appConfig: ApplicationConfig = {
     ToolManagerService,
     toolsProviders(),
     provideSettings(),
-    { provide: LOCALE_ID, useValue: globalThis.navigator?.language ?? 'en-BE' },
+    { provide: LOCALE_ID, useFactory: () => globalThis.navigator.language },
     { provide: INTL_LOCALE, useFactory: (locale: string) => new Intl.Locale(locale), deps: [LOCALE_ID] },
-    { provide: LOCAL_STORAGE, useValue: globalThis.localStorage ?? new MockStorage() },
+    { provide: LOCAL_STORAGE, useFactory: () => globalThis.localStorage },
     {
       provide: ErrorHandler,
       useValue: {
