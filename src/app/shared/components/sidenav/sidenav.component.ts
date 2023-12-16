@@ -5,6 +5,7 @@ import { MatListModule } from '@angular/material/list';
 import { ModelManagerService } from '../../services/model-manager.service';
 import { OpenDialogComponent } from '../open-dialog/open-dialog.component';
 import { ZipDownloadModelDialogComponent } from '../zip-download-model-dialog/zip-download-model-dialog.component';
+import { SettingsDialogComponent } from '../settings-dialog/settings-dialog.component';
 
 
 @Component({
@@ -48,5 +49,9 @@ export class SidenavComponent {
     ZipDownloadModelDialogComponent.open(this.#dialog, {
       titleText: 'Zip and download group',
     });
+  }
+
+  settings() {
+    SettingsDialogComponent.open(this.#dialog);
   }
 }

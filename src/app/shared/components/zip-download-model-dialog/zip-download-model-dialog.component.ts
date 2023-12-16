@@ -18,7 +18,7 @@ export type IZipDownloadModelDialogData = {
 @Component({
   selector: 'mapper-zip-download-model-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, AsyncPipe, MatProgressBarModule, MatButtonModule],
+  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, NgIf, AsyncPipe, MatProgressBarModule, MatButtonModule],
   templateUrl: './zip-download-model-dialog.component.html',
   styleUrl: './zip-download-model-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
