@@ -4,14 +4,15 @@ import { MatListModule } from '@angular/material/list';
 import { CommonModule } from '@angular/common';
 import { map } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
+import { LengthPipe } from "../../../../shared/pipes/length.pipe";
 
 @Component({
   selector: 'mapper-measure-tab',
   standalone: true,
-  imports: [MatListModule, CommonModule, MatIconModule],
   templateUrl: './measure-tab.component.html',
   styleUrl: './measure-tab.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatListModule, CommonModule, MatIconModule, LengthPipe]
 })
 export class MeasureTabComponent {
   readonly measureTool = inject(MeasureToolService);

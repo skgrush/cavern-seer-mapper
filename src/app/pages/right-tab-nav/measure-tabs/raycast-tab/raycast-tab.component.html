@@ -18,7 +18,7 @@
     <mat-list>
       @for (measure of (raycastDistanceTool.ceilingDistances$ | async); track measure) {
       <mat-list-item>
-        <h3 matListItemTitle>{{ measure.distance }} meters</h3>
+        <h3 matListItemTitle>{{ measure.distance | length }}</h3>
         <p matListItemLine *ngIf="measure.floorPoint as fp">{{ fp.x }}, {{ fp.y }}, {{ fp.z }}</p>
         <p matListItemLine *ngIf="measure.firstParentGroup as parent">
           {{ parent.name }}
@@ -34,7 +34,7 @@
       @for (measure of (raycastDistanceTool.cameraDistances$ | async); track measure) {
       <mat-list-item>
         <ng-container *ngIf="measure.type === 'Mesh'">
-          <h3 matListItemTitle>{{ measure.gridDistance }} meters from grid</h3>
+          <h3 matListItemTitle>{{ measure.gridDistance | length }} from grid</h3>
           <p matListItemLine *ngIf="measure.firstParentGroup as parent">
             {{ parent.name }}
           </p>

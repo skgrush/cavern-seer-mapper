@@ -25,10 +25,18 @@ export class SettingsService {
     distinctUntilChanged(),
   );
 
+  #measurementSystem: MeasurementSystem = initialState.measurementSystem;
+  get measurementSystem() {
+    return this.#measurementSystem;
+  }
+
   constructor() {
     this.initialize();
     this.state$.pipe(
       tap(state => this.#storage.setItem(this.#storageKey, JSON.stringify(state))),
+      tap(state => {
+        this.#measurementSystem = state.measurementSystem;
+      }),
     ).subscribe();
   }
 
