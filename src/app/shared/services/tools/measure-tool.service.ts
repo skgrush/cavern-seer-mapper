@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { BaseToolService } from './base-tool.service';
 import { CanvasService } from '../canvas.service';
-import { BehaviorSubject, Subject, map, takeUntil } from 'rxjs';
+import { BehaviorSubject, Subject, map, of, takeUntil } from 'rxjs';
 import { Mesh, Vector2, Vector3 } from 'three';
 
 export type IMeasure = {
@@ -24,6 +24,7 @@ export class MeasureToolService extends BaseToolService {
   override readonly id = 'measure';
   override readonly label = 'Measure';
   override readonly icon = 'square_foot';
+  override readonly cursor$ = of('crosshair');
 
   reset() {
     this.#measuresSubject.next([]);

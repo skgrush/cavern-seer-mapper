@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BaseToolService } from './base-tool.service';
-import { BehaviorSubject, Subject, map, takeUntil } from 'rxjs';
+import { BehaviorSubject, Subject, map, of, takeUntil } from 'rxjs';
 import { CanvasService } from '../canvas.service';
 import { GridHelper, Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
 
@@ -40,6 +40,7 @@ export class RaycastDistanceToolService extends BaseToolService {
   override readonly id = 'raycast-distance';
   override readonly label = 'Raycast distance';
   override readonly icon = 'biotech';
+  override readonly cursor$ = of('crosshair');
 
   changeMode(mode: RaycastDistanceMode) {
     if (!(mode in RaycastDistanceMode)) {

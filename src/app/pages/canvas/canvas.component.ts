@@ -4,12 +4,13 @@ import { CanvasService } from '../../shared/services/canvas.service';
 import { ResizeService } from '../../shared/services/resize.service';
 import { debounceTime, map, tap } from 'rxjs';
 import { ThemeService } from '../../shared/services/theme.service';
-import { isPlatformBrowser } from '@angular/common';
+import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { ToolManagerService } from '../../shared/services/tool-manager.service';
 
 @Component({
   selector: 'mapper-canvas',
   standalone: true,
-  imports: [],
+  imports: [AsyncPipe],
   templateUrl: './canvas.component.html',
   styleUrl: './canvas.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -26,6 +27,9 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   readonly #canvasService = inject(CanvasService);
   readonly #resizeService = inject(ResizeService);
   readonly #themeService = inject(ThemeService);
+  readonly #toolService = inject(ToolManagerService);
+
+  readonly toolCursor$ = this.#toolService.currentToolCursor$;
 
   ngAfterViewInit(): void {
     this.#init();
