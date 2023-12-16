@@ -1,13 +1,22 @@
 import { Injectable, inject } from '@angular/core';
 import { BaseToolService } from './base-tool.service';
 import { CanvasService } from '../canvas.service';
-import { Subject, map, takeUntil } from 'rxjs';
+import { BehaviorSubject, Subject, map, takeUntil } from 'rxjs';
 import { Mesh, Vector2, Vector3 } from 'three';
+
+export type IMeasure = {
+  readonly firstPoint: Readonly<Vector3>;
+  readonly secondPoint: Readonly<Vector3>;
+  readonly distance: number;
+}
 
 @Injectable()
 export class MeasureToolService extends BaseToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #stopSubject = new Subject<void>();
+
+  readonly #measuresSubject = new BehaviorSubject<readonly IMeasure[]>([]);
+  readonly measures$ = this.#measuresSubject.asObservable();
 
   #previousPoint?: Vector3;
   #currentPoint?: Vector3;
@@ -15,6 +24,10 @@ export class MeasureToolService extends BaseToolService {
   override readonly id = 'measure';
   override readonly label = 'Measure';
   override readonly icon = 'square_foot';
+
+  reset() {
+    this.#measuresSubject.next([]);
+  }
 
   override start(): boolean {
 
@@ -65,11 +78,25 @@ export class MeasureToolService extends BaseToolService {
     this.#currentPoint = firstMesh.point;
 
     if (this.#currentPoint && this.#previousPoint) {
+      const distance = this.#currentPoint.distanceTo(this.#previousPoint);
       console.info({
         current: this.#currentPoint,
         previous: this.#previousPoint,
-        distance: this.#currentPoint.distanceTo(this.#previousPoint),
+        distance,
       });
+
+      const entry: IMeasure = {
+        firstPoint: this.#previousPoint,
+        secondPoint: this.#currentPoint,
+        distance,
+      };
+
+      const newSet = Object.freeze([
+        ...this.#measuresSubject.value,
+        entry,
+      ]);
+
+      this.#measuresSubject.next(newSet);
     }
   }
 }

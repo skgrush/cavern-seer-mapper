@@ -1,0 +1,16 @@
+<p>Results of using
+  <mat-icon>{{ measureTool.icon }}</mat-icon> {{ measureTool.label }}
+  tool
+</p>
+<div>
+  Total: {{ total$ | async }} meters
+</div>
+<mat-list>
+  @for (measure of (measureTool.measures$ | async); track measure) {
+  <mat-list-item>
+    <h3 matListItemTitle>{{ measure.distance }} meters</h3>
+    <p matListItemLine *ngIf="measure.firstPoint as fp">{{ fp.x }}, {{ fp.y }}, {{ fp.z }}</p>
+    <p matListItemLine *ngIf="measure.secondPoint as fp">{{ fp.x }}, {{ fp.y }}, {{ fp.z }}</p>
+  </mat-list-item>
+  }
+</mat-list>

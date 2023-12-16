@@ -4,26 +4,49 @@ import { BehaviorSubject, Subject, map, takeUntil } from 'rxjs';
 import { CanvasService } from '../canvas.service';
 import { GridHelper, Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
 
-interface IRaycastDistance {
+export enum RaycastDistanceMode {
+  fromCamera = 1,
+  ceiling = 2,
+}
+
+export type IRaycastCameraDistance = {
   readonly cameraDistance: number;
   readonly gridDistance: number;
-  readonly point: Readonly<Vector3>;
-  readonly onFrontFace: boolean | null;
+  readonly absPoint: Readonly<Vector3>;
   readonly type: 'Mesh' | 'GridHelper' | null;
-  readonly firstParentGroupName: string | null;
+  readonly firstParentGroup: Group | null;
+}
+export type IRaycastCeilingDistance = {
+  readonly floorPoint: Readonly<Vector3>;
+  readonly ceilingPoint: Readonly<Vector3>;
+  readonly distance: number;
+  readonly firstParentGroup: Group | null;
 }
 
 @Injectable()
 export class RaycastDistanceToolService extends BaseToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #stopSubject = new Subject<void>();
-  readonly #distancesSubject = new BehaviorSubject<readonly IRaycastDistance[]>([]);
 
-  readonly distances$ = this.#distancesSubject.asObservable();
+  // TODO: maybe should move these into the main state that gets serialized
+  readonly #cameraDistancesSubject = new BehaviorSubject<readonly IRaycastCameraDistance[]>([]);
+  readonly #ceilingDistancesSubject = new BehaviorSubject<readonly IRaycastCeilingDistance[]>([]);
+  readonly #modeSubject = new BehaviorSubject(RaycastDistanceMode.ceiling);
+
+  readonly cameraDistances$ = this.#cameraDistancesSubject.asObservable();
+  readonly ceilingDistances$ = this.#ceilingDistancesSubject.asObservable();
+  readonly mode$ = this.#modeSubject.asObservable();
 
   override readonly id = 'raycast-distance';
   override readonly label = 'Raycast distance';
   override readonly icon = 'biotech';
+
+  changeMode(mode: RaycastDistanceMode) {
+    if (!(mode in RaycastDistanceMode)) {
+      throw new Error(`Invalid mode ${mode}`);
+    }
+    this.#modeSubject.next(mode);
+  }
 
   override start(): boolean {
     const event$ = this.#canvasService.eventOnRenderer('pointerdown');
@@ -56,13 +79,13 @@ export class RaycastDistanceToolService extends BaseToolService {
 
         const results = this.#canvasService.raycastFromCamera(mouseWorldPos);
 
-        const handledResults = this.#handleResults(results);
-        console.info('raycast results', results, handledResults);
-
-        const firstMesh = handledResults.find(r => r.type === 'Mesh');
-        if (firstMesh) {
-          const upResults = this.#canvasService.raycast(firstMesh.point, new Vector3(0, 1, 0));
-          console.info('raycast UP results', upResults);
+        switch (this.#modeSubject.value) {
+          case RaycastDistanceMode.fromCamera:
+            this.#handleCameraRaycast(results);
+            break;
+          case RaycastDistanceMode.ceiling:
+            this.#handleCeilingRaycast(results);
+            break;
         }
       })
     ).subscribe();
@@ -77,9 +100,8 @@ export class RaycastDistanceToolService extends BaseToolService {
     return true;
   }
 
-
-  #handleResults(results: Intersection<Object3D>[]) {
-    const output: IRaycastDistance[] = [];
+  #handleCameraRaycast(results: Intersection<Object3D>[]) {
+    const output: IRaycastCameraDistance[] = [];
 
     const firstGridHelper = results.find(r => r.object instanceof GridHelper);
     const girdHelperDistFromCamera = firstGridHelper?.distance ?? Infinity;
@@ -90,7 +112,7 @@ export class RaycastDistanceToolService extends BaseToolService {
         continue;
       }
 
-      let type: IRaycastDistance['type'] = null;
+      let type: IRaycastCameraDistance['type'] = null;
       if (result.object instanceof GridHelper) {
         type = 'GridHelper';
       } else if (result.object instanceof Mesh) {
@@ -100,22 +122,56 @@ export class RaycastDistanceToolService extends BaseToolService {
       output.push({
         cameraDistance: result.distance,
         gridDistance: girdHelperDistFromCamera - result.distance,
-        onFrontFace: null,
-        point: result.point,
+        absPoint: result.point,
         type,
-        firstParentGroupName: this.#getFirstParentGroupName(result.object),
+        firstParentGroup: this.#getFirstParentGroup(result.object),
       });
     }
 
-    return output;
+    this.#cameraDistancesSubject.next(output);
+  }
+  #handleCeilingRaycast(results: Intersection<Object3D>[]) {
+    const firstMeshInter = results.find((r): r is Intersection<Mesh> => r.object instanceof Mesh);
+    if (!firstMeshInter) {
+      console.info('no mesh intersected by raycast', results);
+      return false;
+    }
+
+    const {
+      point: floorPoint,
+      object,
+    } = firstMeshInter;
+
+    const upIntersections = this.#canvasService.raycast(floorPoint, new Vector3(0, 1, 0));
+
+    const firstMeshCeiling = upIntersections.find((r): r is Intersection<Mesh> => r.object instanceof Mesh);
+
+    const ceilingPoint = firstMeshCeiling
+      ? firstMeshCeiling.point
+      : floorPoint.add(new Vector3(0, Infinity, 0));
+
+    const newEntry: IRaycastCeilingDistance = {
+      ceilingPoint,
+      floorPoint,
+      distance: ceilingPoint.distanceTo(floorPoint),
+      firstParentGroup: this.#getFirstParentGroup(object)
+    };
+
+    const newList = Object.freeze([
+      ...this.#ceilingDistancesSubject.value,
+      newEntry,
+    ]);
+
+    this.#ceilingDistancesSubject.next(newList);
+    return true;
   }
 
-  #getFirstParentGroupName(item: Object3D): string | null {
+  #getFirstParentGroup(item: Object3D): Group | null {
     if (item instanceof Group) {
-      return item.name;
+      return item;
     }
     if (item.parent) {
-      return this.#getFirstParentGroupName(item.parent);
+      return this.#getFirstParentGroup(item.parent);
     }
     return null;
   }

@@ -1,0 +1,50 @@
+<p>Results of using
+  <mat-icon>{{ raycastDistanceTool.icon }}</mat-icon> {{ raycastDistanceTool.label }}
+  tool
+</p>
+
+<mat-button-toggle-group [ngModel]="raycastDistanceTool.mode$ | async"
+  (ngModelChange)="raycastDistanceTool.changeMode($event)">
+  @for (entry of modes; track entry[0]) {
+  <mat-button-toggle [value]="entry[0]">
+    {{ entry[1] }}
+  </mat-button-toggle>
+  }
+</mat-button-toggle-group>
+
+<ng-container [ngSwitch]="raycastDistanceTool.mode$ | async">
+  <ng-container *ngSwitchCase="RaycastDistanceMode.ceiling">
+    <div>Ceiling mode measures from the clicked surface to the nearest vertical face directly above.</div>
+    <mat-list>
+      @for (measure of (raycastDistanceTool.ceilingDistances$ | async); track measure) {
+      <mat-list-item>
+        <h3 matListItemTitle>{{ measure.distance }} meters</h3>
+        <p matListItemLine *ngIf="measure.floorPoint as fp">{{ fp.x }}, {{ fp.y }}, {{ fp.z }}</p>
+        <p matListItemLine *ngIf="measure.firstParentGroup as parent">
+          {{ parent.name }}
+        </p>
+      </mat-list-item>
+      }
+    </mat-list>
+  </ng-container>
+
+  <ng-container *ngSwitchCase="RaycastDistanceMode.fromCamera">
+    <div>fromCamera mode finds all intersecting <b>front</b> faces between the camera and the grid.</div>
+    <mat-list>
+      @for (measure of (raycastDistanceTool.cameraDistances$ | async); track measure) {
+      <mat-list-item>
+        <ng-container *ngIf="measure.type === 'Mesh'">
+          <h3 matListItemTitle>{{ measure.gridDistance }} meters from grid</h3>
+          <p matListItemLine *ngIf="measure.firstParentGroup as parent">
+            {{ parent.name }}
+          </p>
+        </ng-container>
+        <ng-container *ngIf="measure.type === 'GridHelper'">
+          <h3 matListItemTitle>Grid</h3>
+          <p matListItemLine *ngIf="measure.absPoint as fp">{{ fp.x }}, {{ fp.y }}, {{ fp.z }}</p>
+        </ng-container>
+      </mat-list-item>
+      }
+    </mat-list>
+  </ng-container>
+</ng-container>
