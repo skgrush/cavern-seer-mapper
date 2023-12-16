@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Subject, animationFrames, distinctUntilChanged, fromEvent, map, takeUntil, tap } from 'rxjs';
-import { AmbientLight, Box3, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { BehaviorSubject, Observable, Subject, animationFrames, distinctUntilChanged, fromEvent, map, scan, takeUntil, tap } from 'rxjs';
+import { AmbientLight, Box3, Clock, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { BaseMaterialService } from './3d-managers/base-material.service';
@@ -13,6 +14,7 @@ export class CanvasService {
 
   readonly #modelManager = inject(ModelManagerService);
 
+  readonly #renderClock = new Clock();
   readonly #scene = new Scene();
   readonly #raycaster = new Raycaster();
 
@@ -22,6 +24,9 @@ export class CanvasService {
 
   #orthoCamera?: OrthographicCamera;
   #orthoControls?: MapControls;
+
+  readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
+  #compass?: ViewHelper;
 
   readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
   #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
@@ -55,6 +60,13 @@ export class CanvasService {
         this.render();
       }),
     ).subscribe();
+  }
+
+  registerCompass(compassEle$: Observable<HTMLElement | undefined>) {
+    compassEle$.subscribe({
+      next: ele => this.#compassDivSubject.next(ele),
+      complete: () => this.#compassDivSubject.next(undefined),
+    });
   }
 
   cleanupRenderer() {
@@ -137,10 +149,25 @@ export class CanvasService {
     );
   }
 
+  #wasAnimating = false;
+
   render() {
     if (!this.#renderer) { return false; }
 
+    const delta = this.#renderClock.getDelta();
+
+    if (this.#compass?.animating) {
+      this.#compass.update(delta);
+    }
+    // if (this.#compass?.animating === false && this.#wasAnimating) {
+    //   this.#orthoControls?.reset();
+    // }
+    // this.#wasAnimating = this.#compass?.animating ?? false;
+
+    this.#renderer.clear();
     this.#renderer.render(this.#scene, this.#orthoCamera!);
+    this.#compass?.render(this.#renderer);
+
     return true;
   }
 
@@ -171,7 +198,7 @@ export class CanvasService {
 
     camera.updateProjectionMatrix();
 
-    controls.update();
+    // controls.update();
   }
 
   #rebuildBottomGrid(bounds: Box3) {
@@ -204,6 +231,8 @@ export class CanvasService {
     this.#renderer = new WebGLRenderer({
       canvas,
     });
+    this.#renderer.autoClear = false;
+
     this.#orthoCamera = this.#buildNewCamera(width, height);
     this.#orthoControls = new MapControls(this.#orthoCamera, canvas);
     this.#scene.add(this.#orthoCamera);
@@ -213,7 +242,27 @@ export class CanvasService {
     this.#renderer.setSize(width, height);
 
     this.#rendererChangedSubject.next();
-    this.#renderer.render(this.#scene, this.#orthoCamera);
+
+    this.#compassDivSubject.pipe(
+      takeUntil(this.#rendererChangedSubject),
+      map(ele => {
+        if (!ele || !this.#orthoCamera || !this.#renderer?.domElement) {
+          return undefined;
+        }
+        const compass = new ViewHelper(this.#orthoCamera, this.#renderer.domElement);
+        ele.addEventListener('pointerup', e => compass.handleClick(e));
+        this.#compass = compass;
+        return compass;
+      }),
+      scan((oldComp, newComp) => {
+        oldComp?.dispose();
+        return newComp;
+      }),
+    ).subscribe();
+
+    this.render();
+
+
   }
 
   #buildNewCamera(width: number, height: number) {

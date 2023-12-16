@@ -8,13 +8,14 @@ import { CanvasComponent } from "./pages/canvas/canvas.component";
 import { SidenavComponent } from "./shared/components/sidenav/sidenav.component";
 import { ToolsBarComponent } from './shared/components/tools-bar/tools-bar.component';
 import { RightTabNavComponent } from "./pages/right-tab-nav/right-tab-nav.component";
+import { CompassComponent } from "./shared/components/compass/compass.component";
 
 @Component({
   selector: 'mapper-root',
   standalone: true,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  imports: [CommonModule, RouterOutlet, CanvasComponent, MatSidenavModule, MatButtonModule, MatIconModule, SidenavComponent, ToolsBarComponent, RightTabNavComponent]
+  imports: [CommonModule, RouterOutlet, CanvasComponent, MatSidenavModule, MatButtonModule, MatIconModule, SidenavComponent, ToolsBarComponent, RightTabNavComponent, CompassComponent]
 })
 export class AppComponent {
 }

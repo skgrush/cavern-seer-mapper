@@ -30,6 +30,12 @@
         align-self: stretch;
         overflow: hidden;
       }
+
+      &>mapper-compass {
+        grid-area: main;
+        justify-self: end;
+        align-self: end;
+      }
     }
   }
 
