@@ -6,6 +6,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { LengthPipe } from "../../../../shared/pipes/length.pipe";
+import { VectorPipe } from "../../../../shared/pipes/vector.pipe";
 
 @Component({
   selector: 'mapper-raycast-tab',
@@ -13,7 +14,7 @@ import { LengthPipe } from "../../../../shared/pipes/length.pipe";
   templateUrl: './raycast-tab.component.html',
   styleUrl: './raycast-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatIconModule, MatListModule, FormsModule, CommonModule, MatButtonToggleModule, LengthPipe]
+  imports: [MatIconModule, MatListModule, FormsModule, CommonModule, MatButtonToggleModule, LengthPipe, VectorPipe]
 })
 export class RaycastTabComponent {
   protected readonly RaycastDistanceMode = RaycastDistanceMode;

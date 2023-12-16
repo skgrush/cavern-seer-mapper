@@ -19,6 +19,8 @@ import { provideStore } from '@ngrx/store';
 import { INTL_LOCALE } from './shared/tokens/intl-locale.token';
 import { LOCAL_STORAGE } from './shared/tokens/local-storage.token';
 import { provideSettings } from './shared/services/settings';
+import { INTL_COLLATOR } from './shared/tokens/intl-collator.token';
+import { INTL_UNIT_LIST_FORMAT } from './shared/tokens/intl-unit-list-format.token';
 
 
 
@@ -42,6 +44,8 @@ export const appConfig: ApplicationConfig = {
     provideSettings(),
     { provide: LOCALE_ID, useFactory: () => globalThis.navigator.language },
     { provide: INTL_LOCALE, useFactory: (locale: string) => new Intl.Locale(locale), deps: [LOCALE_ID] },
+    { provide: INTL_COLLATOR, useFactory: (locale: string) => new Intl.Collator(locale), deps: [LOCALE_ID] },
+    { provide: INTL_UNIT_LIST_FORMAT, useFactory: (locale: string) => new Intl.ListFormat(locale, { type: 'unit' }), deps: [LOCALE_ID] },
     { provide: LOCAL_STORAGE, useFactory: () => globalThis.localStorage },
     {
       provide: ErrorHandler,

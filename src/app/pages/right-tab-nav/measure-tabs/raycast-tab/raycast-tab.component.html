@@ -19,7 +19,7 @@
       @for (measure of (raycastDistanceTool.ceilingDistances$ | async); track measure) {
       <mat-list-item>
         <h3 matListItemTitle>{{ measure.distance | length }}</h3>
-        <p matListItemLine *ngIf="measure.floorPoint as fp">{{ fp.x }}, {{ fp.y }}, {{ fp.z }}</p>
+        <p matListItemLine>{{ measure.floorPoint | vector }}</p>
         <p matListItemLine *ngIf="measure.firstParentGroup as parent">
           {{ parent.name }}
         </p>
@@ -41,7 +41,7 @@
         </ng-container>
         <ng-container *ngIf="measure.type === 'GridHelper'">
           <h3 matListItemTitle>Grid</h3>
-          <p matListItemLine *ngIf="measure.absPoint as fp">{{ fp.x }}, {{ fp.y }}, {{ fp.z }}</p>
+          <p matListItemLine>{{ measure.absPoint | vector }}</p>
         </ng-container>
       </mat-list-item>
       }

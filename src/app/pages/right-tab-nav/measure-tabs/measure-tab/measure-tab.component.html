@@ -9,8 +9,8 @@
   @for (measure of (measureTool.measures$ | async); track measure) {
   <mat-list-item>
     <h3 matListItemTitle>{{ measure.distance | length }}</h3>
-    <p matListItemLine *ngIf="measure.firstPoint as fp">{{ fp.x }}, {{ fp.y }}, {{ fp.z }}</p>
-    <p matListItemLine *ngIf="measure.secondPoint as fp">{{ fp.x }}, {{ fp.y }}, {{ fp.z }}</p>
+    <p matListItemLine>{{ measure.firstPoint | vector }}</p>
+    <p matListItemLine>{{ measure.secondPoint | vector }}</p>
   </mat-list-item>
   }
 </mat-list>

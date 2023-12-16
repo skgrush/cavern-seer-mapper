@@ -2,11 +2,11 @@ import { LOCALE_ID, Pipe, PipeTransform, inject } from '@angular/core';
 import { SettingsService } from '../services/settings/settings.service';
 import { MeasurementSystem } from '../services/settings/measurement-system';
 import { formatNumber } from '@angular/common';
+import { DigitsInfo } from './digits-info';
 
 function convertMetersToCustomary(value: number) {
-  return value * 0.3408;
+  return value / 0.3408;
 }
-type DigitsInfo = `${number}.${number}-${number}`;
 
 @Pipe({
   name: 'length',
