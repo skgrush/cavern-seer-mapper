@@ -95,3 +95,5 @@ export class ZipDownloadModelDialogComponent {
       });
   }
 }
+
+export default ZipDownloadModelDialogComponent;

@@ -115,3 +115,4 @@ export class OpenDialogComponent {
   }
 }
 
+export default OpenDialogComponent;

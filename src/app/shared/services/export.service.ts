@@ -63,10 +63,12 @@ export class ExportService {
           console.info('Seems browser does not support', ext, '; defaulting...');
           ext = blob.type.slice(6) as typeof ext;
         }
-        const name = `${baseName}${ext}`;
-        return this.downloadBlob$(name, blob);
+        const name = this.normalizeName(null, baseName, `.${ext}`);
+        const size = blob.size;
+        return this.downloadBlob$(name, blob).pipe(
+          map(() => ({ name, size })),
+        );
       }),
-      map(() => undefined),
     );
   }
 

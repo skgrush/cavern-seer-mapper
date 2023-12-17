@@ -1,0 +1,45 @@
+<form (submit)="submit($event)">
+  <h1 mat-dialog-title>{{ titleText }}</h1>
+  <div mat-dialog-content>
+    <div class="form-fields-grid">
+      <mat-form-field>
+        <mat-label>File name</mat-label>
+        <input matInput type="text" [formControl]="formGroup.controls.fileName">
+      </mat-form-field>
+
+      <section>
+        <h4>File type</h4>
+        <mat-button-toggle-group [formControl]="formGroup.controls.type">
+          @for(fileType of fileTypes; track fileType) {
+          <mat-button-toggle [value]="fileType">{{ fileType }}</mat-button-toggle>
+          }
+        </mat-button-toggle-group>
+      </section>
+
+      <section>
+        <h4>Scale factor</h4>
+        <mat-button-toggle-group [formControl]="formGroup.controls.scaleFactor">
+          @for(scaleFactor of scaleFactors; track scaleFactors) {
+          <mat-button-toggle [value]="scaleFactor">{{ scaleFactor }}</mat-button-toggle>
+          }
+        </mat-button-toggle-group>
+        <div *ngIf="scaledCanvasSize as scaled">
+          {{ scaled.x }}px X {{ scaled.y }}px
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div *ngIf="resultSubject | async as result">
+    Successfully exported {{ result.name }} at {{ result.size }} bytes.
+  </div>
+
+  <div mat-dialog-actions>
+    <button type="button" mat-button mat-dialog-close cdkFocusInitial>
+      Cancel
+    </button>
+    <button type="submit" mat-button [disabled]="!formGroup.valid">
+      Export
+    </button>
+  </div>
+</form>
