@@ -6,6 +6,7 @@ import { ModelManagerService } from '../../services/model-manager.service';
 import { OpenDialogComponent } from '../open-dialog/open-dialog.component';
 import { ZipDownloadModelDialogComponent } from '../zip-download-model-dialog/zip-download-model-dialog.component';
 import { SettingsDialogComponent } from '../settings-dialog/settings-dialog.component';
+import { ExportService } from '../../services/export.service';
 
 
 @Component({
@@ -20,6 +21,9 @@ export class SidenavComponent {
 
   readonly #modelManager = inject(ModelManagerService);
   readonly #dialog = inject(MatDialog);
+
+  // TODO: tmp
+  readonly #export = inject(ExportService);
 
   open() {
     OpenDialogComponent.open(this.#dialog, {
@@ -53,5 +57,11 @@ export class SidenavComponent {
 
   settings() {
     SettingsDialogComponent.open(this.#dialog);
+  }
+
+  exportImage() {
+    this.#export.downloadCanvasImage$('test', 'png', 1).subscribe(() => {
+      console.info('done');
+    })
   }
 }

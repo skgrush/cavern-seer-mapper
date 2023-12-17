@@ -69,6 +69,55 @@ export class CanvasService {
     });
   }
 
+  /**
+   * Export a blob of the canvas to the given type.
+   *
+   * @throws Error if the renderer or camera are not ready.
+   */
+  async exportToImage(type: `image/${string}`, sizeMultiplier = 1, quality?: number) {
+    const dimensions = this.getRendererDimensions();
+    if (!this.#renderer?.domElement || !dimensions) {
+      throw new Error('Renderer or canvas not ready to export');
+    }
+    if (quality !== undefined && (quality < 0 || quality > 1)) {
+      throw new RangeError(`quality must be between [0, 1]; got ${quality}`);
+    }
+
+    const { x: width, y: height } = dimensions.multiplyScalar(sizeMultiplier);
+
+    const sceneCopy = this.#scene.clone(true);
+    const camera = sceneCopy.children.find((c): c is OrthographicCamera => c instanceof OrthographicCamera);
+
+    if (!camera) {
+      throw new Error('Could not find camera in sceneCopy');
+    }
+
+    const canvas = new OffscreenCanvas(width, height);
+    const tempRenderer = new WebGLRenderer({
+      canvas,
+      preserveDrawingBuffer: true,
+      antialias: true,
+    });
+
+    // set the size but without setting styles, as OffscreenCanvas has no style
+    tempRenderer.setSize(width, height, false);
+    // IF the image supports transparency, clear the background
+    if (type !== 'image/jpeg') {
+      tempRenderer.setClearColor(0xFFFFFF, 0);
+    }
+
+    tempRenderer.render(sceneCopy, camera);
+
+    const blob = await canvas.convertToBlob({
+      type,
+      quality,
+    });
+
+    tempRenderer.dispose();
+
+    return blob;
+  }
+
   cleanupRenderer() {
     if (!this.#renderer) {
       return;

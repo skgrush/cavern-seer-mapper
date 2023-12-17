@@ -82,7 +82,7 @@ export class ZipDownloadModelDialogComponent {
 
     this.uploadProgress.reset(true);
 
-    this.#exportService.downloadZip$(compressionLevel, fileName, this.uploadProgress)
+    this.#exportService.downloadCurrentModelZip$(compressionLevel, fileName, this.uploadProgress)
       .subscribe({
         next: result => {
           this.uploadProgress.deactivate();
