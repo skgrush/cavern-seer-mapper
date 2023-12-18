@@ -1,10 +1,12 @@
-import { Injectable, inject } from '@angular/core';
-import { BaseToolService } from './base-tool.service';
+import { Injectable, LOCALE_ID, inject } from '@angular/core';
 import { BehaviorSubject, Subject, map, of, takeUntil } from 'rxjs';
-import { CanvasService } from '../canvas.service';
 import { GridHelper, Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
+import { formatLength } from '../../formatters/format-length';
 import { CeilingHeightAnnotation } from '../../models/annotations/ceiling-height.annotation';
+import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
+import { SettingsService } from '../settings/settings.service';
+import { BaseToolService } from './base-tool.service';
 
 export enum RaycastDistanceMode {
   fromCamera = 1,
@@ -23,6 +25,8 @@ export type IRaycastCameraDistance = {
 export class RaycastDistanceToolService extends BaseToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
+  readonly #localeId = inject(LOCALE_ID);
+  readonly #settings = inject(SettingsService);
 
   readonly #stopSubject = new Subject<void>();
 
@@ -163,6 +167,7 @@ export class RaycastDistanceToolService extends BaseToolService {
       Date.now().toString(),
       floorPointRelativeToParent,
       distance,
+      (valueInMeters, digitsInfo) => formatLength(this.#settings.measurementSystem, this.#localeId, valueInMeters, digitsInfo),
     );
 
     this.#modelManager.addAnnotationToGroup(anno, firstParentGroup);

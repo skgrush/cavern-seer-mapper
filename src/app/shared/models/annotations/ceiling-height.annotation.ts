@@ -1,13 +1,14 @@
-import { BufferGeometry, Group, Line, LineBasicMaterial, Vector3 } from "three";
+import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, MeshPhongMaterial, Vector3 } from "three";
+
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
+import { DigitsInfo } from "../../formatters/digits-info";
 import { BaseAnnotation } from "./base.annotation";
+import { droidSansFont } from "./font";
 
 
+type LengthFormatter = (valueInMeters: number, digitsInfo?: DigitsInfo) => string;
 
 export class CeilingHeightAnnotation extends BaseAnnotation {
-  override readonly identifier: string;
-  override readonly anchorPoint: Vector3;
-  readonly distance: number;
-
   readonly #line: Line;
   readonly #lineGroup: Group;
 
@@ -28,16 +29,14 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
   }
 
   constructor(
-    identifier: string,
-    floorPointRelativeToParent: Vector3,
-    distance: number,
+    readonly identifier: string,
+    readonly anchorPoint: Vector3,
+    readonly distance: number,
+    readonly lengthFormat: LengthFormatter,
   ) {
     super();
-    this.identifier = identifier;
-    this.anchorPoint = floorPointRelativeToParent;
-    this.distance = distance;
 
-    const material = new LineBasicMaterial({ color: 0xFF0000 });
+    const material = new LineBasicMaterial({ color: 0xFFFFFF });
     const geometry = new BufferGeometry().setFromPoints([
       new Vector3(),
       new Vector3(0, this.distance, 0),
@@ -46,11 +45,12 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
       geometry,
       material,
     );
-    this.#lineGroup = new Group();
-    this.#lineGroup.add(this.#line);
-    this.#lineGroup.position.copy(this.anchorPoint);
 
-    debugger;
+    const textMesh = this.#buildText(lengthFormat, distance);
+
+    this.#lineGroup = new Group();
+    this.#lineGroup.add(this.#line, textMesh);
+    this.#lineGroup.position.copy(this.anchorPoint);
   }
 
   addToGroup(group: Group): void {
@@ -58,5 +58,28 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
   }
   removeFromGroup(group: Group): void {
     group.remove(this.#lineGroup);
+  }
+
+  #buildText(lengthFormat: LengthFormatter, distance: number) {
+    const size = 0.1;
+
+    const textGeometry = new TextGeometry(
+      lengthFormat(distance, '1.0-1'),
+      {
+        font: droidSansFont,
+        size,
+        height: size / 5,
+      }
+    );
+
+    textGeometry.computeBoundingBox();
+    const centerOffset = - 0.5 * (textGeometry.boundingBox!.max.x - textGeometry.boundingBox!.min.x);
+
+    const textMesh = new Mesh(textGeometry, new MeshPhongMaterial({ color: 0xFFFFFF }));
+
+    textMesh.position.set(centerOffset, this.distance + size / 2, size / 2);
+    textMesh.rotation.set(-Math.PI / 2, 0, 0);
+
+    return textMesh;
   }
 }
