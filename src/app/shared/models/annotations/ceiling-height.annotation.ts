@@ -1,4 +1,4 @@
-import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, MeshPhongMaterial, Vector3 } from "three";
+import { BufferGeometry, CircleGeometry, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Vector3 } from "three";
 
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { DigitsInfo } from "../../formatters/digits-info";
@@ -46,17 +46,21 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
       material,
     );
 
-    const textMesh = this.#buildText(lengthFormat, distance);
+    const { textMesh, circleMesh } = this.#buildText(lengthFormat, distance);
 
     this.#lineGroup = new Group();
-    this.#lineGroup.add(this.#line, textMesh);
+    this.#lineGroup.add(this.#line, textMesh, circleMesh);
     this.#lineGroup.position.copy(this.anchorPoint);
   }
 
-  addToGroup(group: Group): void {
+  override toggleVisibility(show: boolean): void {
+    this.#lineGroup.visible = show;
+  }
+
+  override addToGroup(group: Group): void {
     group.add(this.#lineGroup);
   }
-  removeFromGroup(group: Group): void {
+  override removeFromGroup(group: Group): void {
     group.remove(this.#lineGroup);
   }
 
@@ -75,11 +79,19 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     textGeometry.computeBoundingBox();
     const centerOffset = - 0.5 * (textGeometry.boundingBox!.max.x - textGeometry.boundingBox!.min.x);
 
-    const textMesh = new Mesh(textGeometry, new MeshPhongMaterial({ color: 0xFFFFFF }));
+    const circleSize = centerOffset * 1.1;
+    const circleGeometry = new CircleGeometry(circleSize, 24);
+    const circleMesh = new Mesh(circleGeometry, new MeshBasicMaterial({ color: 0xFFFFFF }));
+    circleMesh.position.set(0, this.distance, 0);
+    circleMesh.rotation.set(-Math.PI / 2, 0, 0);
 
-    textMesh.position.set(centerOffset, this.distance + size / 2, size / 2);
+    const textMesh = new Mesh(textGeometry, new MeshBasicMaterial({ color: 0x00 }));
+    textMesh.position.set(centerOffset, this.distance + size / 5, size / 2);
     textMesh.rotation.set(-Math.PI / 2, 0, 0);
 
-    return textMesh;
+    return {
+      circleMesh,
+      textMesh,
+    };
   }
 }
