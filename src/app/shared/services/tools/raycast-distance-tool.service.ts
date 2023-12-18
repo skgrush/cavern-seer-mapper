@@ -13,13 +13,13 @@ export enum RaycastDistanceMode {
   ceiling = 2,
 }
 
-export type IRaycastCameraDistance = {
-  readonly cameraDistance: number;
-  readonly gridDistance: number;
-  readonly absPoint: Readonly<Vector3>;
-  readonly type: 'Mesh' | 'GridHelper' | null;
-  readonly firstParentGroup: Group | null;
-}
+// export type IRaycastCameraDistance = {
+//   readonly cameraDistance: number;
+//   readonly gridDistance: number;
+//   readonly absPoint: Readonly<Vector3>;
+//   readonly type: 'Mesh' | 'GridHelper' | null;
+//   readonly firstParentGroup: Group | null;
+// }
 
 @Injectable()
 export class RaycastDistanceToolService extends BaseToolService {
@@ -30,13 +30,13 @@ export class RaycastDistanceToolService extends BaseToolService {
 
   readonly #stopSubject = new Subject<void>();
 
-  readonly #cameraDistancesSubject = new BehaviorSubject<readonly IRaycastCameraDistance[]>([]);
+  // readonly #cameraDistancesSubject = new BehaviorSubject<readonly IRaycastCameraDistance[]>([]);
   // TODO: what happens if ceiling distances are removed from the models?
   readonly #ceilingDistancesSubject = new BehaviorSubject<readonly CeilingHeightAnnotation[]>([]);
   readonly #modeSubject = new BehaviorSubject(RaycastDistanceMode.ceiling);
   readonly #showCeilingHeightsSubject = new BehaviorSubject(true);
 
-  readonly cameraDistances$ = this.#cameraDistancesSubject.asObservable();
+  // readonly cameraDistances$ = this.#cameraDistancesSubject.asObservable();
   readonly ceilingDistances$ = this.#ceilingDistancesSubject.asObservable();
   readonly mode$ = this.#modeSubject.asObservable();
   readonly showCeilingHeights$ = this.#showCeilingHeightsSubject.asObservable();
@@ -115,7 +115,8 @@ export class RaycastDistanceToolService extends BaseToolService {
 
         switch (this.#modeSubject.value) {
           case RaycastDistanceMode.fromCamera:
-            this.#handleCameraRaycast(results);
+            // this.#handleCameraRaycast(results);
+            console.info('raycast distance mode disabled', results);
             break;
           case RaycastDistanceMode.ceiling:
             this.#handleCeilingRaycast(results);
@@ -134,36 +135,37 @@ export class RaycastDistanceToolService extends BaseToolService {
     return true;
   }
 
-  #handleCameraRaycast(results: Intersection<Object3D>[]) {
-    const output: IRaycastCameraDistance[] = [];
+  // #handleCameraRaycast(results: Intersection<Object3D>[]) {
+  //   const output: IRaycastCameraDistance[] = [];
 
-    const firstGridHelper = results.find(r => r.object instanceof GridHelper);
-    const girdHelperDistFromCamera = firstGridHelper?.distance ?? Infinity;
+  //   const firstGridHelper = results.find(r => r.object instanceof GridHelper);
+  //   const girdHelperDistFromCamera = firstGridHelper?.distance ?? Infinity;
 
-    for (const result of results) {
-      // we only want to add the first GridHelper to the list
-      if (result.object instanceof GridHelper && result !== firstGridHelper) {
-        continue;
-      }
+  //   for (const result of results) {
+  //     // we only want to add the first GridHelper to the list
+  //     if (result.object instanceof GridHelper && result !== firstGridHelper) {
+  //       continue;
+  //     }
 
-      let type: IRaycastCameraDistance['type'] = null;
-      if (result.object instanceof GridHelper) {
-        type = 'GridHelper';
-      } else if (result.object instanceof Mesh) {
-        type = 'Mesh';
-      }
+  //     let type: IRaycastCameraDistance['type'] = null;
+  //     if (result.object instanceof GridHelper) {
+  //       type = 'GridHelper';
+  //     } else if (result.object instanceof Mesh) {
+  //       type = 'Mesh';
+  //     }
 
-      output.push({
-        cameraDistance: result.distance,
-        gridDistance: girdHelperDistFromCamera - result.distance,
-        absPoint: result.point,
-        type,
-        firstParentGroup: this.#getFirstParentGroup(result.object),
-      });
-    }
+  //     output.push({
+  //       cameraDistance: result.distance,
+  //       gridDistance: girdHelperDistFromCamera - result.distance,
+  //       absPoint: result.point,
+  //       type,
+  //       firstParentGroup: this.#getFirstParentGroup(result.object),
+  //     });
+  //   }
 
-    this.#cameraDistancesSubject.next(output);
-  }
+  //   this.#cameraDistancesSubject.next(output);
+  // }
+
   #handleCeilingRaycast(results: Intersection<Object3D>[]) {
     const firstMeshInter = results.find((r): r is Intersection<Mesh> => r.object instanceof Mesh);
     if (!firstMeshInter) {

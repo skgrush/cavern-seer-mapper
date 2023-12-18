@@ -3,17 +3,17 @@
   tool
 </p>
 
-<mat-button-toggle-group [ngModel]="raycastDistanceTool.mode$ | async"
+<!-- <mat-button-toggle-group [ngModel]="raycastDistanceTool.mode$ | async"
   (ngModelChange)="raycastDistanceTool.changeMode($event)">
   @for (entry of modes; track entry[0]) {
   <mat-button-toggle [value]="entry[0]">
     {{ entry[1] }}
   </mat-button-toggle>
   }
-</mat-button-toggle-group>
+</mat-button-toggle-group> -->
 
-<ng-container [ngSwitch]="raycastDistanceTool.mode$ | async">
-  <ng-container *ngSwitchCase="RaycastDistanceMode.ceiling">
+<!-- <ng-container [ngSwitch]="raycastDistanceTool.mode$ | async"> -->
+<!-- <ng-container *ngSwitchCase="RaycastDistanceMode.ceiling"> -->
 <div>Ceiling mode measures from the clicked surface to the nearest vertical face directly above.</div>
 
 <mat-button-toggle-group [ngModel]="raycastDistanceTool.showCeilingHeights$ | async"
@@ -43,8 +43,9 @@
   </mat-list-option>
   }
 </mat-selection-list>
+<!-- </ng-container> -->
 
-  <ng-container *ngSwitchCase="RaycastDistanceMode.fromCamera">
+<!-- <ng-container *ngSwitchCase="RaycastDistanceMode.fromCamera">
     <div>fromCamera mode finds all intersecting <b>front</b> faces between the camera and the grid.</div>
     <mat-list>
       @for (measure of (raycastDistanceTool.cameraDistances$ | async); track measure) {
@@ -62,5 +63,5 @@
       </mat-list-item>
       }
     </mat-list>
-  </ng-container>
-</ng-container>
+  </ng-container> -->
+<!-- </ng-container> -->
