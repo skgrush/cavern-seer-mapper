@@ -56,6 +56,10 @@ export class RaycastDistanceToolService extends BaseToolService {
     }
   }
 
+  lookAt(anno: CeilingHeightAnnotation) {
+    this.#canvasService.lookAt(anno.worldPoint);
+  }
+
   changeMode(mode: RaycastDistanceMode) {
     if (!(mode in RaycastDistanceMode)) {
       throw new Error(`Invalid mode ${mode}`);
@@ -168,9 +172,12 @@ export class RaycastDistanceToolService extends BaseToolService {
 
     const firstMeshCeiling = upIntersections.find((r): r is Intersection<Mesh> => r.object instanceof Mesh);
 
-    const ceilingPoint = firstMeshCeiling
-      ? firstMeshCeiling.point
-      : floorPoint.add(new Vector3(0, 1000, 0));
+    if (!firstMeshCeiling) {
+      console.warn('No ceiling');
+      return null;
+    }
+
+    const ceilingPoint = firstMeshCeiling.point;
 
     const floorPointRelativeToParent = firstParentGroup.worldToLocal(floorPoint.clone());
     const distance = floorPoint.distanceTo(ceilingPoint);

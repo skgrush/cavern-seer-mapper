@@ -62,6 +62,24 @@ export class CanvasService {
     ).subscribe();
   }
 
+  /**
+   * Look at this point using the same camera angle.
+   */
+  lookAt(point: Vector3) {
+    if (!this.#orthoControls) {
+      throw new Error('lookAt with no controls');
+    }
+
+    const cameraToOldPointVector = new Vector3();
+    cameraToOldPointVector.subVectors(this.#orthoControls.object.position, this.#orthoControls.target);
+
+    const newCameraLoc = point.clone().add(cameraToOldPointVector);
+
+    this.#orthoControls.object.position.copy(newCameraLoc);
+    this.#orthoControls.target.copy(point);
+    this.#orthoControls.update();
+  }
+
   registerCompass(compassEle$: Observable<HTMLElement | undefined>) {
     compassEle$.subscribe({
       next: ele => this.#compassDivSubject.next(ele),

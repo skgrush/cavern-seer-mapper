@@ -25,7 +25,10 @@
     <mat-list>
       @for (measure of (raycastDistanceTool.ceilingDistances$ | async); track measure) {
       <mat-list-item>
-        <h3 matListItemTitle>{{ measure.distance | length }}</h3>
+        <h3 matListItemTitle>
+          <mat-icon class="look-at" (click)="raycastDistanceTool.lookAt(measure)">search</mat-icon>
+          {{ measure.distance | length }}
+        </h3>
         <p matListItemLine>{{ measure.worldPoint | vector }}</p>
         <p matListItemLine *ngIf="measure.firstParentName as parent">
           {{ parent }}
