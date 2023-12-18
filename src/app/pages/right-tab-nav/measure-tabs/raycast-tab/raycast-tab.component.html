@@ -15,6 +15,13 @@
 <ng-container [ngSwitch]="raycastDistanceTool.mode$ | async">
   <ng-container *ngSwitchCase="RaycastDistanceMode.ceiling">
     <div>Ceiling mode measures from the clicked surface to the nearest vertical face directly above.</div>
+
+    <mat-button-toggle-group [ngModel]="raycastDistanceTool.showCeilingHeights$ | async"
+      (ngModelChange)="raycastDistanceTool.toggleCeilingHeights($event)">
+      <mat-button-toggle [value]="true">Show</mat-button-toggle>
+      <mat-button-toggle [value]="false">Hide</mat-button-toggle>
+    </mat-button-toggle-group>
+
     <mat-list>
       @for (measure of (raycastDistanceTool.ceilingDistances$ | async); track measure) {
       <mat-list-item>

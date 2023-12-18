@@ -34,15 +34,27 @@ export class RaycastDistanceToolService extends BaseToolService {
   // TODO: what happens if ceiling distances are removed from the models?
   readonly #ceilingDistancesSubject = new BehaviorSubject<readonly CeilingHeightAnnotation[]>([]);
   readonly #modeSubject = new BehaviorSubject(RaycastDistanceMode.ceiling);
+  readonly #showCeilingHeightsSubject = new BehaviorSubject(true);
 
   readonly cameraDistances$ = this.#cameraDistancesSubject.asObservable();
   readonly ceilingDistances$ = this.#ceilingDistancesSubject.asObservable();
   readonly mode$ = this.#modeSubject.asObservable();
+  readonly showCeilingHeights$ = this.#showCeilingHeightsSubject.asObservable();
 
   override readonly id = 'raycast-distance';
   override readonly label = 'Raycast distance';
   override readonly icon = 'biotech';
   override readonly cursor$ = of('crosshair');
+
+  toggleCeilingHeights(show: boolean) {
+    if (show === this.#showCeilingHeightsSubject.value) {
+      return;
+    }
+    this.#showCeilingHeightsSubject.next(show);
+    for (const ch of this.#ceilingDistancesSubject.value) {
+      ch.toggleVisibility(show)
+    }
+  }
 
   changeMode(mode: RaycastDistanceMode) {
     if (!(mode in RaycastDistanceMode)) {
