@@ -18,12 +18,6 @@ export type IRaycastCameraDistance = {
   readonly type: 'Mesh' | 'GridHelper' | null;
   readonly firstParentGroup: Group | null;
 }
-export type IRaycastCeilingDistance = {
-  readonly floorPoint: Readonly<Vector3>;
-  readonly ceilingPoint: Readonly<Vector3>;
-  readonly distance: number;
-  readonly firstParentGroup: Group | null;
-}
 
 @Injectable()
 export class RaycastDistanceToolService extends BaseToolService {
@@ -32,9 +26,9 @@ export class RaycastDistanceToolService extends BaseToolService {
 
   readonly #stopSubject = new Subject<void>();
 
-  // TODO: maybe should move these into the main state that gets serialized
   readonly #cameraDistancesSubject = new BehaviorSubject<readonly IRaycastCameraDistance[]>([]);
-  readonly #ceilingDistancesSubject = new BehaviorSubject<readonly IRaycastCeilingDistance[]>([]);
+  // TODO: what happens if ceiling distances are removed from the models?
+  readonly #ceilingDistancesSubject = new BehaviorSubject<readonly CeilingHeightAnnotation[]>([]);
   readonly #modeSubject = new BehaviorSubject(RaycastDistanceMode.ceiling);
 
   readonly cameraDistances$ = this.#cameraDistancesSubject.asObservable();
@@ -173,16 +167,9 @@ export class RaycastDistanceToolService extends BaseToolService {
 
     this.#modelManager.addAnnotationToGroup(anno, firstParentGroup);
 
-    const newEntry: IRaycastCeilingDistance = {
-      ceilingPoint,
-      floorPoint,
-      distance,
-      firstParentGroup,
-    };
-
     const newList = Object.freeze([
       ...this.#ceilingDistancesSubject.value,
-      newEntry,
+      anno,
     ]);
 
     this.#ceilingDistancesSubject.next(newList);

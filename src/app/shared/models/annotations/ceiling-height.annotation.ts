@@ -11,6 +11,22 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
   readonly #line: Line;
   readonly #lineGroup: Group;
 
+  get worldPoint() {
+    const vector = new Vector3();
+    return this.#lineGroup.getWorldPosition(vector);
+  }
+
+  get firstParentName() {
+    let group = this.#lineGroup.parent;
+    while (group) {
+      if (group.name) {
+        return group.name;
+      }
+      group = group.parent;
+    }
+    return null;
+  }
+
   constructor(
     identifier: string,
     floorPointRelativeToParent: Vector3,

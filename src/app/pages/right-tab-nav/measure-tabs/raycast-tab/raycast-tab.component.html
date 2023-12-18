@@ -19,9 +19,9 @@
       @for (measure of (raycastDistanceTool.ceilingDistances$ | async); track measure) {
       <mat-list-item>
         <h3 matListItemTitle>{{ measure.distance | length }}</h3>
-        <p matListItemLine>{{ measure.floorPoint | vector }}</p>
-        <p matListItemLine *ngIf="measure.firstParentGroup as parent">
-          {{ parent.name }}
+        <p matListItemLine>{{ measure.worldPoint | vector }}</p>
+        <p matListItemLine *ngIf="measure.firstParentName as parent">
+          {{ parent }}
         </p>
       </mat-list-item>
       }
