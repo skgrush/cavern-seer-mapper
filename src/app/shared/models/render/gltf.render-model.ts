@@ -75,4 +75,7 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
   override addAnnotation(anno: BaseAnnotation): boolean {
     throw new Error("Method not implemented");
   }
+  override removeAnnotations(annosToDelete: Set<BaseAnnotation>): void {
+    throw new Error("Method not implemented");
+  }
 }

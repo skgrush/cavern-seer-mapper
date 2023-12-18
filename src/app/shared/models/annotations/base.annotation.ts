@@ -6,5 +6,6 @@ export abstract class BaseAnnotation {
 
   abstract addToGroup(group: Group): void;
   abstract removeFromGroup(group: Group): void;
+  abstract removeFromGroup(group: Group): void;
   abstract toggleVisibility(show: boolean): void;
 }

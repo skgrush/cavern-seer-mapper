@@ -60,6 +60,21 @@ export class RaycastDistanceToolService extends BaseToolService {
     this.#canvasService.lookAt(anno.worldPoint);
   }
 
+  deleteCeilingHeights(annos: readonly CeilingHeightAnnotation[]) {
+    const set = new Set(annos);
+    this.#modelManager.removeAnnotations(set);
+
+    // when updating the subject, need to be sure we don't remove unsuccessful ones
+    const newCeilingHeightsSubjectList = this.#ceilingDistancesSubject.value
+      .filter(anno => !annos.includes(anno) || set.has(anno));
+
+    this.#ceilingDistancesSubject.next(Object.freeze(
+      newCeilingHeightsSubjectList,
+    ));
+
+    return (set.size === 0);
+  }
+
   changeMode(mode: RaycastDistanceMode) {
     if (!(mode in RaycastDistanceMode)) {
       throw new Error(`Invalid mode ${mode}`);

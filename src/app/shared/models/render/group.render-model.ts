@@ -159,4 +159,15 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     }
     return false;
   }
+
+  override removeAnnotations(annosToDelete: Set<BaseAnnotation>): void {
+    for (const child of this.children) {
+      if (child instanceof BaseVisibleRenderModel) {
+        child.removeAnnotations(annosToDelete);
+        if (annosToDelete.size === 0) {
+          return;
+        }
+      }
+    }
+  }
 }

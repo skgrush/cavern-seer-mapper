@@ -21,7 +21,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   readonly #object: Group;
   readonly #boxHelper: BoxHelper;
   readonly #blob: Blob;
-  readonly #annotations: BaseAnnotation[] = [];
+  readonly #annotations = new Set<BaseAnnotation>();
 
   constructor(
     identifier: string,
@@ -96,8 +96,23 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     }
 
     anno.addToGroup(this.#object);
-    this.#annotations.push(anno);
+    this.#annotations.add(anno);
     this.#childOrPropertyChanged.next();
     return true;
+  }
+
+  override removeAnnotations(annosToDelete: Set<BaseAnnotation>): void {
+    for (const anno of annosToDelete) {
+
+      const deleted = this.#annotations.delete(anno);
+      if (!deleted) {
+        continue;
+      }
+
+      anno.removeFromGroup(this.#object);
+      this.#childOrPropertyChanged.next();
+
+      annosToDelete.delete(anno);
+    }
   }
 }

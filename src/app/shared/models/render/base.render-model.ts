@@ -31,6 +31,11 @@ export abstract class BaseVisibleRenderModel<T extends FileModelType> extends Ba
    * Try to add the annotation; return false if this isn't the correct group.
    */
   abstract addAnnotation(anno: BaseAnnotation, toGroup: Group): boolean;
+  /**
+   * Try to remove these annotations.
+   * the implementation should mutate the original set if they are removed.
+   */
+  abstract removeAnnotations(annosToDelete: Set<BaseAnnotation>): void;
   abstract setMaterial(material: BaseMaterialService<any>): void;
 
   abstract setPosition(pos: ISimpleVector3): boolean;

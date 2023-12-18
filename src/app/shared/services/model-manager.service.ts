@@ -41,6 +41,14 @@ export class ModelManagerService {
     }
   }
 
+  removeAnnotations(annos: Set<BaseAnnotation>) {
+    const current = this.#currentOpenGroup.value;
+    if (!current) {
+      throw new Error('addAnnotationToGroup called with no model?');
+    }
+    current.removeAnnotations(annos);
+  }
+
   addAnnotationToGroup(anno: BaseAnnotation, toGroup: Group) {
     const current = this.#currentOpenGroup.value;
     if (!current) {
