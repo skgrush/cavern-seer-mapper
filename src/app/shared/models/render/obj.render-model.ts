@@ -1,12 +1,13 @@
 import { BoxHelper, Group, Mesh } from "three";
-import { BaseRenderModel } from "./base.render-model";
+import { BaseVisibleRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
 import { UploadFileModel } from "../upload-file-model";
+import { BaseAnnotation } from "../annotations/base.annotation";
 
-export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
+export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
@@ -20,6 +21,7 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
   readonly #object: Group;
   readonly #boxHelper: BoxHelper;
   readonly #blob: Blob;
+  readonly #annotations: BaseAnnotation[] = [];
 
   constructor(
     identifier: string,
@@ -34,6 +36,10 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
 
     this.identifier = identifier;
     this.comment = comment;
+
+    object.traverse(child => {
+      child.userData['fromSerializedModel'] = true;
+    })
   }
 
   static fromUploadModel(uploadModel: UploadFileModel, object: Group) {
@@ -64,7 +70,7 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
 
   override setMaterial(material: BaseMaterialService<any>): void {
     this.#object.traverse(child => {
-      if (child instanceof Mesh) {
+      if (child instanceof Mesh && child.userData['fromSerializedModel']) {
         child.material = material.material;
       }
     });
@@ -82,5 +88,16 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
 
   override dispose(): void {
     this.#boxHelper.dispose();
+  }
+
+  override addAnnotation(anno: BaseAnnotation, toGroup: Group): boolean {
+    if (this.#object !== toGroup) {
+      return false;
+    }
+
+    anno.addToGroup(this.#object);
+    this.#annotations.push(anno);
+    this.#childOrPropertyChanged.next();
+    return true;
   }
 }

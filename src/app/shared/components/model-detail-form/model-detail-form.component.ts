@@ -1,13 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
-import { BaseRenderModel } from '../../models/render/base.render-model';
-
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, debounceTime, startWith, switchMap, tap } from 'rxjs';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ISimpleVector3 } from '../../models/simple-types';
+import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { BaseRenderModel, BaseVisibleRenderModel } from '../../models/render/base.render-model';
 import { NgIf } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { BehaviorSubject, debounceTime, startWith, switchMap, tap } from 'rxjs';
+import { ISimpleVector3 } from '../../models/simple-types';
 
 const zeroVec = Object.freeze({
   x: 0,
@@ -67,6 +66,9 @@ export class ModelDetailFormComponent implements OnInit {
       takeUntilDestroyed(this.#destroyRef),
       debounceTime(50),
       tap(({ position }) => {
+        if (!(this.model instanceof BaseVisibleRenderModel)) {
+          return;
+        }
         const positionVector = { ...zeroVec, ...(position) as ISimpleVector3 };
         console.info('position changed', position);
         this.model.setPosition(positionVector);

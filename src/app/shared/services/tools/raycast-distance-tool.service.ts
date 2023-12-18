@@ -3,6 +3,8 @@ import { BaseToolService } from './base-tool.service';
 import { BehaviorSubject, Subject, map, of, takeUntil } from 'rxjs';
 import { CanvasService } from '../canvas.service';
 import { GridHelper, Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
+import { CeilingHeightAnnotation } from '../../models/annotations/ceiling-height.annotation';
+import { ModelManagerService } from '../model-manager.service';
 
 export enum RaycastDistanceMode {
   fromCamera = 1,
@@ -26,6 +28,8 @@ export type IRaycastCeilingDistance = {
 @Injectable()
 export class RaycastDistanceToolService extends BaseToolService {
   readonly #canvasService = inject(CanvasService);
+  readonly #modelManager = inject(ModelManagerService);
+
   readonly #stopSubject = new Subject<void>();
 
   // TODO: maybe should move these into the main state that gets serialized
@@ -143,19 +147,37 @@ export class RaycastDistanceToolService extends BaseToolService {
       object,
     } = firstMeshInter;
 
+    const firstParentGroup = this.#getFirstParentGroup(object);
+
+    if (!firstParentGroup) {
+      console.warn('Could not find a parent group?', object);
+      return null;
+    }
+
     const upIntersections = this.#canvasService.raycast(floorPoint, new Vector3(0, 1, 0));
 
     const firstMeshCeiling = upIntersections.find((r): r is Intersection<Mesh> => r.object instanceof Mesh);
 
     const ceilingPoint = firstMeshCeiling
       ? firstMeshCeiling.point
-      : floorPoint.add(new Vector3(0, Infinity, 0));
+      : floorPoint.add(new Vector3(0, 1000, 0));
+
+    const floorPointRelativeToParent = firstParentGroup.worldToLocal(floorPoint.clone());
+    const distance = floorPoint.distanceTo(ceilingPoint);
+
+    const anno = new CeilingHeightAnnotation(
+      Date.now().toString(),
+      floorPointRelativeToParent,
+      distance,
+    );
+
+    this.#modelManager.addAnnotationToGroup(anno, firstParentGroup);
 
     const newEntry: IRaycastCeilingDistance = {
       ceilingPoint,
       floorPoint,
-      distance: ceilingPoint.distanceTo(floorPoint),
-      firstParentGroup: this.#getFirstParentGroup(object)
+      distance,
+      firstParentGroup,
     };
 
     const newList = Object.freeze([

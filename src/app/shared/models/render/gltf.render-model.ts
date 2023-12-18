@@ -1,13 +1,17 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { BaseRenderModel } from "./base.render-model";
+import { BaseVisibleRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Group, Object3DEventMap, Vector3 } from "three";
 import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
 import { UploadFileModel } from "../upload-file-model";
+import { BaseAnnotation } from "../annotations/base.annotation";
 
-export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
+/**
+ * TODO: basically unimplemented so far...
+ */
+export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> {
   override readonly type = FileModelType.gLTF;
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
@@ -67,5 +71,8 @@ export class GltfRenderModel extends BaseRenderModel<FileModelType.gLTF> {
   }
   override dispose(): void {
     throw new Error("Method not implemented.");
+  }
+  override addAnnotation(anno: BaseAnnotation): boolean {
+    throw new Error("Method not implemented");
   }
 }

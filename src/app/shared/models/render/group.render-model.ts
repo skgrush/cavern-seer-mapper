@@ -1,12 +1,13 @@
 import { BoxHelper, Group, Object3DEventMap, Scene } from "three";
-import { BaseRenderModel } from "./base.render-model";
+import { BaseRenderModel, BaseVisibleRenderModel } from "./base.render-model";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { FileModelType } from "../model-type.enum";
 import { Subject, Subscription } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
+import { BaseAnnotation } from "../annotations/base.annotation";
 
 
-export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
+export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group> {
   override readonly type = FileModelType.group;
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
@@ -32,6 +33,7 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
   ) {
     super();
     this.identifier = identifier;
+    this.#group.name = identifier;
   }
 
   public static fromModels(identifier: string, models: BaseRenderModel<any>[]) {
@@ -55,8 +57,10 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
     model.addToGroup(this.#group);
     this.#models.add(model);
 
-    if (this.#currentMaterial) {
-      model.setMaterial(this.#currentMaterial);
+    if (model instanceof BaseVisibleRenderModel) {
+      if (this.#currentMaterial) {
+        model.setMaterial(this.#currentMaterial);
+      }
     }
 
     this.#modelsSubscriptions.set(
@@ -126,7 +130,9 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
   override setMaterial(material: BaseMaterialService<any>): void {
     this.#currentMaterial = material;
     for (const model of this.#models) {
-      model.setMaterial(material);
+      if (model instanceof BaseVisibleRenderModel) {
+        model.setMaterial(material);
+      }
     }
   }
   override addToGroup(group: Group<Object3DEventMap>): void {
@@ -137,5 +143,20 @@ export class GroupRenderModel extends BaseRenderModel<FileModelType.group> {
   }
   override removeFromGroup(group: Group<Object3DEventMap>): void {
     group.remove(this.#group);
+  }
+
+  override addAnnotation(anno: BaseAnnotation, toGroup: Group): boolean {
+    if (this.#group === toGroup) {
+      throw new Error('attempt to add annotation to non mesh group??');
+    }
+    for (const child of this.children) {
+      if (child instanceof BaseVisibleRenderModel) {
+        const success = child.addAnnotation(anno, toGroup);
+        if (success) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

@@ -4,6 +4,7 @@ import { FileModelType } from "../model-type.enum";
 import { Observable } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
 import { BaseModelManifest } from "../model-manifest";
+import { BaseAnnotation } from "../annotations/base.annotation";
 
 export abstract class BaseRenderModel<T extends FileModelType> {
 
@@ -17,20 +18,30 @@ export abstract class BaseRenderModel<T extends FileModelType> {
   abstract setComment(comment: string | null): boolean;
   abstract serialize(): Blob | null;
 
-  abstract setPosition(pos: ISimpleVector3): boolean;
-
-  abstract setMaterial(material: BaseMaterialService<any>): void;
-
   abstract addToGroup(group: Group): void;
   abstract removeFromGroup(group: Group): void;
 
   abstract dispose(): void;
 
-  setFromManifest(manifest: BaseModelManifest, path: string): void {
+  setFromManifest(manifest: BaseModelManifest, path: string): void { }
+}
+
+export abstract class BaseVisibleRenderModel<T extends FileModelType> extends BaseRenderModel<T> {
+  /**
+   * Try to add the annotation; return false if this isn't the correct group.
+   */
+  abstract addAnnotation(anno: BaseAnnotation, toGroup: Group): boolean;
+  abstract setMaterial(material: BaseMaterialService<any>): void;
+
+  abstract setPosition(pos: ISimpleVector3): boolean;
+
+  override setFromManifest(manifest: BaseModelManifest, path: string): void {
     const pos = manifest.getPosition(path);
 
     if (pos) {
       this.setPosition(pos);
     }
+
+    super.setFromManifest(manifest, path);
   }
 }

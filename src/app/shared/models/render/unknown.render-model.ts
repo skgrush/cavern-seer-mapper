@@ -30,6 +30,7 @@ export class UnknownRenderModel extends BaseRenderModel<FileModelType.unknown> {
 
   static fromUploadModel(uploadModel: UploadFileModel) {
     const { identifier, blob, comment } = uploadModel;
+    return new UnknownRenderModel(identifier, comment, blob);
   }
 
   override serialize() {
@@ -41,16 +42,8 @@ export class UnknownRenderModel extends BaseRenderModel<FileModelType.unknown> {
     return true;
   }
 
-  override setPosition(pos: ISimpleVector3): boolean {
-    return false;
-  }
-  override setMaterial(material: BaseMaterialService<any>): void {
-  }
-  override addToGroup(group: Group<Object3DEventMap>): void {
-  }
-  override removeFromGroup(group: Group<Object3DEventMap>): void {
-  }
-  override dispose(): void {
-  }
+  override addToGroup(group: Group<Object3DEventMap>): void { }
+  override removeFromGroup(group: Group<Object3DEventMap>): void { }
+  override dispose(): void { }
 
 }
