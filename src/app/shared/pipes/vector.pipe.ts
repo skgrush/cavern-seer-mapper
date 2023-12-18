@@ -1,6 +1,6 @@
 import { LOCALE_ID, Pipe, PipeTransform, inject } from '@angular/core';
 import { Vector2, Vector3 } from 'three';
-import { DigitsInfo } from './digits-info';
+import { DigitsInfo } from '../formatters/digits-info';
 import { formatNumber } from '@angular/common';
 import { INTL_UNIT_LIST_FORMAT } from '../tokens/intl-unit-list-format.token';
 

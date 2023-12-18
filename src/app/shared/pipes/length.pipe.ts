@@ -1,12 +1,9 @@
 import { LOCALE_ID, Pipe, PipeTransform, inject } from '@angular/core';
 import { SettingsService } from '../services/settings/settings.service';
-import { MeasurementSystem } from '../services/settings/measurement-system';
-import { formatNumber } from '@angular/common';
-import { DigitsInfo } from './digits-info';
+import { DigitsInfo } from '../formatters/digits-info';
+import { formatLength } from '../formatters/format-length';
 
-function convertMetersToCustomary(value: number) {
-  return value / 0.3408;
-}
+
 
 @Pipe({
   name: 'length',
@@ -25,17 +22,12 @@ export class LengthPipe implements PipeTransform {
       return null;
     }
 
-    const value = this.#settings.measurementSystem === MeasurementSystem.metric
-      ? valueInMeters
-      : convertMetersToCustomary(valueInMeters);
-
-    const formatted = formatNumber(value, this.#locale, digitsInfo);
-
-    const suffix = this.#settings.measurementSystem === MeasurementSystem.metric
-      ? 'm'
-      : 'ft';
-
-    return `${formatted} ${suffix}`;
+    return formatLength(
+      this.#settings.measurementSystem,
+      this.#locale,
+      valueInMeters,
+      digitsInfo,
+    );
   }
 
 }
