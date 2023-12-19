@@ -21,6 +21,7 @@ import { LOCAL_STORAGE } from './shared/tokens/local-storage.token';
 import { provideSettings } from './shared/services/settings';
 import { INTL_COLLATOR } from './shared/tokens/intl-collator.token';
 import { INTL_UNIT_LIST_FORMAT } from './shared/tokens/intl-unit-list-format.token';
+import { AnnotationBuilderService } from './shared/services/annotation-builder.service';
 
 
 
@@ -40,6 +41,7 @@ export const appConfig: ApplicationConfig = {
     ModelManagerService,
     MeshNormalMaterialService,
     ToolManagerService,
+    AnnotationBuilderService,
     toolsProviders(),
     provideSettings(),
     { provide: LOCALE_ID, useFactory: () => globalThis.navigator.language },

@@ -4,11 +4,15 @@ import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { DigitsInfo } from "../../formatters/digits-info";
 import { BaseAnnotation } from "./base.annotation";
 import { droidSansFont } from "./font";
+import { AnnotationType } from "../annotation-type.enum";
+import { IMetadataCeilingHeightV0 } from "../manifest/types.v0";
 
 
 type LengthFormatter = (valueInMeters: number, digitsInfo?: DigitsInfo) => string;
 
 export class CeilingHeightAnnotation extends BaseAnnotation {
+  override readonly type = AnnotationType.ceilingHeight;
+
   readonly #line: Line;
   readonly #lineGroup: Group;
 
@@ -51,6 +55,20 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     this.#lineGroup = new Group();
     this.#lineGroup.add(this.#line, textMesh, circleMesh);
     this.#lineGroup.position.copy(this.anchorPoint);
+  }
+
+  override serializeToManifest(version: number): IMetadataCeilingHeightV0 {
+    if (version !== 0) {
+      throw new RangeError('CeilingHeightAnnotation only supports manifest v0');
+    }
+    const { x, y, z } = this.anchorPoint;
+
+    return {
+      type: AnnotationType.ceilingHeight,
+      identifier: this.identifier,
+      anchorPoint: { x, y, z },
+      distance: this.distance,
+    };
   }
 
   override toggleVisibility(show: boolean): void {

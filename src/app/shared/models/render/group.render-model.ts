@@ -145,8 +145,26 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     group.remove(this.#group);
   }
 
-  override addAnnotation(anno: BaseAnnotation, toGroup: Group): boolean {
-    if (this.#group === toGroup) {
+  override getAnnotations(): readonly BaseAnnotation[] {
+    return [];
+  }
+
+  getAllAnnotationsRecursively(): readonly BaseAnnotation[] {
+    const annos: BaseAnnotation[] = [];
+
+    return this.children.flatMap(child => {
+      if (child instanceof GroupRenderModel) {
+        return child.getAllAnnotationsRecursively();
+      }
+      if (child instanceof BaseVisibleRenderModel) {
+        return child.getAnnotations();
+      }
+      return [];
+    });
+  }
+
+  override addAnnotation(anno: BaseAnnotation, toGroup?: Group): boolean {
+    if (toGroup === undefined || this.#group === toGroup) {
       throw new Error('attempt to add annotation to non mesh group??');
     }
     for (const child of this.children) {

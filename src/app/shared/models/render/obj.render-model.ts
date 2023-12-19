@@ -90,8 +90,12 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     this.#boxHelper.dispose();
   }
 
-  override addAnnotation(anno: BaseAnnotation, toGroup: Group): boolean {
-    if (this.#object !== toGroup) {
+  override getAnnotations(): readonly BaseAnnotation[] {
+    return [...this.#annotations];
+  }
+
+  override addAnnotation(anno: BaseAnnotation, toGroup?: Group): boolean {
+    if (toGroup && this.#object !== toGroup) {
       return false;
     }
 

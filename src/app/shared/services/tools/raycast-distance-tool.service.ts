@@ -1,11 +1,11 @@
-import { Injectable, LOCALE_ID, inject } from '@angular/core';
-import { BehaviorSubject, Subject, map, of, takeUntil } from 'rxjs';
-import { GridHelper, Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
-import { formatLength } from '../../formatters/format-length';
+import { Injectable, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BehaviorSubject, Subject, distinctUntilChanged, map, of, takeUntil, tap } from 'rxjs';
+import { Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
 import { CeilingHeightAnnotation } from '../../models/annotations/ceiling-height.annotation';
+import { AnnotationBuilderService } from '../annotation-builder.service';
 import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
-import { SettingsService } from '../settings/settings.service';
 import { BaseToolService } from './base-tool.service';
 
 export enum RaycastDistanceMode {
@@ -25,13 +25,11 @@ export enum RaycastDistanceMode {
 export class RaycastDistanceToolService extends BaseToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
-  readonly #localeId = inject(LOCALE_ID);
-  readonly #settings = inject(SettingsService);
+  readonly #annotationBuilder = inject(AnnotationBuilderService);
 
   readonly #stopSubject = new Subject<void>();
 
   // readonly #cameraDistancesSubject = new BehaviorSubject<readonly IRaycastCameraDistance[]>([]);
-  // TODO: what happens if ceiling distances are removed from the models?
   readonly #ceilingDistancesSubject = new BehaviorSubject<readonly CeilingHeightAnnotation[]>([]);
   readonly #modeSubject = new BehaviorSubject(RaycastDistanceMode.ceiling);
   readonly #showCeilingHeightsSubject = new BehaviorSubject(true);
@@ -45,6 +43,23 @@ export class RaycastDistanceToolService extends BaseToolService {
   override readonly label = 'Raycast distance';
   override readonly icon = 'biotech';
   override readonly cursor$ = of('crosshair');
+
+  constructor() {
+    super();
+
+    this.#modelManager.currentOpenGroup$.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      tap(group => {
+        // when the group changes, pull all the annotations out and put them in the subject
+        const annos = group
+          ?.getAllAnnotationsRecursively()
+          .filter((anno): anno is CeilingHeightAnnotation => anno instanceof CeilingHeightAnnotation)
+          ?? [];
+        this.#ceilingDistancesSubject.next(Object.freeze(annos));
+      }),
+    ).subscribe();
+  }
 
   toggleCeilingHeights(show: boolean) {
     if (show === this.#showCeilingHeightsSubject.value) {
@@ -199,11 +214,10 @@ export class RaycastDistanceToolService extends BaseToolService {
     const floorPointRelativeToParent = firstParentGroup.worldToLocal(floorPoint.clone());
     const distance = floorPoint.distanceTo(ceilingPoint);
 
-    const anno = new CeilingHeightAnnotation(
+    const anno = this.#annotationBuilder.buildCeilingHeight(
       Date.now().toString(),
       floorPointRelativeToParent,
       distance,
-      (valueInMeters, digitsInfo) => formatLength(this.#settings.measurementSystem, this.#localeId, valueInMeters, digitsInfo),
     );
 
     this.#modelManager.addAnnotationToGroup(anno, firstParentGroup);

@@ -15,10 +15,12 @@ import type { IUnzipDirEntry, IUnzipEntry, IZipEntry } from './zip.service';
 import { BaseRenderModel } from '../models/render/base.render-model';
 import { BaseModelManifest, ModelManifestV0, modelManifestParse } from '../models/model-manifest';
 import { TransportProgressHandler } from '../models/transport-progress-handler';
+import { AnnotationBuilderService } from './annotation-builder.service';
 
 @Injectable()
 export class ModelLoadService {
 
+  readonly #annotationBuilder = inject(AnnotationBuilderService);
   readonly #fileTypeService = inject(FileTypeService);
   readonly #injector = inject(Injector);
 
@@ -232,7 +234,7 @@ export class ModelLoadService {
     }).pipe(
       tap(model => {
         if (manifest) {
-          model.setFromManifest(manifest, unzipEntry.path);
+          model.setFromManifest(manifest, unzipEntry.path, this.#annotationBuilder);
         }
       }),
     )

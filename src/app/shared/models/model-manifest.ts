@@ -1,4 +1,8 @@
-import { BaseRenderModel } from "./render/base.render-model";
+import { ignoreNullishArray } from "../operators/ignore-nullish";
+import { AnnotationBuilderService } from "../services/annotation-builder.service";
+import { BaseAnnotation } from "./annotations/base.annotation";
+import { IMetadataEntryV0, IMetadataBaseAnnotationV0 } from "./manifest/types.v0";
+import { BaseRenderModel, BaseVisibleRenderModel } from "./render/base.render-model";
 import { GroupRenderModel } from "./render/group.render-model";
 import { ISimpleVector3 } from "./simple-types";
 
@@ -19,11 +23,7 @@ export abstract class BaseModelManifest {
   abstract readonly version: number;
 
   abstract getPosition(path: string): ISimpleVector3 | undefined;
-}
-
-
-export type IMetadataEntryV0 = {
-  readonly position: ISimpleVector3,
+  abstract getAnnotations(path: string, annoBuilder: AnnotationBuilderService): undefined | readonly BaseAnnotation[];
 }
 
 /**
@@ -71,13 +71,17 @@ export class ModelManifestV0 extends BaseModelManifest {
     const path = isTopGroup
       ? parentPath
       : `${parentPath}${model.identifier}`;
-    const storePosition = model.position.length() !== 0;
 
-    const shouldStoreMetadata = storePosition;
+    const annotations = this.#buildAnnotations(model);
+
+    const storePosition = model.position.length() !== 0;
+    const storeAnnotations = !!annotations;
+    const shouldStoreMetadata = storePosition || storeAnnotations;
     if (shouldStoreMetadata) {
       const { x, y, z } = model.position;
       const metadata: IMetadataEntryV0 = {
         position: { x, y, z },
+        annotations: annotations ?? undefined,
       };
 
       buildingManifest.metadata[path] = metadata;
@@ -88,6 +92,19 @@ export class ModelManifestV0 extends BaseModelManifest {
         this.#recursivelyBuildManifestFromModel(child, path, buildingManifest, false);
       }
     }
+  }
+
+  static #buildAnnotations(model: BaseRenderModel<any>): IMetadataBaseAnnotationV0[] | null {
+    if (model instanceof BaseVisibleRenderModel) {
+      const serializedAnnos = model.getAnnotations()
+        .map(anno => anno.serializeToManifest(0))
+        .filter(ignoreNullishArray);
+
+      if (serializedAnnos.length > 0) {
+        return serializedAnnos;
+      }
+    }
+    return null;
   }
 
   serialize() {
@@ -103,6 +120,12 @@ export class ModelManifestV0 extends BaseModelManifest {
 
   override getPosition(path: string): ISimpleVector3 | undefined {
     return this.metadata[path]?.position;
+  }
+
+  override getAnnotations(path: string, annoBuilder: AnnotationBuilderService): readonly BaseAnnotation[] | undefined {
+    return this.metadata[path]
+      ?.annotations
+      ?.map(anno => annoBuilder.buildAnnotationFromManifest(anno));
   }
 }
 

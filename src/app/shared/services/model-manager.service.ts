@@ -5,8 +5,6 @@ import { BaseRenderModel } from '../models/render/base.render-model';
 import { BaseAnnotation } from '../models/annotations/base.annotation';
 import { Group } from 'three';
 
-
-
 @Injectable()
 export class ModelManagerService {
 
