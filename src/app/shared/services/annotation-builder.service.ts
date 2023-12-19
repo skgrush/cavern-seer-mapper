@@ -7,6 +7,7 @@ import { CeilingHeightAnnotation } from '../models/annotations/ceiling-height.an
 import { AnnotationType } from '../models/annotation-type.enum';
 import { IMetadataBaseAnnotationV0 } from '../models/manifest/types.v0';
 import { BaseAnnotation } from '../models/annotations/base.annotation';
+import { MeasureDistanceAnnotation } from '../models/annotations/measure-distance.annotation';
 
 @Injectable()
 export class AnnotationBuilderService {
@@ -27,8 +28,18 @@ export class AnnotationBuilderService {
           manifestEntry.distance,
         );
       }
-      default:
-        throw new Error(`Unexpected AnnotationType ${manifestEntry.type}`);
+      case AnnotationType.measureDistance: {
+        const { x, y, z } = manifestEntry.anchorPoint;
+        return this.buildMeasureDistance(
+          manifestEntry.identifier,
+          new Vector3(x, y, z),
+          manifestEntry.additionalPoints.map(({ x, y, z }) => new Vector3(x, y, z)),
+        );
+      }
+      default: {
+        const { type } = manifestEntry as IMetadataBaseAnnotationV0;
+        throw new Error(`Unexpected AnnotationType ${type}`);
+      }
     }
   }
 
@@ -42,6 +53,18 @@ export class AnnotationBuilderService {
       floorPointLocal,
       distance,
       this.#ceilingHeightLengthFormat,
+    );
+  }
+
+  buildMeasureDistance(
+    identifier: string,
+    floorPointLocal: Vector3,
+    additionalPoints: readonly Vector3[],
+  ) {
+    return new MeasureDistanceAnnotation(
+      identifier,
+      floorPointLocal,
+      additionalPoints,
     );
   }
 }

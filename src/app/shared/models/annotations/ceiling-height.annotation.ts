@@ -6,7 +6,8 @@ import { BaseAnnotation } from "./base.annotation";
 import { droidSansFont } from "./font";
 import { AnnotationType } from "../annotation-type.enum";
 import { IMetadataCeilingHeightV0 } from "../manifest/types.v0";
-import { RenderingLayers } from "../rendering-layers";
+import { RenderingOrder } from "../rendering-layers";
+import { IMapperUserData } from "../user-data";
 
 
 type LengthFormatter = (valueInMeters: number, digitsInfo?: DigitsInfo) => string;
@@ -56,12 +57,16 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     this.#lineGroup = new Group();
     this.#lineGroup.add(this.#line, textMesh, circleMesh);
     this.#lineGroup.position.copy(this.anchorPoint);
-    this.#lineGroup.layers.enable(RenderingLayers.Annotation);
+
+    (this.#lineGroup.userData as IMapperUserData).isAnnotationGroup = true;
+
+    material.depthTest = false;
+    this.#lineGroup.renderOrder = RenderingOrder.Annotation;
   }
 
   override serializeToManifest(version: number): IMetadataCeilingHeightV0 {
     if (version !== 0) {
-      throw new RangeError('CeilingHeightAnnotation only supports manifest v0');
+      throw new RangeError(`CeilingHeightAnnotation only supports manifest v0, got ${version}`);
     }
     const { x, y, z } = this.anchorPoint;
 

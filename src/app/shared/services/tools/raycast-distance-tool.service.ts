@@ -7,6 +7,7 @@ import { AnnotationBuilderService } from '../annotation-builder.service';
 import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
 import { BaseToolService } from './base-tool.service';
+import { IMapperUserData } from '../../models/user-data';
 
 export enum RaycastDistanceMode {
   fromCamera = 1,
@@ -198,6 +199,11 @@ export class RaycastDistanceToolService extends BaseToolService {
     if (!firstParentGroup) {
       console.warn('Could not find a parent group?', object);
       return null;
+    }
+
+    const userMapperData = (firstParentGroup.userData as IMapperUserData);
+    if (!userMapperData.fromSerializedModel || userMapperData.isAnnotationGroup) {
+      console.warn('First parent group is not a serialized mesh group', firstParentGroup);
     }
 
     const upIntersections = this.#canvasService.raycast(floorPoint, new Vector3(0, 1, 0));

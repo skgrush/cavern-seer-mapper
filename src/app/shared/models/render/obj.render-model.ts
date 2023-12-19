@@ -6,6 +6,7 @@ import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
 import { UploadFileModel } from "../upload-file-model";
 import { BaseAnnotation } from "../annotations/base.annotation";
+import { IMapperUserData } from "../user-data";
 
 export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
@@ -37,8 +38,9 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     this.identifier = identifier;
     this.comment = comment;
 
+    (this.#object.userData as IMapperUserData).fromSerializedModel = true;
     object.traverse(child => {
-      child.userData['fromSerializedModel'] = true;
+      (child.userData as IMapperUserData).fromSerializedModel = true;
     })
   }
 
@@ -70,7 +72,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
 
   override setMaterial(material: BaseMaterialService<any>): void {
     this.#object.traverse(child => {
-      if (child instanceof Mesh && child.userData['fromSerializedModel']) {
+      if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
         child.material = material.material;
       }
     });

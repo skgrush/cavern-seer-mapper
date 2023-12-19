@@ -1,4 +1,4 @@
-export enum RenderingLayers {
+export enum RenderingOrder {
   Default = 0,
-  Annotation = 8,
+  Annotation = 50,
 }
