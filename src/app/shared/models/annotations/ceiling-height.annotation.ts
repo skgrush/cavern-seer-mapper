@@ -6,6 +6,7 @@ import { BaseAnnotation } from "./base.annotation";
 import { droidSansFont } from "./font";
 import { AnnotationType } from "../annotation-type.enum";
 import { IMetadataCeilingHeightV0 } from "../manifest/types.v0";
+import { RenderingLayers } from "../rendering-layers";
 
 
 type LengthFormatter = (valueInMeters: number, digitsInfo?: DigitsInfo) => string;
@@ -55,6 +56,7 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     this.#lineGroup = new Group();
     this.#lineGroup.add(this.#line, textMesh, circleMesh);
     this.#lineGroup.position.copy(this.anchorPoint);
+    this.#lineGroup.layers.enable(RenderingLayers.Annotation);
   }
 
   override serializeToManifest(version: number): IMetadataCeilingHeightV0 {
