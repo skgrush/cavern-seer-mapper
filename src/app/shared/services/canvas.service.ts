@@ -292,6 +292,7 @@ export class CanvasService {
   initializeRenderer(
     canvas: HTMLCanvasElement,
     { width, height }: DOMRectReadOnly,
+    pixelRatio: number,
   ) {
     this.cleanupRenderer();
 
@@ -299,14 +300,15 @@ export class CanvasService {
       canvas,
     });
     this.#renderer.autoClear = false;
+    this.#renderer.setSize(width, height);
+    // TODO: setting pixel ratio screws with raycasting??
+    // this.#renderer.setPixelRatio(pixelRatio);
 
     this.#orthoCamera = this.#buildNewCamera(width, height);
     this.#orthoControls = new MapControls(this.#orthoCamera, canvas);
     this.#scene.add(this.#orthoCamera);
 
     this.#scene.add(new AmbientLight(0xFF2222, 2));
-
-    this.#renderer.setSize(width, height);
 
     this.#rendererChangedSubject.next();
 

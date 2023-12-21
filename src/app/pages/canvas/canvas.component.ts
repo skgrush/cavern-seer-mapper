@@ -22,6 +22,11 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   readonly #destroyRef = inject(DestroyRef);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
+  readonly #pixelRatio =
+    this.#isBrowser
+      ? window.devicePixelRatio
+      : 1;
+
   readonly #eleRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly #canvasService = inject(CanvasService);
@@ -44,7 +49,7 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const rect = this.#eleRef.nativeElement.getBoundingClientRect();
-    this.#canvasService.initializeRenderer(this.canvasElement.nativeElement, rect);
+    this.#canvasService.initializeRenderer(this.canvasElement.nativeElement, rect, this.#pixelRatio);
 
     this.#resizeService.observe$(this.#eleRef).pipe(
       debounceTime(100),
