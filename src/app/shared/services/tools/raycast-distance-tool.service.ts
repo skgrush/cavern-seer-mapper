@@ -76,6 +76,23 @@ export class RaycastDistanceToolService extends BaseToolService {
     this.#canvasService.lookAt(anno.worldPoint);
   }
 
+  renameCeilingHeight(anno: CeilingHeightAnnotation, newIdentifier: string) {
+    anno.rename(newIdentifier);
+    this.#ceilingDistancesSubject.next(this.#ceilingDistancesSubject.value);
+  }
+
+  ceilingHeightRenameIsValid(oldName: string, newName: string) {
+    for (const anno of this.#ceilingDistancesSubject.value) {
+      if (anno.identifier === oldName) {
+        continue;
+      }
+      if (anno.identifier === newName) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   deleteCeilingHeights(annos: readonly CeilingHeightAnnotation[]) {
     const set = new Set(annos);
     this.#modelManager.removeAnnotations(set);

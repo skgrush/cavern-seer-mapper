@@ -15,8 +15,13 @@ type LengthFormatter = (valueInMeters: number, digitsInfo?: DigitsInfo) => strin
 export class CeilingHeightAnnotation extends BaseAnnotation {
   override readonly type = AnnotationType.ceilingHeight;
 
+  #identifier: string;
   readonly #line: Line;
   readonly #lineGroup: Group;
+
+  get identifier() {
+    return this.#identifier;
+  }
 
   get worldPoint() {
     const vector = new Vector3();
@@ -35,12 +40,13 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
   }
 
   constructor(
-    readonly identifier: string,
+    identifier: string,
     readonly anchorPoint: Vector3,
     readonly distance: number,
     readonly lengthFormat: LengthFormatter,
   ) {
     super();
+    this.#identifier = identifier;
 
     const material = new LineBasicMaterial({ color: 0xFFFFFF });
     const geometry = new BufferGeometry().setFromPoints([
@@ -62,6 +68,10 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
 
     material.depthTest = false;
     this.#lineGroup.renderOrder = RenderingOrder.Annotation;
+  }
+
+  override rename(newIdentifier: string): void {
+    this.#identifier = newIdentifier;
   }
 
   override serializeToManifest(version: number): IMetadataCeilingHeightV0 {

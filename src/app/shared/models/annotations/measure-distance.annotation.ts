@@ -9,9 +9,14 @@ import { IMapperUserData } from "../user-data";
 export class MeasureDistanceAnnotation extends BaseAnnotation {
   override readonly type = AnnotationType.measureDistance;
 
+  #identifier: string;
   readonly #line: Line;
   readonly #lineGroup: Group;
   readonly #additionalPoints: Vector3[];
+
+  get identifier() {
+    return this.#identifier;
+  }
 
   get worldPoint() {
     return this.#lineGroup.getWorldPosition(new Vector3());
@@ -49,11 +54,12 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
   }
 
   constructor(
-    readonly identifier: string,
+    identifier: string,
     readonly anchorPoint: Vector3,
     additionalPoints: readonly Vector3[],
   ) {
     super();
+    this.#identifier = identifier;
     this.#additionalPoints = [...additionalPoints];
 
     const material = new LineBasicMaterial({ color: 0xFFFFFF });
@@ -93,6 +99,10 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
       this.anchorPoint,
       ...this.#additionalPoints,
     ]);
+  }
+
+  override rename(newIdentifier: string): void {
+    this.#identifier = newIdentifier;
   }
 
   override serializeToManifest(version: number): IMetadataMeasureDistanceV0 {
