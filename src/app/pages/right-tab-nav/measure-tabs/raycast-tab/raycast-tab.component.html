@@ -16,27 +16,41 @@
 <!-- <ng-container *ngSwitchCase="RaycastDistanceMode.ceiling"> -->
 <div>Ceiling mode measures from the clicked surface to the nearest vertical face directly above.</div>
 
-<mat-button-toggle-group [ngModel]="raycastDistanceTool.showCeilingHeights$ | async"
-  (ngModelChange)="raycastDistanceTool.toggleCeilingHeights($event)">
-  <mat-button-toggle [value]="true">Show</mat-button-toggle>
-  <mat-button-toggle [value]="false">Hide</mat-button-toggle>
-</mat-button-toggle-group>
 
-<mat-selection-list #selectionList [multiple]="false" [formControl]="ceilingHeightSelectControl">
-  <div mat-subheader>
-    Ceiling
+<div mat-subheader>
+  Ceiling
+
+  <span>
     <button mat-icon-button [disabled]="!selectionList.selectedOptions.selected.length"
       [matMenuTriggerFor]="optionsMenu"><mat-icon>more_vert</mat-icon></button>
     <mat-menu #optionsMenu="matMenu">
       <button mat-menu-item (click)="deleteSelectedCeilingHeight()">Delete item</button>
       <button mat-menu-item (click)="clearSelection()">Clear selection</button>
+      <button mat-menu-item [disabled]="selectionList.selectedOptions.selected.length !== 1" (click)="rename()">
+        Rename point
+      </button>
     </mat-menu>
-  </div>
+  </span>
+
+  <span class="spanner"></span>
+  <mat-button-toggle-group [ngModel]="raycastDistanceTool.showCeilingHeights$ | async"
+    (ngModelChange)="raycastDistanceTool.toggleCeilingHeights($event)">
+    <mat-button-toggle [value]="true">Show</mat-button-toggle>
+    <mat-button-toggle [value]="false">Hide</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<mat-selection-list #selectionList multiple [formControl]="ceilingHeightSelectControl">
+
 
   @for (measure of (raycastDistanceTool.ceilingDistances$ | async); track measure) {
   <mat-list-option (click)="raycastDistanceTool.lookAt(measure)" [value]="measure">
-    <h3 matListItemTitle> {{ measure.distance | length }} </h3>
-    <p matListItemLine>{{ measure.worldPoint | vector }}</p>
+    <h3 matListItemTitle> {{ measure.identifier }} </h3>
+    <p matListItemLine class="vector-length-line">
+      <span>{{ measure.worldPoint | vector }}</span>
+      <span>+</span>
+      <span>{{ measure.distance | length }}</span>
+    </p>
     <p matListItemLine *ngIf="measure.firstParentName as parent">
       {{ parent }}
     </p>
