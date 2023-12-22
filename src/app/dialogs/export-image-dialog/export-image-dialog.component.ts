@@ -101,5 +101,3 @@ export class ExportImageDialogComponent {
     ).subscribe();
   }
 }
-
-export default ExportImageDialogComponent;

@@ -114,5 +114,3 @@ export class OpenDialogComponent {
     ).subscribe();
   }
 }
-
-export default OpenDialogComponent;

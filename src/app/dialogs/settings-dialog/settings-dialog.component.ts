@@ -41,5 +41,3 @@ export class SettingsDialogComponent implements OnInit {
     this.#settings.updateSettings(this.formGroup.value);
   }
 }
-
-export default SettingsDialogComponent;
