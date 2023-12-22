@@ -2,7 +2,7 @@ import { formatNumber } from "@angular/common";
 import { MeasurementSystem } from "../services/settings/measurement-system";
 import { DigitsInfo } from "./digits-info";
 
-function convertMetersToCustomary(value: number) {
+function convertMetersToFeet(value: number) {
   return value / 0.3408;
 }
 
@@ -15,7 +15,7 @@ export function formatLength(
   const value =
     measurementSystem === MeasurementSystem.metric
       ? valueInMeters
-      : convertMetersToCustomary(valueInMeters);
+      : convertMetersToFeet(valueInMeters);
 
   const formatted = formatNumber(value, localeId, digitsInfo);
 
