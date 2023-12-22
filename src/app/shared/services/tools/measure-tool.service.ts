@@ -71,6 +71,27 @@ export class MeasureToolService extends BaseToolService {
     this.#selectedMeasureSubject.next(measure);
   }
 
+  renameMeasure(measure: MeasureDistanceAnnotation, newIdentifier: string) {
+    if (measure !== this.#selectedMeasureSubject.value) {
+      throw new Error('cannot rename unselected measure');
+    }
+    measure.rename(newIdentifier);
+    this.#measuresSubject.next(this.#measuresSubject.value);
+    this.#selectedMeasureSubject.next(measure);
+  }
+
+  measureRenameIsValid(oldName: string, newName: string) {
+    for (const measure of this.#measuresSubject.value) {
+      if (measure.identifier === oldName) {
+        continue;
+      }
+      if (measure.identifier === newName) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   deleteMeasure(measure: MeasureDistanceAnnotation) {
     this.#modelManager.removeAnnotations(new Set([measure]));
 

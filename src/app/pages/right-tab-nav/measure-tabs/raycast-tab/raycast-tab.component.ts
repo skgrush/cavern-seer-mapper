@@ -56,7 +56,7 @@ export class RaycastTabComponent {
         return null;
       }
       if (!this.raycastDistanceTool.ceilingHeightRenameIsValid(oldName, newName)) {
-        return { [`Name  ${JSON.stringify(newName)} is already in use`]: true };
+        return { [`Identifier ${JSON.stringify(newName)} is already in use`]: true };
       }
       return null;
     };
@@ -67,7 +67,7 @@ export class RaycastTabComponent {
         title: 'Rename a ceiling height',
         submitText: 'Rename',
         cancelText: 'Cancel',
-        fieldLabel: `Rename ${selectedItem.identifier}`,
+        fieldLabel: `Rename ${oldName}`,
         inputType: 'text',
         validators: [Validators.required, renameValidator],
       }
