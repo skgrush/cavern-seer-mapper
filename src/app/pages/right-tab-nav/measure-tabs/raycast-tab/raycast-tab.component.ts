@@ -10,7 +10,6 @@ import { VectorPipe } from "../../../../shared/pipes/vector.pipe";
 import { CeilingHeightAnnotation } from '../../../../shared/models/annotations/ceiling-height.annotation';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
-import { TextInputDialogComponent } from '../../../../shared/components/text-input-dialog/text-input-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
@@ -61,21 +60,24 @@ export class RaycastTabComponent {
       return null;
     };
 
-    TextInputDialogComponent.open(
-      this.#dialog,
-      {
-        title: 'Rename a ceiling height',
-        submitText: 'Rename',
-        cancelText: 'Cancel',
-        fieldLabel: `Rename ${oldName}`,
-        inputType: 'text',
-        validators: [Validators.required, renameValidator],
-      }
-    ).afterClosed().subscribe(result => {
-      if (!result) {
-        return;
-      }
-      this.raycastDistanceTool.renameCeilingHeight(selectedItem, result);
-    });
+    import('../../../../dialogs/text-input-dialog/text-input-dialog.component')
+      .then(({ TextInputDialogComponent }) =>
+        TextInputDialogComponent.open(
+          this.#dialog,
+          {
+            title: 'Rename a ceiling height',
+            submitText: 'Rename',
+            cancelText: 'Cancel',
+            fieldLabel: `Rename ${oldName}`,
+            inputType: 'text',
+            validators: [Validators.required, renameValidator],
+          }
+        ).afterClosed().subscribe(result => {
+          if (!result) {
+            return;
+          }
+          this.raycastDistanceTool.renameCeilingHeight(selectedItem, result);
+        })
+      );
   }
 }

@@ -5,8 +5,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ExportService } from '../../services/export.service';
-import { CanvasService } from '../../services/canvas.service';
+import { ExportService } from '../../shared/services/export.service';
+import { CanvasService } from '../../shared/services/canvas.service';
 import { BehaviorSubject, tap } from 'rxjs';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 

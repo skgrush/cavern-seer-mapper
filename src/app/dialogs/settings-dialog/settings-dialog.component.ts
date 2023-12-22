@@ -7,8 +7,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { tap } from 'rxjs';
-import { MeasurementSystem } from '../../services/settings/measurement-system';
-import { SettingsService } from '../../services/settings/settings.service';
+import { MeasurementSystem } from '../../shared/services/settings/measurement-system';
+import { SettingsService } from '../../shared/services/settings/settings.service';
 
 @Component({
   selector: 'mapper-settings-dialog',

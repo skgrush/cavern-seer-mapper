@@ -6,9 +6,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BehaviorSubject, map } from 'rxjs';
-import { ExportService } from '../../services/export.service';
-import { TransportProgressHandler } from '../../models/transport-progress-handler';
-import { ModelManagerService } from '../../services/model-manager.service';
+import { ExportService } from '../../shared/services/export.service';
+import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
+import { ModelManagerService } from '../../shared/services/model-manager.service';
 import { MatButtonModule } from '@angular/material/button';
 
 export type IZipDownloadModelDialogData = {

@@ -18,7 +18,7 @@ export class SidenavComponent {
   readonly #dialog = inject(MatDialog);
 
   open() {
-    import('../open-dialog/open-dialog.component')
+    import('../../../dialogs/open-dialog/open-dialog.component')
       .then(({ OpenDialogComponent }) => {
         OpenDialogComponent.open(this.#dialog, {
           submitText: 'Open',
@@ -34,7 +34,7 @@ export class SidenavComponent {
   }
 
   import() {
-    import('../open-dialog/open-dialog.component')
+    import('../../../dialogs/open-dialog/open-dialog.component')
       .then(({ OpenDialogComponent }) => {
         OpenDialogComponent.open(this.#dialog, {
           submitText: 'Import',
@@ -49,7 +49,7 @@ export class SidenavComponent {
   }
 
   save() {
-    import('../zip-download-model-dialog/zip-download-model-dialog.component')
+    import('../../../dialogs/zip-download-model-dialog/zip-download-model-dialog.component')
       .then(({ ZipDownloadModelDialogComponent }) => {
         ZipDownloadModelDialogComponent.open(this.#dialog, {
           titleText: 'Zip and download group',
@@ -58,14 +58,14 @@ export class SidenavComponent {
   }
 
   settings() {
-    import('../settings-dialog/settings-dialog.component')
+    import('../../../dialogs/settings-dialog/settings-dialog.component')
       .then(({ SettingsDialogComponent }) => {
         SettingsDialogComponent.open(this.#dialog);
       });
   }
 
   exportImage() {
-    import('../export-image-dialog/export-image-dialog.component')
+    import('../../../dialogs/export-image-dialog/export-image-dialog.component')
       .then(({ ExportImageDialogComponent }) => {
         ExportImageDialogComponent.open(
           this.#dialog,

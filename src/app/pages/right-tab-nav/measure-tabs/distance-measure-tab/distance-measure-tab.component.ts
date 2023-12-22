@@ -12,7 +12,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { Vector3 } from 'three';
-import { TextInputDialogComponent } from '../../../../shared/components/text-input-dialog/text-input-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
@@ -99,21 +98,24 @@ export class DistanceMeasureTabComponent {
       return null;
     }
 
-    TextInputDialogComponent.open(
-      this.#dialog,
-      {
-        title: 'Rename a distance measure',
-        submitText: 'Rename',
-        cancelText: 'Cancel',
-        fieldLabel: `Rename ${oldName}`,
-        inputType: 'text',
-        validators: [Validators.required, renameValidator],
-      },
-    ).afterClosed().subscribe(result => {
-      if (!result) {
-        return;
-      }
-      this.measureTool.renameMeasure(selectedMeasure, result);
-    });
+    import('../../../../dialogs/text-input-dialog/text-input-dialog.component')
+      .then(({ TextInputDialogComponent }) =>
+        TextInputDialogComponent.open(
+          this.#dialog,
+          {
+            title: 'Rename a distance measure',
+            submitText: 'Rename',
+            cancelText: 'Cancel',
+            fieldLabel: `Rename ${oldName}`,
+            inputType: 'text',
+            validators: [Validators.required, renameValidator],
+          },
+        ).afterClosed().subscribe(result => {
+          if (!result) {
+            return;
+          }
+          this.measureTool.renameMeasure(selectedMeasure, result);
+        }),
+      );
   }
 }

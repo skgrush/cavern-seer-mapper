@@ -4,13 +4,13 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { filter, forkJoin, map, tap } from 'rxjs';
-import { FileLoadCompleteEvent, FileLoadProgressEvent } from '../../events/file-load-events';
-import { BaseRenderModel } from '../../models/render/base.render-model';
-import { UploadFileModel } from '../../models/upload-file-model';
-import { FileTypeService } from '../../services/file-type.service';
-import { ModelLoadService } from '../../services/model-load.service';
-import { FileIconComponent } from '../file-icon/file-icon.component';
-import { TransportProgressHandler } from '../../models/transport-progress-handler';
+import { FileLoadCompleteEvent, FileLoadProgressEvent } from '../../shared/events/file-load-events';
+import { BaseRenderModel } from '../../shared/models/render/base.render-model';
+import { UploadFileModel } from '../../shared/models/upload-file-model';
+import { FileTypeService } from '../../shared/services/file-type.service';
+import { ModelLoadService } from '../../shared/services/model-load.service';
+import { FileIconComponent } from '../../shared/components/file-icon/file-icon.component';
+import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
 import { MatButtonModule } from '@angular/material/button';
 
 export type IOpenDialogData = {
