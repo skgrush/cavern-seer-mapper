@@ -10,14 +10,8 @@ import { AnnotationBuilderService } from '../annotation-builder.service';
 import { ignoreNullish } from '../../operators/ignore-nullish';
 import { IMapperUserData } from '../../models/user-data';
 
-export type IMeasure = {
-  readonly firstPoint: Readonly<Vector3>;
-  readonly secondPoint: Readonly<Vector3>;
-  readonly distance: number;
-}
-
 @Injectable()
-export class MeasureToolService extends BaseToolService {
+export class DistanceMeasureToolService extends BaseToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
   readonly #annotationBuilder = inject(AnnotationBuilderService);
@@ -31,8 +25,8 @@ export class MeasureToolService extends BaseToolService {
 
   readonly #showMeasuresSubject = new BehaviorSubject(true);
 
-  override readonly id = 'measure';
-  override readonly label = 'Measure';
+  override readonly id = 'distance';
+  override readonly label = 'Distance measure';
   override readonly icon = 'square_foot';
   override readonly cursor$ = of('crosshair');
 
@@ -134,7 +128,7 @@ export class MeasureToolService extends BaseToolService {
 
     const event$ = this.#canvasService.eventOnRenderer('pointerdown');
     if (!event$) {
-      console.error('Cannot start MeasureTool as there is no rendererTarget');
+      console.error('Cannot start DistanceMeasureTool as there is no rendererTarget');
       return false;
     }
 

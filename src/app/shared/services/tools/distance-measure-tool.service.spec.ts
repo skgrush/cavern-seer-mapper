@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { MeasureToolService } from './measure-tool.service';
+import { DistanceMeasureToolService } from './distance-measure-tool.service';
 
 describe('MeasureToolService', () => {
-  let service: MeasureToolService;
+  let service: DistanceMeasureToolService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(MeasureToolService);
+    service = TestBed.inject(DistanceMeasureToolService);
   });
 
   it('should be created', () => {

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { MeasureToolService } from '../../../../shared/services/tools/measure-tool.service';
+import { DistanceMeasureToolService } from '../../../../shared/services/tools/distance-measure-tool.service';
 import { MatListModule } from '@angular/material/list';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,16 +16,16 @@ import { TextInputDialogComponent } from '../../../../shared/components/text-inp
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
-  selector: 'mapper-measure-tab',
+  selector: 'mapper-distance-measure-tab',
   standalone: true,
-  templateUrl: './measure-tab.component.html',
-  styleUrl: './measure-tab.component.scss',
+  templateUrl: './distance-measure-tab.component.html',
+  styleUrl: './distance-measure-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatListModule, CommonModule, MatIconModule, MatButtonModule, MatMenuModule, ReactiveFormsModule, MatSelectModule, LengthPipe, VectorPipe]
 })
-export class MeasureTabComponent {
+export class DistanceMeasureTabComponent {
   readonly #dialog = inject(MatDialog);
-  readonly measureTool = inject(MeasureToolService);
+  readonly measureTool = inject(DistanceMeasureToolService);
 
   readonly formGroup = new FormGroup({
     selectedMeasure: new FormControl<MeasureDistanceAnnotation | null>(null),

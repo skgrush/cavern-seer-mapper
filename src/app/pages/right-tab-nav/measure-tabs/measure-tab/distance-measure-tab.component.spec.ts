@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MeasureTabComponent } from './measure-tab.component';
+import { DistanceMeasureTabComponent } from './distance-measure-tab.component';
 
 describe('MeasureTabComponent', () => {
-  let component: MeasureTabComponent;
-  let fixture: ComponentFixture<MeasureTabComponent>;
+  let component: DistanceMeasureTabComponent;
+  let fixture: ComponentFixture<DistanceMeasureTabComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MeasureTabComponent]
+      imports: [DistanceMeasureTabComponent]
     })
-    .compileComponents();
-    
-    fixture = TestBed.createComponent(MeasureTabComponent);
+      .compileComponents();
+
+    fixture = TestBed.createComponent(DistanceMeasureTabComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
