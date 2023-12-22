@@ -23,20 +23,40 @@ export class ModelManagerService {
       return;
     }
 
-    const group = GroupRenderModel.fromModels('from resetToNonGroupModel()', [model]);
+    const group = GroupRenderModel.fromModels(
+      'from resetToNonGroupModel()',
+      [model],
+    );
     this.resetCurrentGroup(group);
   }
 
+  /**
+   * Import the models into the current group.
+   *
+   * If there is no open group and models is exactly one group, open it.
+   * If there is no open group, create one and add models to it.
+   */
   importModels(models: BaseRenderModel<any>[]) {
     let currentOpenGroup = this.#currentOpenGroup.value;
-    if (!currentOpenGroup) {
-      currentOpenGroup = new GroupRenderModel('from importModels()');
-      this.#currentOpenGroup.next(currentOpenGroup);
+    debugger;
+    if (currentOpenGroup) {
+      for (const model of models) {
+        currentOpenGroup.addModel(model);
+      }
+      this.resetCurrentGroup(currentOpenGroup);
+      return;
     }
 
-    for (const model of models) {
-      currentOpenGroup.addModel(model);
+    if (models.length === 1 && models[0] instanceof GroupRenderModel) {
+      this.resetCurrentGroup(models[0]);
+      return;
     }
+
+    const group = GroupRenderModel.fromModels(
+      'from resetToNonGroupModel()',
+      [...models],
+    );
+    this.resetCurrentGroup(group);
   }
 
   removeAnnotations(annos: Set<BaseAnnotation>) {

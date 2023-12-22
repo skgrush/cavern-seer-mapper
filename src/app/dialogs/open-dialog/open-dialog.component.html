@@ -2,7 +2,7 @@
   <h1 mat-dialog-title> {{ titleText }} </h1>
   <div mat-dialog-content>
     <mat-list class="file-list">
-      @for (file of files; track file) {
+      @for (file of files$ | async; track file) {
       <mat-list-item>
         <mapper-file-icon matListItemIcon [type]="file.type" />
         <div matListItemTitle>{{ file.identifier }}</div>
@@ -10,7 +10,7 @@
       </mat-list-item>
       }
     </mat-list>
-    <input #fileInput type="file" [multiple]="!!multiple" (change)="inputChanged($event)">
+    <input *ngIf="!hasInitialFiles" #fileInput type="file" [multiple]="!!multiple" (change)="inputChanged($event)">
 
     <ng-container *ngIf="uploadProgress.progress$ | async as progress">
       <div class="loading-container" *ngIf="progress.active">
@@ -24,6 +24,6 @@
     <button type="button" mat-button [disabled]="uploadProgress.isActive$ | async" mat-dialog-close cdkFocusInitial>
       Cancel
     </button>
-    <button type="submit" mat-button [disabled]="!fileInput.files?.length">{{ submitText }}</button>
+    <button type="submit" mat-button [disabled]="!(files$ | async)?.length">{{ submitText }}</button>
   </div>
 </form>

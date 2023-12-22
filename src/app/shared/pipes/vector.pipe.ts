@@ -6,7 +6,8 @@ import { INTL_UNIT_LIST_FORMAT } from '../tokens/intl-unit-list-format.token';
 
 @Pipe({
   name: 'vector',
-  standalone: true
+  standalone: true,
+  pure: true,
 })
 export class VectorPipe implements PipeTransform {
   readonly #locale = inject(LOCALE_ID);

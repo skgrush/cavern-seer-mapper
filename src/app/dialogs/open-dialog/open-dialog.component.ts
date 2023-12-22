@@ -1,9 +1,9 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { filter, forkJoin, map, tap } from 'rxjs';
+import { BehaviorSubject, filter, forkJoin, map, tap } from 'rxjs';
 import { FileLoadCompleteEvent, FileLoadProgressEvent } from '../../shared/events/file-load-events';
 import { BaseRenderModel } from '../../shared/models/render/base.render-model';
 import { UploadFileModel } from '../../shared/models/upload-file-model';
@@ -17,6 +17,7 @@ export type IOpenDialogData = {
   readonly titleText: string;
   readonly submitText: string;
   readonly multiple?: boolean;
+  readonly initialFiles?: FileList;
 };
 
 @Component({
@@ -27,7 +28,7 @@ export type IOpenDialogData = {
   styleUrl: './open-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OpenDialogComponent {
+export class OpenDialogComponent implements OnInit {
 
   readonly #modelService = inject(ModelLoadService);
   readonly #fileTypeService = inject(FileTypeService);
@@ -37,12 +38,14 @@ export class OpenDialogComponent {
   readonly titleText = this.#dialogData.titleText;
   readonly submitText = this.#dialogData.submitText;
   readonly multiple = this.#dialogData.multiple;
+  readonly hasInitialFiles = !!this.#dialogData.initialFiles?.length;
 
   protected readonly uploadProgress = new TransportProgressHandler();
 
   uploadError?: any;
 
-  files: UploadFileModel[] | null = null;
+  readonly #files = new BehaviorSubject<UploadFileModel[] | null>(null);
+  readonly files$ = this.#files.asObservable();
 
   static open(
     dialog: MatDialog,
@@ -56,27 +59,34 @@ export class OpenDialogComponent {
     );
   }
 
+  ngOnInit(): void {
+    const initialFiles = this.#dialogData.initialFiles;
+    if (initialFiles?.length) {
+      this.#files.next([...this.#fileTypeService.mapFileList(initialFiles)]);
+    }
+  }
+
   inputChanged(event: Event) {
     console.info('', event);
     if (
       !(event.target instanceof HTMLInputElement) ||
       !event.target.files?.length
     ) {
-      this.files = [];
+      this.#files.next([]);
       return;
     }
 
-    this.files = [...this.#fileTypeService.mapFileList(event.target.files)];
+    this.#files.next([...this.#fileTypeService.mapFileList(event.target.files)]);
   }
 
   clickOpen(e: SubmitEvent) {
     e.preventDefault();
 
-    if (!this.files?.length || this.uploadProgress.isActive) {
+    const files = this.#files.value;
+    if (!files?.length || this.uploadProgress.isActive) {
       return;
     }
 
-    const files = this.files;
     const totalSize = files.reduce((acc, curr) => acc + curr.blob.size, 0);
 
     this.#dialogRef.disableClose = true;

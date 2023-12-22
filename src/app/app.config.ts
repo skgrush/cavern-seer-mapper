@@ -22,6 +22,7 @@ import { provideSettings } from './shared/services/settings';
 import { INTL_COLLATOR } from './shared/tokens/intl-collator.token';
 import { INTL_UNIT_LIST_FORMAT } from './shared/tokens/intl-unit-list-format.token';
 import { AnnotationBuilderService } from './shared/services/annotation-builder.service';
+import { DialogOpenerService } from './shared/services/dialog-opener.service';
 
 
 
@@ -42,6 +43,7 @@ export const appConfig: ApplicationConfig = {
     MeshNormalMaterialService,
     ToolManagerService,
     AnnotationBuilderService,
+    DialogOpenerService,
     toolsProviders(),
     provideSettings(),
     { provide: LOCALE_ID, useFactory: () => globalThis.navigator.language },
