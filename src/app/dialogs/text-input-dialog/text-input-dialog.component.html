@@ -1,0 +1,23 @@
+<form (submit)="submit($event)">
+  <h1 mat-dialog-title>{{ title }}</h1>
+  <div mat-dialog-content>
+    <div class="form-fields-grid">
+      <mat-form-field>
+        <mat-label>{{ fieldLabel }}</mat-label>
+        <input matInput [type]="inputType" [formControl]="formControl">
+        @if (formControl.invalid) {
+        <mat-error>{{ getError() }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div mat-dialog-actions>
+    <button type="button" mat-button mat-dialog-close>
+      {{ cancelText }}
+    </button>
+    <button type="submit" mat-button [disabled]="!formControl.valid">
+      {{ submitText }}
+    </button>
+  </div>
+</form>

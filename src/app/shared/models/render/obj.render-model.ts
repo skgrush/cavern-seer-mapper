@@ -1,12 +1,14 @@
 import { BoxHelper, Group, Mesh } from "three";
-import { BaseRenderModel } from "./base.render-model";
+import { BaseVisibleRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
 import { UploadFileModel } from "../upload-file-model";
+import { BaseAnnotation } from "../annotations/base.annotation";
+import { IMapperUserData } from "../user-data";
 
-export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
+export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
   readonly #childOrPropertyChanged = new Subject<void>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
@@ -20,6 +22,7 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
   readonly #object: Group;
   readonly #boxHelper: BoxHelper;
   readonly #blob: Blob;
+  readonly #annotations = new Set<BaseAnnotation>();
 
   constructor(
     identifier: string,
@@ -34,10 +37,16 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
 
     this.identifier = identifier;
     this.comment = comment;
+
+    (this.#object.userData as IMapperUserData).fromSerializedModel = true;
+    object.traverse(child => {
+      (child.userData as IMapperUserData).fromSerializedModel = true;
+    })
   }
 
   static fromUploadModel(uploadModel: UploadFileModel, object: Group) {
     const { identifier, blob, comment } = uploadModel;
+    object.name = uploadModel.identifier;
     return new ObjRenderModel(
       identifier,
       object,
@@ -63,7 +72,7 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
 
   override setMaterial(material: BaseMaterialService<any>): void {
     this.#object.traverse(child => {
-      if (child instanceof Mesh) {
+      if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
         child.material = material.material;
       }
     });
@@ -81,5 +90,35 @@ export class ObjRenderModel extends BaseRenderModel<FileModelType.obj> {
 
   override dispose(): void {
     this.#boxHelper.dispose();
+  }
+
+  override getAnnotations(): readonly BaseAnnotation[] {
+    return [...this.#annotations];
+  }
+
+  override addAnnotation(anno: BaseAnnotation, toGroup?: Group): boolean {
+    if (toGroup && this.#object !== toGroup) {
+      return false;
+    }
+
+    anno.addToGroup(this.#object);
+    this.#annotations.add(anno);
+    this.#childOrPropertyChanged.next();
+    return true;
+  }
+
+  override removeAnnotations(annosToDelete: Set<BaseAnnotation>): void {
+    for (const anno of annosToDelete) {
+
+      const deleted = this.#annotations.delete(anno);
+      if (!deleted) {
+        continue;
+      }
+
+      anno.removeFromGroup(this.#object);
+      this.#childOrPropertyChanged.next();
+
+      annosToDelete.delete(anno);
+    }
   }
 }

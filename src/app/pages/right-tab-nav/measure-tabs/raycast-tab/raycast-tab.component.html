@@ -1,0 +1,81 @@
+<p>Results of using
+  <mat-icon>{{ raycastDistanceTool.icon }}</mat-icon> {{ raycastDistanceTool.label }}
+  tool
+</p>
+
+<!-- <mat-button-toggle-group [ngModel]="raycastDistanceTool.mode$ | async"
+  (ngModelChange)="raycastDistanceTool.changeMode($event)">
+  @for (entry of modes; track entry[0]) {
+  <mat-button-toggle [value]="entry[0]">
+    {{ entry[1] }}
+  </mat-button-toggle>
+  }
+</mat-button-toggle-group> -->
+
+<!-- <ng-container [ngSwitch]="raycastDistanceTool.mode$ | async"> -->
+<!-- <ng-container *ngSwitchCase="RaycastDistanceMode.ceiling"> -->
+<p>Ceiling mode measures from the clicked surface to the nearest vertical face directly above.</p>
+
+
+<div mat-subheader>
+  Ceiling
+
+  <span>
+    <button mat-icon-button [disabled]="!selectionList.selectedOptions.selected.length"
+      [matMenuTriggerFor]="optionsMenu"><mat-icon>more_vert</mat-icon></button>
+    <mat-menu #optionsMenu="matMenu">
+      <button mat-menu-item (click)="deleteSelectedCeilingHeight()">Delete item</button>
+      <button mat-menu-item (click)="clearSelection()">Clear selection</button>
+      <button mat-menu-item [disabled]="selectionList.selectedOptions.selected.length !== 1" (click)="rename()">
+        Rename point
+      </button>
+    </mat-menu>
+  </span>
+
+  <span class="spanner"></span>
+  <mat-button-toggle-group [ngModel]="raycastDistanceTool.showCeilingHeights$ | async"
+    (ngModelChange)="raycastDistanceTool.toggleCeilingHeights($event)">
+    <mat-button-toggle [value]="true">Show</mat-button-toggle>
+    <mat-button-toggle [value]="false">Hide</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<mat-selection-list #selectionList multiple [formControl]="ceilingHeightSelectControl">
+
+
+  @for (measure of (raycastDistanceTool.ceilingDistances$ | async); track measure) {
+  <mat-list-option (click)="raycastDistanceTool.lookAt(measure)" [value]="measure">
+    <h3 matListItemTitle> {{ measure.identifier }} </h3>
+    <p matListItemLine class="vector-length-line">
+      <span>{{ measure.worldPoint | vector }}</span>
+      <span>+</span>
+      <span>{{ measure.distance | length }}</span>
+    </p>
+    <p matListItemLine *ngIf="measure.firstParentName as parent">
+      {{ parent }}
+    </p>
+  </mat-list-option>
+  }
+</mat-selection-list>
+<!-- </ng-container> -->
+
+<!-- <ng-container *ngSwitchCase="RaycastDistanceMode.fromCamera">
+    <div>fromCamera mode finds all intersecting <b>front</b> faces between the camera and the grid.</div>
+    <mat-list>
+      @for (measure of (raycastDistanceTool.cameraDistances$ | async); track measure) {
+      <mat-list-item>
+        <ng-container *ngIf="measure.type === 'Mesh'">
+          <h3 matListItemTitle>{{ measure.gridDistance | length }} from grid</h3>
+          <p matListItemLine *ngIf="measure.firstParentGroup as parent">
+            {{ parent.name }}
+          </p>
+        </ng-container>
+        <ng-container *ngIf="measure.type === 'GridHelper'">
+          <h3 matListItemTitle>Grid</h3>
+          <p matListItemLine>{{ measure.absPoint | vector }}</p>
+        </ng-container>
+      </mat-list-item>
+      }
+    </mat-list>
+  </ng-container> -->
+<!-- </ng-container> -->

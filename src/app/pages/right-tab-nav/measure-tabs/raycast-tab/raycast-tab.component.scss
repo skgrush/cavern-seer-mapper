@@ -1,0 +1,28 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+button[mat-icon-button] {
+  vertical-align: sub;
+}
+
+[mat-subheader] {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: min-content min-content 1fr min-content;
+  align-items: center;
+}
+
+mat-selection-list {
+  overflow-y: auto;
+
+  .vector-length-line {
+    display: grid;
+    grid-template-columns: min-content min-content 1fr min-content;
+    grid-template-rows: 1fr;
+    justify-items: center;
+  }
+
+}

@@ -6,9 +6,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BehaviorSubject, map } from 'rxjs';
-import { ExportService } from '../../services/export.service';
-import { TransportProgressHandler } from '../../models/transport-progress-handler';
-import { ModelManagerService } from '../../services/model-manager.service';
+import { ExportService } from '../../shared/services/export.service';
+import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
+import { ModelManagerService } from '../../shared/services/model-manager.service';
 import { MatButtonModule } from '@angular/material/button';
 
 export type IZipDownloadModelDialogData = {
@@ -18,7 +18,7 @@ export type IZipDownloadModelDialogData = {
 @Component({
   selector: 'mapper-zip-download-model-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, AsyncPipe, MatProgressBarModule, MatButtonModule],
+  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, NgIf, AsyncPipe, MatProgressBarModule, MatButtonModule],
   templateUrl: './zip-download-model-dialog.component.html',
   styleUrl: './zip-download-model-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -82,7 +82,7 @@ export class ZipDownloadModelDialogComponent {
 
     this.uploadProgress.reset(true);
 
-    this.#exportService.downloadZip$(compressionLevel, fileName, this.uploadProgress)
+    this.#exportService.downloadCurrentModelZip$(compressionLevel, fileName, this.uploadProgress)
       .subscribe({
         next: result => {
           this.uploadProgress.deactivate();

@@ -1,0 +1,7 @@
+<mat-button-toggle-group [ngModel]="currentTool$ | async" (ngModelChange)="selectTool($event)">
+  @for (entry of toolOptions; track entry) {
+  <mat-button-toggle [value]="entry.id" [aria-label]="entry.label" [attr.title]="entry.label">
+    <mat-icon>{{ entry.icon }}</mat-icon>
+  </mat-button-toggle>
+  }
+</mat-button-toggle-group>

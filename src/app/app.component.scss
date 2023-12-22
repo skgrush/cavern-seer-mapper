@@ -6,14 +6,42 @@
   mat-sidenav-container {
     width: 100%;
     height: 100%;
+
+    mat-sidenav-content {
+      display: grid;
+      grid-template-areas: 'main';
+      overflow: hidden;
+
+      &>#open-sidenav-btn {
+        grid-area: main;
+        margin: 1em;
+      }
+
+      &>mapper-tools-bar {
+        grid-area: main;
+        justify-self: center;
+        align-self: end;
+        margin-bottom: 1em;
+      }
+
+      &>mapper-canvas {
+        grid-area: main;
+        justify-self: stretch;
+        align-self: stretch;
+        overflow: hidden;
+      }
+
+      &>mapper-compass {
+        grid-area: main;
+        justify-self: end;
+        align-self: end;
+      }
+    }
   }
 
   mat-sidenav-content {
     overflow: hidden;
   }
 
-  #open-sidenav-btn {
-    position: absolute;
-    margin: 1em;
-  }
+
 }

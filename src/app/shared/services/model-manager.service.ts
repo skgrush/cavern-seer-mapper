@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { BaseRenderModel } from '../models/render/base.render-model';
-
-
+import { BaseAnnotation } from '../models/annotations/base.annotation';
+import { Group } from 'three';
 
 @Injectable()
 export class ModelManagerService {
@@ -37,5 +37,21 @@ export class ModelManagerService {
     for (const model of models) {
       currentOpenGroup.addModel(model);
     }
+  }
+
+  removeAnnotations(annos: Set<BaseAnnotation>) {
+    const current = this.#currentOpenGroup.value;
+    if (!current) {
+      throw new Error('addAnnotationToGroup called with no model?');
+    }
+    current.removeAnnotations(annos);
+  }
+
+  addAnnotationToGroup(anno: BaseAnnotation, toGroup: Group) {
+    const current = this.#currentOpenGroup.value;
+    if (!current) {
+      throw new Error('addAnnotationToGroup called with no model?');
+    }
+    current.addAnnotation(anno, toGroup);
   }
 }

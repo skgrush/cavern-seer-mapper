@@ -1,0 +1,20 @@
+<form (submit)="save()">
+  <h1 mat-dialog-title>Settings</h1>
+  <div mat-dialog-content>
+
+    <div class="form-fields-grid">
+      <section>
+        <h4>Measurement system</h4>
+        <mat-button-toggle-group [formControl]="formGroup.controls.measurementSystem">
+          <mat-button-toggle [value]="MeasurementSystem.metric">metric</mat-button-toggle>
+          <mat-button-toggle [value]="MeasurementSystem.usCustomary">US Customary</mat-button-toggle>
+        </mat-button-toggle-group>
+      </section>
+    </div>
+  </div>
+
+  <div mat-dialog-actions>
+    <button mat-button mat-dialog-close>Close</button>
+    <button mat-button type="submit" [disabled]="!formGroup.dirty">Save settings</button>
+  </div>
+</form>
