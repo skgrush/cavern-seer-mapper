@@ -3,26 +3,45 @@
   tool
 </p>
 
-<div>
+<p>
+  Distance measures are only attached at their "anchor point";
+  all other points are positioned relative to that anchor point.
+</p>
+
+<div mat-subheader>
   <mat-form-field>
     <mat-label>Selected measure</mat-label>
-    <mat-select [formControl]="selectedMeasureControl">
+    <mat-select [formControl]="formGroup.controls.selectedMeasure">
+      <mat-option [value]="null">-</mat-option>
       @for (opt of measureTool.measures$ | async; track opt) {
       <mat-option [value]="opt">{{ opt.identifier }}</mat-option>
       }
     </mat-select>
   </mat-form-field>
+
+  <span>
+    <button mat-icon-button [disabled]="!formGroup.controls.selectedMeasure.value" [matMenuTriggerFor]="optionsMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #optionsMenu="matMenu">
+      <button mat-menu-item (click)="deleteMeasure()">Delete measure</button>
+      <button mat-menu-item (click)="deleteSelectedPoints()">Delete points</button>
+      <button mat-menu-item (click)="clearSelection()">Clear selection</button>
+    </mat-menu>
+  </span>
 </div>
 
-<div *ngIf="measureTool.selectedMeasure$ | async as selectedMeasure">
+<ng-container *ngIf="measureTool.selectedMeasure$ | async as selectedMeasure">
   <div>
     Total: {{ selectedMeasure.distance | length }}
   </div>
-  <mat-list>
+  <mat-selection-list #selectionList multiple [formControl]="formGroup.controls.selectedPoints">
     @for (point of selectedMeasure.allPoints; track point) {
-    <mat-list-item (click)="measureTool.lookAt(point)">
-      <p matListItemLine>{{ point | vector }}</p>
-    </mat-list-item>
+    <mat-list-option [value]="point" (click)="measureTool.lookAt(point)" [disabled]="$first">
+      <p matListItemTitle>{{ point | vector }}</p>
+      <p matListItemLine *ngIf="$first">Anchor point</p>
+      <p matListItemLine *ngIf="$first">{{ selectedMeasure.firstParentName }}</p>
+    </mat-list-option>
     }
-  </mat-list>
-</div>
+  </mat-selection-list>
+</ng-container>

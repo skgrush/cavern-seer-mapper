@@ -95,6 +95,32 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
   addNewWorldPoint(worldPoint: Vector3) {
     const pointRelative = this.worldToLocal(worldPoint.clone());
     this.#additionalPoints.push(pointRelative);
+
+    this.#rebuildGeometry();
+  }
+
+  /**
+   * Delete these points from the measure.
+   * Cannot delete the first item.
+   * Vectors must be the **same instance** to be deleted.
+   */
+  deletePoints(points: readonly Vector3[]) {
+    for (const point of points) {
+      const idx = this.#additionalPoints.indexOf(point);
+      if (idx === -1) {
+        continue;
+      }
+      if (idx === 0) {
+        console.warn('Attempt to delete anchor point from MeasureDistanceAnnotation');
+        continue;
+      }
+      this.#additionalPoints.splice(idx, 1);
+    }
+
+    this.#rebuildGeometry();
+  }
+
+  #rebuildGeometry() {
     this.#line.geometry = new BufferGeometry().setFromPoints([
       this.anchorPoint,
       ...this.#additionalPoints,

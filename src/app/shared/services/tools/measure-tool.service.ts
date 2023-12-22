@@ -71,6 +71,30 @@ export class MeasureToolService extends BaseToolService {
     this.#selectedMeasureSubject.next(measure);
   }
 
+  deleteMeasure(measure: MeasureDistanceAnnotation) {
+    this.#modelManager.removeAnnotations(new Set([measure]));
+
+    const newSubjectList = this.#measuresSubject.value
+      .filter(anno => anno !== measure);
+
+    if (this.#selectedMeasureSubject.value === measure) {
+      this.#selectedMeasureSubject.next(undefined);
+    }
+    this.#measuresSubject.next(Object.freeze(newSubjectList));
+  }
+
+  deletePointsFromMeasure(
+    measure: MeasureDistanceAnnotation,
+    points: readonly Vector3[],
+  ) {
+    if (measure !== this.#selectedMeasureSubject.value) {
+      throw new Error('Can only deletePointsFromMeasure() from the selected measure');
+    }
+
+    measure.deletePoints(points);
+    this.#selectedMeasureSubject.next(measure);
+  }
+
   lookAtAnno(anno: MeasureDistanceAnnotation) {
     this.#canvasService.lookAt(anno.worldPoint);
   }
