@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RaycastTabComponent } from "./raycast-tab/raycast-tab.component";
-import { DistanceMeasureTabComponent } from "./measure-tab/distance-measure-tab.component";
+import { DistanceMeasureTabComponent } from "./distance-measure-tab/distance-measure-tab.component";
 
 @Component({
   selector: 'mapper-measure-tabs',
