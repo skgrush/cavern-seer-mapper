@@ -38,7 +38,7 @@ export class ModelManagerService {
    */
   importModels(models: BaseRenderModel<any>[]) {
     let currentOpenGroup = this.#currentOpenGroup.value;
-    debugger;
+
     if (currentOpenGroup) {
       for (const model of models) {
         currentOpenGroup.addModel(model);

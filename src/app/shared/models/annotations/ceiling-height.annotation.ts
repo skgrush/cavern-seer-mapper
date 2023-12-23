@@ -12,6 +12,8 @@ import { droidSansFont } from "./font";
 export class CeilingHeightAnnotation extends BaseAnnotation {
   override readonly type = AnnotationType.ceilingHeight;
 
+  readonly #whitespaceRe = /\s+/u;
+
   #identifier: string;
   readonly #line: Line;
   readonly #lineGroup: Group;
@@ -100,7 +102,7 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     const size = 0.1;
 
     const textGeometry = new TextGeometry(
-      localize.formatLength(distance, 0, 1),
+      localize.formatLength(distance, 0, 1).replace(this.#whitespaceRe, ' '),
       {
         font: droidSansFont,
         size,

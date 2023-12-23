@@ -60,7 +60,6 @@ export class LocalizeService {
       }),
     );
 
-    debugger;
     return formatter.format(value);
   }
 
