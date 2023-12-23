@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
 import { DialogOpenerService } from '../../services/dialog-opener.service';
 
@@ -14,4 +14,7 @@ import { DialogOpenerService } from '../../services/dialog-opener.service';
 export class SidenavComponent {
 
   readonly dialogOpener = inject(DialogOpenerService);
+
+  @Output()
+  readonly buttonClicked = new EventEmitter<void>();
 }

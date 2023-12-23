@@ -5,11 +5,12 @@ import { ToolManagerService } from '../../services/tool-manager.service';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'mapper-tools-bar',
   standalone: true,
-  imports: [MatButtonToggleModule, MatIconModule, FormsModule, AsyncPipe],
+  imports: [MatButtonToggleModule, MatIconModule, FormsModule, AsyncPipe, MatTooltipModule],
   templateUrl: './tools-bar.component.html',
   styleUrl: './tools-bar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

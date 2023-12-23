@@ -3,20 +3,26 @@
 </div>
 
 <mat-sidenav-container>
-  <mat-sidenav #sidenav id="left-sidenav">
-    <mapper-sidenav></mapper-sidenav>
+  <mat-sidenav #leftMenu id="left-sidenav">
+    <mapper-sidenav (buttonClicked)="leftMenu.close()" />
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <button mat-fab id="open-sidenav-btn" (click)="sidenav.toggle()">
+    <button mat-fab id="open-leftmenu-btn" (click)="leftMenu.toggle()" ariaLabel="Open menu" matTooltip="Open menu">
       <mat-icon>menu</mat-icon>
+    </button>
+    <button mat-fab id="open-righttabnav-btn" (click)="rightTabNav.toggle()" aria-label="Open right tabnav"
+      matTooltip="Open right tabnav">
+      <mat-icon>
+        {{ rightTabNav.opened ? 'chevron_right' : 'chevron_left' }}
+      </mat-icon>
     </button>
     <mapper-tools-bar />
     <mapper-compass />
     <mapper-canvas />
   </mat-sidenav-content>
 
-  <mat-sidenav opened mode="side" position="end" id="right-sidenav">
+  <mat-sidenav #rightTabNav mode="side" position="end" id="right-sidenav">
     <mapper-right-tab-nav />
   </mat-sidenav>
 </mat-sidenav-container>

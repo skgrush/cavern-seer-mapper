@@ -1,7 +1,7 @@
-<mat-list>
+<mat-list (click)="buttonClicked.emit()">
   <button mat-list-item (click)="dialogOpener.open()">Open...</button>
   <button mat-list-item (click)="dialogOpener.import()">Import...</button>
-  <button mat-list-item (click)="dialogOpener.save()">Zip and download</button>
-  <button mat-list-item (click)="dialogOpener.exportImage()">Export image</button>
+  <button mat-list-item (click)="dialogOpener.save()">Zip...</button>
+  <button mat-list-item (click)="dialogOpener.exportImage()">Export image...</button>
   <button mat-list-item (click)="dialogOpener.settings()">Settings</button>
 </mat-list>

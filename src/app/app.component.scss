@@ -39,8 +39,15 @@
       grid-template-areas: 'main';
       overflow: hidden;
 
-      &>#open-sidenav-btn {
+      &>#open-leftmenu-btn {
         grid-area: main;
+        margin: 1em;
+      }
+
+      &>#open-righttabnav-btn {
+        grid-area: main;
+        justify-self: end;
+        align-self: start;
         margin: 1em;
       }
 

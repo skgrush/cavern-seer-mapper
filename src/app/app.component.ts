@@ -10,13 +10,14 @@ import { ToolsBarComponent } from './shared/components/tools-bar/tools-bar.compo
 import { RightTabNavComponent } from "./pages/right-tab-nav/right-tab-nav.component";
 import { CompassComponent } from "./shared/components/compass/compass.component";
 import { DialogOpenerService } from './shared/services/dialog-opener.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'mapper-root',
   standalone: true,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  imports: [CommonModule, RouterOutlet, CanvasComponent, MatSidenavModule, MatButtonModule, MatIconModule, SidenavComponent, ToolsBarComponent, RightTabNavComponent, CompassComponent],
+  imports: [CommonModule, RouterOutlet, CanvasComponent, MatSidenavModule, MatButtonModule, MatIconModule, SidenavComponent, ToolsBarComponent, RightTabNavComponent, CompassComponent, MatTooltipModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
