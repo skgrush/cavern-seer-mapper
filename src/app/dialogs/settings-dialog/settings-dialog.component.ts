@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -7,11 +8,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { tap } from 'rxjs';
+import { BytesPipe } from "../../shared/pipes/bytes.pipe";
+import { ByteFormatType } from '../../shared/services/localize.service';
 import { MeasurementSystem } from '../../shared/services/settings/measurement-system';
 import { SettingsService } from '../../shared/services/settings/settings.service';
-import { ByteFormatType } from '../../shared/formatters/format-bytes';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 
 @Component({
   selector: 'mapper-settings-dialog',

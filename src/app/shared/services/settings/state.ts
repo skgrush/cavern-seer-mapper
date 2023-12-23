@@ -1,6 +1,6 @@
 import { createFeature, createReducer, on, createActionGroup, props } from '@ngrx/store';
 import { MeasurementSystem } from './measurement-system';
-import { ByteFormatType } from '../../formatters/format-bytes';
+import { ByteFormatType } from '../localize.service';
 
 export type ISettingsState = {
   readonly initialized: boolean;

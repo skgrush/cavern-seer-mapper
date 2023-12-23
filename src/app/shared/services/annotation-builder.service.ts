@@ -1,22 +1,16 @@
-import { Injectable, LOCALE_ID, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Vector3 } from 'three';
-import { SettingsService } from './settings/settings.service';
-import { DigitsInfo } from '../formatters/digits-info';
-import { formatLength } from '../formatters/format-length';
-import { CeilingHeightAnnotation } from '../models/annotations/ceiling-height.annotation';
 import { AnnotationType } from '../models/annotation-type.enum';
-import { IMetadataBaseAnnotationV0 } from '../models/manifest/types.v0';
 import { BaseAnnotation } from '../models/annotations/base.annotation';
+import { CeilingHeightAnnotation } from '../models/annotations/ceiling-height.annotation';
 import { MeasureDistanceAnnotation } from '../models/annotations/measure-distance.annotation';
+import { IMetadataBaseAnnotationV0 } from '../models/manifest/types.v0';
+import { LocalizeService } from './localize.service';
 
 @Injectable()
 export class AnnotationBuilderService {
 
-  readonly #localeId = inject(LOCALE_ID);
-  readonly #settings = inject(SettingsService);
-
-  readonly #ceilingHeightLengthFormat = (valueInMeters: number, digitsInfo?: DigitsInfo) =>
-    formatLength(this.#settings.measurementSystem, this.#localeId, valueInMeters, digitsInfo);
+  readonly #localize = inject(LocalizeService);
 
   buildAnnotationFromManifest(manifestEntry: IMetadataBaseAnnotationV0): BaseAnnotation {
     switch (manifestEntry.type) {
@@ -52,7 +46,7 @@ export class AnnotationBuilderService {
       identifier,
       floorPointLocal,
       distance,
-      this.#ceilingHeightLengthFormat,
+      this.#localize,
     );
   }
 

@@ -23,6 +23,7 @@ import { INTL_COLLATOR } from './shared/tokens/intl-collator.token';
 import { INTL_UNIT_LIST_FORMAT } from './shared/tokens/intl-unit-list-format.token';
 import { AnnotationBuilderService } from './shared/services/annotation-builder.service';
 import { DialogOpenerService } from './shared/services/dialog-opener.service';
+import { LocalizeService } from './shared/services/localize.service';
 
 
 
@@ -38,6 +39,7 @@ export const appConfig: ApplicationConfig = {
     ThemeService,
     importProvidersFrom(FileIconModule),
     FileTypeService,
+    LocalizeService,
     ModelLoadService,
     ModelManagerService,
     MeshNormalMaterialService,

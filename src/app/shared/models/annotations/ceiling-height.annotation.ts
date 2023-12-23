@@ -1,16 +1,13 @@
 import { BufferGeometry, CircleGeometry, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Vector3 } from "three";
 
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-import { DigitsInfo } from "../../formatters/digits-info";
-import { BaseAnnotation } from "./base.annotation";
-import { droidSansFont } from "./font";
+import { LocalizeService } from "../../services/localize.service";
 import { AnnotationType } from "../annotation-type.enum";
 import { IMetadataCeilingHeightV0 } from "../manifest/types.v0";
 import { RenderingOrder } from "../rendering-layers";
 import { IMapperUserData } from "../user-data";
-
-
-type LengthFormatter = (valueInMeters: number, digitsInfo?: DigitsInfo) => string;
+import { BaseAnnotation } from "./base.annotation";
+import { droidSansFont } from "./font";
 
 export class CeilingHeightAnnotation extends BaseAnnotation {
   override readonly type = AnnotationType.ceilingHeight;
@@ -43,7 +40,7 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     identifier: string,
     readonly anchorPoint: Vector3,
     readonly distance: number,
-    readonly lengthFormat: LengthFormatter,
+    readonly localize: LocalizeService,
   ) {
     super();
     this.#identifier = identifier;
@@ -58,7 +55,7 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
       material,
     );
 
-    const { textMesh, circleMesh } = this.#buildText(lengthFormat, distance);
+    const { textMesh, circleMesh } = this.#buildText(localize, distance);
 
     this.#lineGroup = new Group();
     this.#lineGroup.add(this.#line, textMesh, circleMesh);
@@ -99,11 +96,11 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     group.remove(this.#lineGroup);
   }
 
-  #buildText(lengthFormat: LengthFormatter, distance: number) {
+  #buildText(localize: LocalizeService, distance: number) {
     const size = 0.1;
 
     const textGeometry = new TextGeometry(
-      lengthFormat(distance, '1.0-1'),
+      localize.formatLength(distance, 0, 1),
       {
         font: droidSansFont,
         size,

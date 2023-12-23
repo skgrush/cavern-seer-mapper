@@ -1,6 +1,5 @@
-import { LOCALE_ID, Pipe, PipeTransform, inject } from '@angular/core';
-import { formatBytes } from '../formatters/format-bytes';
-import { SettingsService } from '../services/settings/settings.service';
+import { Pipe, PipeTransform, inject } from '@angular/core';
+import { LocalizeService } from '../services/localize.service';
 
 @Pipe({
   name: 'bytes',
@@ -9,8 +8,7 @@ import { SettingsService } from '../services/settings/settings.service';
 })
 export class BytesPipe implements PipeTransform {
 
-  readonly #locale = inject(LOCALE_ID);
-  readonly #settings = inject(SettingsService);
+  readonly #localize = inject(LocalizeService);
 
   transform(value: number): string;
   transform(value: undefined | null): null;
@@ -20,10 +18,6 @@ export class BytesPipe implements PipeTransform {
       return null;
     }
 
-    return formatBytes(
-      value,
-      this.#locale,
-      this.#settings.byteFormat,
-    );
+    return this.#localize.formatBytes(value);
   }
 }
