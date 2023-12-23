@@ -22,13 +22,13 @@
     <ng-container *ngIf="uploadProgress.progress$ | async as progress">
       <div class="loading-container" *ngIf="progress.active">
         <div *ngIf="progress.stage">Stage: {{ progress.stage }}</div>
-        <div>{{ progress.loaded }} / {{ progress.total }}</div>
+        <div>{{ progress.loaded | bytes }} / {{ progress.total | bytes }}</div>
         <mat-progress-bar [mode]="progress.determinate ? 'determinate' : 'indeterminate'"
           [value]="100 * progress.loaded / progress.total" />
       </div>
     </ng-container>
     <div class="success-container" *ngIf="resultSubject | async as result">
-      Successfully downloaded {{ result.name }}, compressed to {{ result.size }}.
+      Successfully downloaded {{ result.name }}, compressed to {{ result.size | bytes }}.
     </div>
     <div class="error-container" *ngIf="errorSubject | async as error">
       <h3>Error</h3>

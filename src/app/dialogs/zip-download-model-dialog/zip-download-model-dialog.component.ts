@@ -10,6 +10,7 @@ import { ExportService } from '../../shared/services/export.service';
 import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
 import { ModelManagerService } from '../../shared/services/model-manager.service';
 import { MatButtonModule } from '@angular/material/button';
+import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 
 export type IZipDownloadModelDialogData = {
   readonly titleText: string;
@@ -18,10 +19,10 @@ export type IZipDownloadModelDialogData = {
 @Component({
   selector: 'mapper-zip-download-model-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, NgIf, AsyncPipe, MatProgressBarModule, MatButtonModule],
   templateUrl: './zip-download-model-dialog.component.html',
   styleUrl: './zip-download-model-dialog.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, NgIf, AsyncPipe, MatProgressBarModule, MatButtonModule, BytesPipe]
 })
 export class ZipDownloadModelDialogComponent {
 

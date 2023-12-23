@@ -9,6 +9,7 @@ import { ExportService } from '../../shared/services/export.service';
 import { CanvasService } from '../../shared/services/canvas.service';
 import { BehaviorSubject, tap } from 'rxjs';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 
 export type IExportImageDialogData = {
   readonly titleText: string;
@@ -17,10 +18,10 @@ export type IExportImageDialogData = {
 @Component({
   selector: 'mapper-export-image-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, NgIf, AsyncPipe, MatButtonModule, MatButtonToggleModule],
   templateUrl: './export-image-dialog.component.html',
   styleUrl: './export-image-dialog.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, NgIf, AsyncPipe, MatButtonModule, MatButtonToggleModule, BytesPipe],
 })
 export class ExportImageDialogComponent {
 

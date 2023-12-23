@@ -1,15 +1,18 @@
 import { createFeature, createReducer, on, createActionGroup, props } from '@ngrx/store';
 import { MeasurementSystem } from './measurement-system';
+import { ByteFormatType } from '../../formatters/format-bytes';
 
 export type ISettingsState = {
   readonly initialized: boolean;
   readonly measurementSystem: MeasurementSystem;
+  readonly byteFormat: ByteFormatType;
 };
 export type StateOtherThanInitialize = Omit<ISettingsState, 'initialized'>;
 
 export const initialState = {
   initialized: false,
   measurementSystem: MeasurementSystem.metric,
+  byteFormat: ByteFormatType.binary,
 } as const satisfies ISettingsState;
 
 export const SettingsActions = createActionGroup({
@@ -17,6 +20,7 @@ export const SettingsActions = createActionGroup({
   events: {
     'Initialize': props<{ partialState: Partial<StateOtherThanInitialize> }>(),
     'Update measurementSystem': props<{ measurementSystem: MeasurementSystem }>(),
+    'Update byteFormat': props<{ byteFormat: ByteFormatType }>(),
   },
 });
 
@@ -32,6 +36,10 @@ export const SettingsFeture = createFeature({
     on(SettingsActions.updateMeasurementSystem, (state, { measurementSystem }) => ({
       ...state,
       measurementSystem,
+    })),
+    on(SettingsActions.updateByteFormat, (state, { byteFormat }) => ({
+      ...state,
+      byteFormat,
     })),
   ),
 });

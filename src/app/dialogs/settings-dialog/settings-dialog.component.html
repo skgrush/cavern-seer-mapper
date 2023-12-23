@@ -4,11 +4,30 @@
 
     <div class="form-fields-grid">
       <section>
-        <h4>Measurement system</h4>
+        <h2>Measurement system</h2>
         <mat-button-toggle-group [formControl]="formGroup.controls.measurementSystem">
-          <mat-button-toggle [value]="MeasurementSystem.metric">metric</mat-button-toggle>
+          <mat-button-toggle [value]="MeasurementSystem.metric">Metric</mat-button-toggle>
           <mat-button-toggle [value]="MeasurementSystem.usCustomary">US Customary</mat-button-toggle>
         </mat-button-toggle-group>
+        <p>
+          Changes the display units and conversion,
+          but NOT the grid or coordinate system.
+        </p>
+      </section>
+      <section>
+        <h2>Byte format</h2>
+        <mat-button-toggle-group [formControl]="formGroup.controls.byteFormat">
+          <mat-button-toggle [value]="ByteFormatType.binary">binary</mat-button-toggle>
+          <mat-button-toggle [value]="ByteFormatType.decimal">decimal</mat-button-toggle>
+        </mat-button-toggle-group>
+        <p>
+          <b>Binary</b> format is measured in powers of 1024.
+          This is the system used in Microsoft Windows, though they use the wrong units.
+
+        </p>
+        <p>
+          <b>Decimal</b> format is measured in powers of 1000, using SI units.
+        </p>
       </section>
     </div>
   </div>

@@ -6,6 +6,7 @@ import { INTL_LOCALE } from '../../tokens/intl-locale.token';
 import { LOCAL_STORAGE } from '../../tokens/local-storage.token';
 import { MeasurementSystem } from './measurement-system';
 import { distinctUntilChanged, filter, map, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable()
 export class SettingsService {
@@ -16,6 +17,7 @@ export class SettingsService {
   readonly #intlLocale = inject(INTL_LOCALE);
   readonly #storage = inject(LOCAL_STORAGE);
 
+  #stateSnapshot: ISettingsState = initialState;
   readonly state$ = this.#store.select(SettingsFeture.selectSettingsState).pipe(
     filter(state => state.initialized),
   );
@@ -24,19 +26,24 @@ export class SettingsService {
     map(s => s.measurementSystem),
     distinctUntilChanged(),
   );
+  readonly byteFormat$ = this.state$.pipe(
+    map(s => s.byteFormat),
+    distinctUntilChanged(),
+  );
 
-  #measurementSystem: MeasurementSystem = initialState.measurementSystem;
   get measurementSystem() {
-    return this.#measurementSystem;
+    return this.#stateSnapshot.measurementSystem;
+  }
+  get byteFormat() {
+    return this.#stateSnapshot.byteFormat;
   }
 
   constructor() {
     this.initialize();
     this.state$.pipe(
+      takeUntilDestroyed(),
       tap(state => this.#storage.setItem(this.#storageKey, JSON.stringify(state))),
-      tap(state => {
-        this.#measurementSystem = state.measurementSystem;
-      }),
+      tap(state => this.#stateSnapshot = state),
     ).subscribe();
   }
 

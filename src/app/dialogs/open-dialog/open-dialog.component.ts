@@ -12,6 +12,7 @@ import { ModelLoadService } from '../../shared/services/model-load.service';
 import { FileIconComponent } from '../../shared/components/file-icon/file-icon.component';
 import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
 import { MatButtonModule } from '@angular/material/button';
+import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 
 export type IOpenDialogData = {
   readonly titleText: string;
@@ -23,10 +24,10 @@ export type IOpenDialogData = {
 @Component({
   selector: 'mapper-open-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, FileIconComponent, MatButtonModule],
   templateUrl: './open-dialog.component.html',
   styleUrl: './open-dialog.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, FileIconComponent, MatButtonModule, BytesPipe],
 })
 export class OpenDialogComponent implements OnInit {
 

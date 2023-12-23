@@ -6,7 +6,7 @@
       <mat-list-item>
         <mapper-file-icon matListItemIcon [type]="file.type" />
         <div matListItemTitle>{{ file.identifier }}</div>
-        <div matListItemLine>{{ file.blob.size }}</div>
+        <div matListItemLine>{{ file.blob.size | bytes }}</div>
       </mat-list-item>
       }
     </mat-list>
@@ -14,7 +14,7 @@
 
     <ng-container *ngIf="uploadProgress.progress$ | async as progress">
       <div class="loading-container" *ngIf="progress.active">
-        <p>{{ progress.loaded }} / {{ progress.total }}</p>
+        <p>{{ progress.loaded | bytes }} / {{ progress.total | bytes }}</p>
         <mat-progress-bar mode="determinate" [value]="100 * progress.loaded / progress.total" />
       </div>
     </ng-container>

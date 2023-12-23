@@ -31,7 +31,7 @@
   </div>
 
   <div *ngIf="resultSubject | async as result">
-    Successfully exported {{ result.name }} at {{ result.size }} bytes.
+    Successfully exported {{ result.name }} at {{ result.size | bytes }}.
   </div>
 
   <div mat-dialog-actions>
