@@ -5,11 +5,12 @@ import { FileModelType } from "../model-type.enum";
 import { Subject, Subscription } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
 import { BaseAnnotation } from "../annotations/base.annotation";
+import { ModelChangeType } from "../model-change-type.enum";
 
 
 export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group> {
   override readonly type = FileModelType.group;
-  readonly #childOrPropertyChanged = new Subject<void>();
+  readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
   override readonly comment = null;
@@ -65,9 +66,9 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
     this.#modelsSubscriptions.set(
       model,
-      model.childOrPropertyChanged$.subscribe(() => this.#childOrPropertyChanged.next()),
+      model.childOrPropertyChanged$.subscribe(e => this.#childOrPropertyChanged.next(e)),
     );
-    this.#childOrPropertyChanged.next();
+    this.#childOrPropertyChanged.next(ModelChangeType.EntityAdded);
 
     return true;
   }
@@ -124,7 +125,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
   override setPosition(pos: ISimpleVector3): boolean {
     this.#group.position.set(pos.x, pos.y, pos.z);
-    this.#childOrPropertyChanged.next();
+    this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
   }
   override setMaterial(material: BaseMaterialService<any>): void {

@@ -6,11 +6,12 @@ import { ISimpleVector3 } from "../simple-types";
 import { BaseModelManifest } from "../model-manifest";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { AnnotationBuilderService } from "../../services/annotation-builder.service";
+import { ModelChangeType } from "../model-change-type.enum";
 
 export abstract class BaseRenderModel<T extends FileModelType> {
 
   abstract readonly type: T;
-  abstract readonly childOrPropertyChanged$: Observable<void>;
+  abstract readonly childOrPropertyChanged$: Observable<ModelChangeType>;
   abstract readonly identifier: string;
   abstract readonly position: Readonly<Vector3>;
   abstract readonly rendered: boolean;

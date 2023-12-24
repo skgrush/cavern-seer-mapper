@@ -7,13 +7,14 @@ import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
 import { UploadFileModel } from "../upload-file-model";
 import { BaseAnnotation } from "../annotations/base.annotation";
+import { ModelChangeType } from "../model-change-type.enum";
 
 /**
  * TODO: basically unimplemented so far...
  */
 export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> {
   override readonly type = FileModelType.gLTF;
-  readonly #childOrPropertyChanged = new Subject<void>();
+  readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
   override comment: string | null;

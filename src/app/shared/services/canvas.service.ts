@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, animationFrames, distinctUntilChanged, fromEvent, map, scan, takeUntil, tap } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, animationFrames, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil } from 'rxjs';
 import { AmbientLight, Box3, Clock, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
@@ -8,6 +8,8 @@ import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 import { ModelManagerService } from './model-manager.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ignoreNullish } from '../operators/ignore-nullish';
+import { ModelChangeType } from '../models/model-change-type.enum';
 
 @Injectable()
 export class CanvasService {
@@ -39,27 +41,45 @@ export class CanvasService {
     this.#modelManager.currentOpenGroup$.pipe(
       takeUntilDestroyed(),
       distinctUntilChanged(),
-      tap(group => {
-        // clean up the existing group if any
-        this.#currentGroupInScene?.removeFromScene(this.#scene);
-        this.#currentGroupInScene?.dispose();
+    ).subscribe(group => {
+      // clean up the existing group if any
+      this.#currentGroupInScene?.removeFromScene(this.#scene);
+      this.#currentGroupInScene?.dispose();
 
-        this.#currentGroupInScene = group;
-        // if there's a group, update the scene
-        if (group) {
-          group.addToScene(this.#scene);
-          group.setMaterial(this.#material);
+      this.#currentGroupInScene = group;
+      // if there's a group, update the scene
+      if (group) {
+        group.addToScene(this.#scene);
+        group.setMaterial(this.#material);
 
-          const bounds = group.getBoundingBox();
+        const bounds = group.getBoundingBox();
 
-          this.#rebuildBottomGrid(bounds);
-          this.#refocusCamera(bounds);
-        }
+        this.#rebuildBottomGrid(bounds);
+        this.#refocusCamera(bounds);
+      }
 
-        // regardless, update the renderer
-        this.render();
-      }),
-    ).subscribe();
+      // regardless, update the renderer
+      this.render();
+    });
+
+    const modelChangeRedrawBox =
+      ModelChangeType.EntityAdded |
+      ModelChangeType.EntityRemoved |
+      ModelChangeType.PositionChanged;
+
+    // react to changes to childOrPropertyChanged$
+    this.#modelManager.currentOpenGroup$.pipe(
+      ignoreNullish(),
+      switchMap(
+        group => group.childOrPropertyChanged$.pipe(
+          filter(e => (e & modelChangeRedrawBox) !== 0),
+          map(() => group),
+        ),
+      ),
+    ).subscribe(cog => {
+      const bounds = cog.getBoundingBox();
+      this.#rebuildBottomGrid(bounds);
+    });
   }
 
   /**
