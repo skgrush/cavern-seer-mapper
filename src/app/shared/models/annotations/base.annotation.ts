@@ -6,6 +6,7 @@ export abstract class BaseAnnotation {
   abstract readonly type: AnnotationType;
   abstract readonly identifier: string;
   abstract readonly anchorPoint: Vector3;
+  abstract readonly mustBeAttachedToMesh: boolean;
 
   abstract rename(newIdentifier: string): void;
   abstract serializeToManifest(version: number): null | IMetadataBaseAnnotationV0;

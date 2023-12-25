@@ -11,6 +11,7 @@ import { droidSansFont } from "./font";
 
 export class CeilingHeightAnnotation extends BaseAnnotation {
   override readonly type = AnnotationType.ceilingHeight;
+  override readonly mustBeAttachedToMesh = true;
 
   readonly #whitespaceRe = /\s+/u;
 

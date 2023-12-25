@@ -20,6 +20,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   }
 
   readonly #group = new Group();
+  readonly #annotations = new Set<BaseAnnotation>();
   readonly #models = new Set<BaseRenderModel<any>>();
   readonly #modelsSubscriptions = new WeakMap<BaseRenderModel<any>, Subscription>();
 
@@ -146,14 +147,12 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     group.remove(this.#group);
   }
 
-  override getAnnotations(): readonly BaseAnnotation[] {
-    return [];
+  override getAnnotations(): BaseAnnotation[] {
+    return [...this.#annotations];
   }
 
   getAllAnnotationsRecursively(): readonly BaseAnnotation[] {
-    const annos: BaseAnnotation[] = [];
-
-    return this.children.flatMap(child => {
+    const childAnnos = this.children.flatMap(child => {
       if (child instanceof GroupRenderModel) {
         return child.getAllAnnotationsRecursively();
       }
@@ -162,10 +161,21 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
       }
       return [];
     });
+
+    childAnnos.push(...this.getAnnotations());
+
+    return childAnnos;
   }
 
   override addAnnotation(anno: BaseAnnotation, toGroup?: Group): boolean {
     if (toGroup === undefined || this.#group === toGroup) {
+      if (!anno.mustBeAttachedToMesh) {
+        this.#annotations.add(anno);
+        anno.addToGroup(this.#group);
+        this.#childOrPropertyChanged.next(ModelChangeType.EntityAdded);
+        return true;
+      }
+
       throw new Error('attempt to add annotation to non mesh group??');
     }
     for (const child of this.children) {
@@ -180,6 +190,14 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   }
 
   override removeAnnotations(annosToDelete: Set<BaseAnnotation>): void {
+    for (const anno of annosToDelete) {
+      if (this.#annotations.has(anno)) {
+        anno.removeFromGroup(this.#group);
+        this.#annotations.delete(anno);
+        annosToDelete.delete(anno);
+      }
+    }
+
     for (const child of this.children) {
       if (child instanceof BaseVisibleRenderModel) {
         child.removeAnnotations(annosToDelete);

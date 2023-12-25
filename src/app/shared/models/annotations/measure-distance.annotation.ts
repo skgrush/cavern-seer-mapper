@@ -8,6 +8,7 @@ import { IMapperUserData } from "../user-data";
 
 export class MeasureDistanceAnnotation extends BaseAnnotation {
   override readonly type = AnnotationType.measureDistance;
+  override readonly mustBeAttachedToMesh = true;
 
   #identifier: string;
   readonly #line: Line;
