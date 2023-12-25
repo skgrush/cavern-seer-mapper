@@ -6,6 +6,15 @@ import { IMapperUserData } from "../user-data";
 
 const NormalY = new Vector3(0, 1, 0);
 
+function vectorAngleAroundY(from: Vector3, to: Vector3) {
+  const angle = from.angleTo(to);
+
+  if (from.clone().cross(to).y >= 0) {
+    return -angle;
+  }
+  return angle;
+}
+
 /**
  * A box describing a cross-section cut from the larger model.
  * Detached from any particular model, only associated to the origin.
@@ -19,12 +28,10 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     return this.#identifier;
   }
   override get anchorPoint() {
-    return this.#centerPoint;
+    return this.#group.position;
   }
 
   #identifier: string;
-  #centerPoint: Vector3;
-  // #normalVector: Vector3;
   #angleToNorthAroundY: number;
   #dimensions: Vector3;
   readonly #boxMesh: Mesh<BoxGeometry>;
@@ -39,8 +46,6 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     super();
 
     this.#identifier = identifier;
-    this.#centerPoint = centerPoint;
-    // this.#normalVector = normalVector;
     this.#angleToNorthAroundY = angleToNorthAroundY;
     this.#dimensions = dimensions;
 
@@ -82,7 +87,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
         .sub(originAtMin);
 
     const angleToNorthOfBoxNormal =
-      new Vector3(1, 0, 0).angleTo(vectorFromOriginToDest);
+      vectorAngleAroundY(new Vector3(1, 0, 0), vectorFromOriginToDest);
 
     const centerPoint = originAtMin
       .clone()
@@ -102,6 +107,19 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     );
   }
 
+  changeDimensions(newDimensions: Vector3) {
+    const difference = newDimensions.clone().sub(this.#dimensions);
+    if (difference.length() === 0) {
+      return;
+    }
+
+    this.#boxMesh.position.setZ(newDimensions.z / 2);
+    this.#boxMesh.geometry = new BoxGeometry(newDimensions.x, newDimensions.y, newDimensions.z);
+  }
+
+  changeCenterPoint(pos: Vector3) {
+    this.#group.position.copy(pos);
+  }
 
   override rename(newIdentifier: string): void {
     this.#identifier = newIdentifier;
