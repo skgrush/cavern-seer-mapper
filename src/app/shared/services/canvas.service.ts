@@ -278,7 +278,7 @@ export class CanvasService {
     camera.near = 0.1;
     camera.position.set(
       0,
-      bounds.max.y,
+      bounds.max.y + 1,
       0
     );
     camera.lookAt(0, 0, 0);

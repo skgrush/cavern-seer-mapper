@@ -17,6 +17,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "clean": "rimraf dist",
+    "build-and-migrate": "npm run clean && npm run build && npm run migrate",
     "migrate": "sync-s3 .env.json",
     "static-serve": "npm run clean && npm run build && mv dist/cavern-seer-mapper/browser dist/mapper && http-server dist/"
   },

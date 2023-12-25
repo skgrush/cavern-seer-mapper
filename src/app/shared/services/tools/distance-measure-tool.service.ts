@@ -142,11 +142,7 @@ export class DistanceMeasureToolService extends BaseToolService {
         const targetCoords = new Vector2(e.offsetX, e.offsetY);
         const dimensions = this.#canvasService.getRendererDimensions()!;
 
-        const mouseWorldPos =
-          targetCoords
-            .divide(dimensions)
-            .multiply(new Vector2(2, -2))
-            .add(new Vector2(-1, 1));
+        const mouseWorldPos = this.normalizeCanvasCoords(targetCoords, dimensions);
 
         this.#handleNewMeasurementLocation(mouseWorldPos);
       })

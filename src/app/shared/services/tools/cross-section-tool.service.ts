@@ -1,0 +1,216 @@
+import { Injectable, inject } from '@angular/core';
+import { BaseToolService } from './base-tool.service';
+import { BehaviorSubject, Subject, distinctUntilChanged, filter, last, merge, switchMap, takeUntil, tap } from 'rxjs';
+import { CanvasService } from '../canvas.service';
+import { BufferGeometry, GridHelper, Intersection, Line, LineBasicMaterial, Vector2, Vector3 } from 'three';
+import { RenderingOrder } from '../../models/rendering-layers';
+import { ModelManagerService } from '../model-manager.service';
+import { GroupRenderModel } from '../../models/render/group.render-model';
+import { TemporaryAnnotation } from '../../models/annotations/temporary.annotation';
+import { CrossSectionAnnotation } from '../../models/annotations/cross-section.annotation';
+
+@Injectable()
+export class CrossSectionToolService extends BaseToolService {
+  readonly #canvasService = inject(CanvasService);
+  readonly #modelManager = inject(ModelManagerService);
+
+  readonly normalCursor = 'pointer';
+  readonly movingCursor = 'col-resize';
+
+  readonly #cursor = new BehaviorSubject<'pointer' | 'col-resize'>(this.normalCursor);
+  readonly #stopSubject = new Subject<void>();
+
+  readonly #crossSectionsSubject = new BehaviorSubject<readonly CrossSectionAnnotation[]>([]);
+  readonly crossSections$ = this.#crossSectionsSubject.asObservable();
+
+  override readonly id = 'cross-section';
+  override readonly label = 'Cross section';
+  override readonly icon = 'looks';
+  override readonly cursor$ = this.#cursor.pipe(distinctUntilChanged());
+
+  #currentModelRef?: WeakRef<GroupRenderModel>;
+  #preview?: {
+    origin: Vector3;
+    dest: Vector3;
+    lineAnno: TemporaryAnnotation<Line>;
+  }
+
+  override start(): boolean {
+
+    this.#modelManager.currentOpenGroup$.pipe(
+      takeUntil(this.#stopSubject),
+    ).subscribe(group => {
+      this.#currentModelRef = group
+        ? new WeakRef(group)
+        : undefined;
+    })
+
+    const pointerDown$ = this.#canvasService.eventOnRenderer('pointerdown');
+    const pointerUp$ = this.#canvasService.eventOnRenderer('pointerup');
+    const pointerMove$ = this.#canvasService.eventOnRenderer('pointermove');
+    const pointerCancel$ = this.#canvasService.eventOnRenderer('pointercancel');
+    const pointerLeave$ = this.#canvasService.eventOnRenderer('pointerleave');
+
+    if (!(pointerDown$ && pointerUp$ && pointerMove$ && pointerCancel$ && pointerLeave$)) {
+      console.error('Cannot start CrossSectionTool as there is no rendererTarget');
+      return false;
+    }
+
+    this.#canvasService.enableControls(false);
+
+    const cancel$ = merge(
+      pointerCancel$,
+      pointerLeave$,
+    ).pipe(tap(() => {
+      this.#cursor.next(this.normalCursor);
+      console.debug('pointer cancel');
+    }));
+
+    const start$ = pointerDown$.pipe(
+      filter(() => !this.#preview),
+      tap(e => {
+        this.#cursor.next(this.movingCursor);
+
+        const coord = this.#pointerEventToGridCoordinate(e);
+        if (coord) {
+          this.#drawLine(coord);
+        }
+      }),
+    );
+
+    const move$ = pointerMove$.pipe(
+      tap(moveEvent => {
+        const coord = this.#pointerEventToGridCoordinate(moveEvent);
+        if (coord) {
+          this.#drawLine(coord);
+        }
+      }),
+    );
+    const finish$ = pointerUp$.pipe(
+      tap(upEvent => {
+        this.#cursor.next(this.normalCursor);
+
+        const coord = this.#pointerEventToGridCoordinate(upEvent);
+        if (coord) {
+          this.#drawLine(coord);
+        }
+
+        const preview = this.#preview;
+        const group = this.#currentModelRef?.deref();
+        if (!preview) {
+          throw new Error('missing preview??');
+        }
+        if (!group) {
+          throw new Error('missing group??');
+        }
+
+        const { origin, dest, lineAnno } = preview;
+
+        const crossSection = CrossSectionAnnotation.fromCrosslineAndBoundingBox(
+          Date.now().toString(),
+          origin,
+          dest,
+          1,
+          group.getBoundingBox(),
+        );
+
+        group.addAnnotation(crossSection);
+
+        this.#crossSectionsSubject.next(Object.freeze([
+          ...this.#crossSectionsSubject.value,
+          crossSection,
+        ]));
+
+        // clean up
+        group.removeAnnotations(new Set([lineAnno]));
+        this.#preview = undefined;
+      }),
+    );
+
+    // do the events!
+    start$.pipe(
+      takeUntil(this.#stopSubject),
+      switchMap(e => {
+        // take move events until finishing or cancelling.
+        // should NOT be inlined, as we don't want to cut off down events.
+        return move$.pipe(
+          takeUntil(finish$),
+          takeUntil(cancel$),
+        );
+      }),
+    ).subscribe();
+
+    return true;
+  }
+
+  override stop(): boolean {
+    this.#stopSubject.next();
+
+    this.#canvasService.enableControls(true);
+
+    return true;
+  }
+
+  #getDimensions() { }
+
+  #pointerEventToGridCoordinate(e: PointerEvent) {
+    const targetCoords = new Vector2(e.offsetX, e.offsetY);
+    const dimensions = this.#canvasService.getRendererDimensions()!;
+
+    const mouseWorldPos = this.normalizeCanvasCoords(targetCoords, dimensions);
+
+    const casts = this.#canvasService.raycastFromCamera(mouseWorldPos);
+
+    const firstGridCast = casts.find((cast): cast is Intersection<GridHelper> => cast.object instanceof GridHelper);
+
+    return firstGridCast?.point;
+  }
+
+  #drawLine(destPoint: Vector3, startPoint?: Vector3) {
+    if (this.#preview) {
+      this.#preview.origin = startPoint ?? this.#preview.origin;
+      this.#preview.dest = destPoint;
+
+      this.#preview.lineAnno.object.geometry.setFromPoints([
+        this.#preview.origin,
+        this.#preview.dest,
+      ]);
+
+    } else {
+      const group = this.#currentModelRef?.deref();
+      if (!group) {
+        throw new Error('Missing currentModelRef while trying to draw line');
+      }
+
+      startPoint ??= destPoint;
+
+      const material = new LineBasicMaterial({ color: 0xFFFFFF });
+      const geometry = new BufferGeometry().setFromPoints([
+        startPoint,
+        destPoint,
+      ]);
+      // create the line
+      const line = new Line(
+        geometry,
+        material,
+      );
+      material.depthTest = false;
+      line.renderOrder = RenderingOrder.Annotation;
+
+      const lineAnno = new TemporaryAnnotation<Line>(
+        'cross section preview line',
+        line,
+        l => this.#preview?.origin ?? new Vector3(),
+      );
+      this.#preview = {
+        origin: startPoint,
+        dest: destPoint,
+        lineAnno,
+      };
+
+
+
+      group.addAnnotation(lineAnno);
+    }
+  }
+}
