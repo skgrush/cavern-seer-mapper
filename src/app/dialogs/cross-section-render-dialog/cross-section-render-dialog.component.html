@@ -1,2 +1,14 @@
-<canvas #canvas></canvas>
-<mapper-cross-section-details-form [crossSection]="crossSection" [formGroup]="formGroup" />
+<h1 mat-dialog-title>{{ crossSection.identifier }} render</h1>
+<div mat-dialog-content>
+  <canvas #canvas></canvas>
+  <mapper-cross-section-details-form [crossSection]="crossSection" [formGroup]="formGroup" />
+</div>
+
+<div mat-dialog-actions>
+  <button type="button" mat-button mat-dialog-close>
+    Cancel
+  </button>
+  <button type="button" mat-button (click)="exportSubject.next()">
+    Export
+  </button>
+</div>

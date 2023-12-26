@@ -63,6 +63,10 @@ export class CrossSectionToolService extends BaseToolService {
       newCrossSectionSubjectList,
     ));
 
+    if (annos.includes(this.#selectedSubject.value!)) {
+      this.#selectedSubject.next(null);
+    }
+
     return (set.size === 0);
   }
 
@@ -82,6 +86,10 @@ export class CrossSectionToolService extends BaseToolService {
       }
     }
     return true;
+  }
+
+  lookAt(anno: CrossSectionAnnotation) {
+    this.#canvasService.lookAt(anno.anchorPoint);
   }
 
   toggleVisibility(show: boolean) {

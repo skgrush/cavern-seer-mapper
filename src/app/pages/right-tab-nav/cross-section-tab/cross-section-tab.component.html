@@ -21,7 +21,8 @@
     <mat-button-toggle [value]="false">Hide</mat-button-toggle>
   </mat-button-toggle-group>
 
-  <button mat-button [disabled]="formGroup.controls.selected.value.length !== 1" (click)="render()">
+  <button id="cross-section-render-btn" mat-stroked-button [disabled]="formGroup.controls.selected.value.length !== 1"
+    (click)="render()">
     Render
   </button>
 
@@ -42,12 +43,12 @@
 <mat-selection-list #selectionList [multiple]="false" [formControl]="formGroup.controls.selected">
 
   @for (crossSection of (crossSectionTool.crossSections$ | async); track crossSection) {
-  <mat-list-option [value]="crossSection">
+  <mat-list-option [value]="crossSection" (click)="crossSectionTool.lookAt(crossSection)">
     <h3 matListItemTitle>{{ crossSection.identifier }}</h3>
   </mat-list-option>
   }
 </mat-selection-list>
 
-@if (formGroup.controls.selected.value[0]; as crossSection) {
+@if (!(dialogOpen$ | async) && formGroup.controls.selected.value[0]; as crossSection) {
 <mapper-cross-section-details-form [crossSection]="crossSection" [formGroup]="formGroup.controls.details" />
 }

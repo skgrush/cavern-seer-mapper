@@ -1,21 +1,21 @@
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
+import { BehaviorSubject, debounceTime, filter } from 'rxjs';
 import { Vector3 } from 'three';
+import { CrossSectionDetailsForm, CrossSectionDetailsFormComponent } from "../../../shared/components/cross-section-details-form/cross-section-details-form.component";
 import { CrossSectionAnnotation } from '../../../shared/models/annotations/cross-section.annotation';
 import { ignoreNullish } from '../../../shared/operators/ignore-nullish';
 import { VectorPipe } from '../../../shared/pipes/vector.pipe';
 import { CrossSectionToolService } from '../../../shared/services/tools/cross-section-tool.service';
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatDialog } from '@angular/material/dialog';
-import { CrossSectionDetailsForm, CrossSectionDetailsFormComponent } from "../../../shared/components/cross-section-details-form/cross-section-details-form.component";
-import { filter } from 'rxjs';
 
 @Component({
   selector: 'mapper-cross-section-tab',
@@ -28,6 +28,8 @@ import { filter } from 'rxjs';
 export class CrossSectionTabComponent {
   readonly #dialog = inject(MatDialog);
   readonly crossSectionTool = inject(CrossSectionToolService);
+
+  readonly dialogOpen$ = new BehaviorSubject(false);
 
   readonly formGroup = new FormGroup({
     selected: new FormControl<CrossSectionAnnotation[]>([], { nonNullable: true }),
@@ -80,6 +82,7 @@ export class CrossSectionTabComponent {
     });
     this.formGroup.controls.details.controls.position.valueChanges.pipe(
       takeUntilDestroyed(),
+      debounceTime(0), // delay to allow formGroup validity to bubble
       ignoreNullish(),
       filter(() => this.formGroup.valid),
     ).subscribe(pos => {
@@ -93,6 +96,7 @@ export class CrossSectionTabComponent {
 
     this.formGroup.controls.details.controls.dimensions.valueChanges.pipe(
       takeUntilDestroyed(),
+      debounceTime(0), // delay to allow formGroup validity to bubble
       ignoreNullish(),
       filter(() => this.formGroup.valid),
     ).subscribe(dims => {
@@ -159,6 +163,8 @@ export class CrossSectionTabComponent {
       return;
     }
 
+    this.dialogOpen$.next(true);
+
     const { CrossSectionRenderDialogComponent } = await import('../../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component');
 
     CrossSectionRenderDialogComponent.open(
@@ -167,6 +173,8 @@ export class CrossSectionTabComponent {
         crossSection: selected,
         formGroup: this.formGroup.controls.details,
       },
-    );
+    ).afterClosed().subscribe(() => {
+      this.dialogOpen$.next(false);
+    });
   }
 }
