@@ -5,6 +5,7 @@ import { LocalizeService } from "../../services/localize.service";
 import { AnnotationType } from "../annotation-type.enum";
 import { IMetadataCeilingHeightV0 } from "../manifest/types.v0";
 import { RenderingOrder } from "../rendering-layers";
+import { simpleVector3FromVector3 } from "../simple-types";
 import { IMapperUserData } from "../user-data";
 import { BaseAnnotation } from "./base.annotation";
 import { droidSansFont } from "./font";
@@ -78,12 +79,11 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     if (version !== 0) {
       throw new RangeError(`CeilingHeightAnnotation only supports manifest v0, got ${version}`);
     }
-    const { x, y, z } = this.anchorPoint;
 
     return {
       type: AnnotationType.ceilingHeight,
       identifier: this.identifier,
-      anchorPoint: { x, y, z },
+      anchorPoint: simpleVector3FromVector3(this.anchorPoint),
       distance: this.distance,
     };
   }

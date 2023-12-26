@@ -1,9 +1,10 @@
-import { BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Vector3 } from "three";
+import { BufferGeometry, Group, Line, LineBasicMaterial, Vector3 } from "three";
 import { AnnotationType } from "../annotation-type.enum";
-import { BaseAnnotation } from "./base.annotation";
-import { RenderingOrder } from "../rendering-layers";
 import { IMetadataMeasureDistanceV0 } from "../manifest/types.v0";
+import { RenderingOrder } from "../rendering-layers";
+import { simpleVector3FromVector3 } from "../simple-types";
 import { IMapperUserData } from "../user-data";
+import { BaseAnnotation } from "./base.annotation";
 
 
 export class MeasureDistanceAnnotation extends BaseAnnotation {
@@ -136,13 +137,12 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
     if (version !== 0) {
       throw new RangeError(`MeasureDistanceAnnotation only supports manifest v0, got ${version}`);
     }
-    const { x, y, z } = this.anchorPoint;
 
     return {
       type: AnnotationType.measureDistance,
       identifier: this.identifier,
-      anchorPoint: { x, y, z },
-      additionalPoints: this.#additionalPoints.map(({ x, y, z }) => ({ x, y, z })),
+      anchorPoint: simpleVector3FromVector3(this.anchorPoint),
+      additionalPoints: this.#additionalPoints.map(simpleVector3FromVector3),
     };
   }
 

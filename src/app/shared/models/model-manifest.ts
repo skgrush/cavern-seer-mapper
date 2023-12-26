@@ -1,10 +1,10 @@
 import { ignoreNullishArray } from "../operators/ignore-nullish";
 import { AnnotationBuilderService } from "../services/annotation-builder.service";
 import { BaseAnnotation } from "./annotations/base.annotation";
-import { IMetadataEntryV0, IMetadataBaseAnnotationV0 } from "./manifest/types.v0";
+import { IMetadataBaseAnnotationV0, IMetadataEntryV0 } from "./manifest/types.v0";
 import { BaseRenderModel, BaseVisibleRenderModel } from "./render/base.render-model";
 import { GroupRenderModel } from "./render/group.render-model";
-import { ISimpleVector3 } from "./simple-types";
+import { ISimpleVector3, simpleVector3FromVector3 } from "./simple-types";
 
 
 export function modelManifestParse(jsonString: string): BaseModelManifest {
@@ -78,9 +78,8 @@ export class ModelManifestV0 extends BaseModelManifest {
     const storeAnnotations = !!annotations;
     const shouldStoreMetadata = storePosition || storeAnnotations;
     if (shouldStoreMetadata) {
-      const { x, y, z } = model.position;
       const metadata: IMetadataEntryV0 = {
-        position: { x, y, z },
+        position: simpleVector3FromVector3(model.position),
         annotations: annotations ?? undefined,
       };
 

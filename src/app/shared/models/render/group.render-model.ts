@@ -1,11 +1,11 @@
-import { BoxHelper, Group, Object3DEventMap, Scene } from "three";
-import { BaseRenderModel, BaseVisibleRenderModel } from "./base.render-model";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
-import { FileModelType } from "../model-type.enum";
 import { Subject, Subscription } from "rxjs";
-import { ISimpleVector3 } from "../simple-types";
+import { BoxHelper, Group, Object3DEventMap, Scene } from "three";
+import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { ModelChangeType } from "../model-change-type.enum";
+import { FileModelType } from "../model-type.enum";
+import { ISimpleVector3 } from "../simple-types";
+import { BaseRenderModel, BaseVisibleRenderModel } from "./base.render-model";
 
 
 export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group> {
@@ -124,8 +124,8 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     return false;
   }
 
-  override setPosition(pos: ISimpleVector3): boolean {
-    this.#group.position.set(pos.x, pos.y, pos.z);
+  override setPosition({ x, y, z }: ISimpleVector3): boolean {
+    this.#group.position.set(x, y, z);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
   }

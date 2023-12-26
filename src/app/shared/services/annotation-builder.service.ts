@@ -6,6 +6,7 @@ import { CeilingHeightAnnotation } from '../models/annotations/ceiling-height.an
 import { CrossSectionAnnotation, vectorAngleAroundY } from '../models/annotations/cross-section.annotation';
 import { MeasureDistanceAnnotation } from '../models/annotations/measure-distance.annotation';
 import { IMetadataBaseAnnotationV0 } from '../models/manifest/types.v0';
+import { vector3FromSimpleVector3 } from '../models/simple-types';
 import { LocalizeService } from './localize.service';
 
 @Injectable()
@@ -16,19 +17,17 @@ export class AnnotationBuilderService {
   buildAnnotationFromManifest(manifestEntry: IMetadataBaseAnnotationV0): BaseAnnotation {
     switch (manifestEntry.type) {
       case AnnotationType.ceilingHeight: {
-        const { x, y, z } = manifestEntry.anchorPoint;
         return this.buildCeilingHeight(
           manifestEntry.identifier,
-          new Vector3(x, y, z),
+          vector3FromSimpleVector3(manifestEntry.anchorPoint),
           manifestEntry.distance,
         );
       }
       case AnnotationType.measureDistance: {
-        const { x, y, z } = manifestEntry.anchorPoint;
         return this.buildMeasureDistance(
           manifestEntry.identifier,
-          new Vector3(x, y, z),
-          manifestEntry.additionalPoints.map(({ x, y, z }) => new Vector3(x, y, z)),
+          vector3FromSimpleVector3(manifestEntry.anchorPoint),
+          manifestEntry.additionalPoints.map(vector3FromSimpleVector3),
         );
       }
       default: {
