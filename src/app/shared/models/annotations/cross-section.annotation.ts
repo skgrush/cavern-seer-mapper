@@ -1,11 +1,12 @@
 import { Subject, defer, tap } from "rxjs";
-import { Box3, BoxGeometry, BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, Object3DEventMap, OrthographicCamera, Vector3 } from "three";
+import { BoxGeometry, BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, Object3DEventMap, OrthographicCamera, Vector3 } from "three";
 import { AnnotationType } from "../annotation-type.enum";
-import { IMetadataBaseAnnotationV0 } from "../manifest/types.v0";
+import { IMetadataCrossSectionV0 } from "../manifest/types.v0";
+import { simpleVector3FromVector3 } from "../simple-types";
 import { IMapperUserData } from "../user-data";
 import { BaseAnnotation } from "./base.annotation";
 
-const degreesPerRadian = 180 / Math.PI;
+export const degreesPerRadian = 180 / Math.PI;
 
 export function vectorAngleAroundY(from: Vector3, to: Vector3) {
   const angle = from.angleTo(to);
@@ -51,12 +52,12 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     identifier: string,
     dimensions: Vector3,
     centerPoint: Vector3,
-    angleToNorthAroundY: number,
+    radiansToNorthAroundY: number,
   ) {
     super();
 
     this.#identifier = identifier;
-    this.#radiansToNorthAroundY = angleToNorthAroundY;
+    this.#radiansToNorthAroundY = radiansToNorthAroundY;
     this.#dimensions = dimensions;
 
     const geometry = new BoxGeometry(dimensions.x, dimensions.y, dimensions.z);
@@ -155,8 +156,18 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   override rename(newIdentifier: string): void {
     this.#identifier = newIdentifier;
   }
-  override serializeToManifest(version: number): IMetadataBaseAnnotationV0 | null {
-    throw new Error("Method not implemented.");
+  override serializeToManifest(version: number): IMetadataCrossSectionV0 {
+    if (version !== 0) {
+      throw new RangeError(`CrossSectionAnnotation only supports manifest v0, got ${version}`);
+    }
+
+    return {
+      type: AnnotationType.crossSection,
+      identifier: this.identifier,
+      centerPoint: simpleVector3FromVector3(this.anchorPoint),
+      dimensions: simpleVector3FromVector3(this.dimensions),
+      angleToNorthAroundY: this.angleToNorthAroundY,
+    }
   }
   override addToGroup(group: Group<Object3DEventMap>): void {
     group.add(this.#group);

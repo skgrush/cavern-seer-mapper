@@ -51,15 +51,14 @@ export class RaycastDistanceToolService extends BaseToolService {
     this.#modelManager.currentOpenGroup$.pipe(
       takeUntilDestroyed(),
       distinctUntilChanged(),
-      tap(group => {
-        // when the group changes, pull all the annotations out and put them in the subject
-        const annos = group
-          ?.getAllAnnotationsRecursively()
-          .filter((anno): anno is CeilingHeightAnnotation => anno instanceof CeilingHeightAnnotation)
-          ?? [];
-        this.#ceilingDistancesSubject.next(Object.freeze(annos));
-      }),
-    ).subscribe();
+    ).subscribe(group => {
+      // when the group changes, pull all the annotations out and put them in the subject
+      const annos = group
+        ?.getAllAnnotationsRecursively()
+        .filter((anno): anno is CeilingHeightAnnotation => anno instanceof CeilingHeightAnnotation)
+        ?? [];
+      this.#ceilingDistancesSubject.next(Object.freeze(annos));
+    });
   }
 
   toggleCeilingHeights(show: boolean) {

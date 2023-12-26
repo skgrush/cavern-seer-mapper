@@ -3,7 +3,7 @@ import { Box3, Vector3 } from 'three';
 import { AnnotationType } from '../models/annotation-type.enum';
 import { BaseAnnotation } from '../models/annotations/base.annotation';
 import { CeilingHeightAnnotation } from '../models/annotations/ceiling-height.annotation';
-import { CrossSectionAnnotation, vectorAngleAroundY } from '../models/annotations/cross-section.annotation';
+import { CrossSectionAnnotation, degreesPerRadian, vectorAngleAroundY } from '../models/annotations/cross-section.annotation';
 import { MeasureDistanceAnnotation } from '../models/annotations/measure-distance.annotation';
 import { IMetadataBaseAnnotationV0 } from '../models/manifest/types.v0';
 import { vector3FromSimpleVector3 } from '../models/simple-types';
@@ -28,6 +28,14 @@ export class AnnotationBuilderService {
           manifestEntry.identifier,
           vector3FromSimpleVector3(manifestEntry.anchorPoint),
           manifestEntry.additionalPoints.map(vector3FromSimpleVector3),
+        );
+      }
+      case AnnotationType.crossSection: {
+        return this.buildCrossSection(
+          manifestEntry.identifier,
+          vector3FromSimpleVector3(manifestEntry.dimensions),
+          vector3FromSimpleVector3(manifestEntry.centerPoint),
+          manifestEntry.angleToNorthAroundY,
         );
       }
       default: {
@@ -72,7 +80,7 @@ export class AnnotationBuilderService {
       identifier,
       dimensions,
       centerPoint,
-      angleToNorthAroundY,
+      angleToNorthAroundY / degreesPerRadian,
     );
   }
 
@@ -97,7 +105,7 @@ export class AnnotationBuilderService {
         .clone()
         .sub(originAtMin);
 
-    const angleToNorthOfBoxNormal =
+    const radiansToNorthOfBoxNormal =
       vectorAngleAroundY(new Vector3(1, 0, 0), vectorFromOriginToDest);
 
     const centerPoint = originAtMin
@@ -109,7 +117,7 @@ export class AnnotationBuilderService {
       identifier,
       dimensions,
       centerPoint,
-      angleToNorthOfBoxNormal,
+      radiansToNorthOfBoxNormal,
     );
   }
 }

@@ -14,7 +14,17 @@ export type IMetadataMeasureDistanceV0 = {
   readonly anchorPoint: ISimpleVector3;
   readonly additionalPoints: readonly ISimpleVector3[];
 };
-export type IMetadataBaseAnnotationV0 = IMetadataCeilingHeightV0 | IMetadataMeasureDistanceV0;
+export type IMetadataCrossSectionV0 = {
+  readonly type: AnnotationType.crossSection;
+  readonly identifier: string;
+  readonly dimensions: ISimpleVector3;
+  readonly centerPoint: ISimpleVector3;
+  readonly angleToNorthAroundY: number;
+};
+export type IMetadataBaseAnnotationV0 =
+  | IMetadataCeilingHeightV0
+  | IMetadataMeasureDistanceV0
+  | IMetadataCrossSectionV0;
 
 export type IMetadataEntryV0 = {
   readonly position: ISimpleVector3,

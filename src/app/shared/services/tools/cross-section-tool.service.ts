@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Subject, distinctUntilChanged, filter, merge, switchMap, takeUntil, tap } from 'rxjs';
 import { BufferGeometry, GridHelper, Intersection, Line, LineBasicMaterial, Vector2, Vector3 } from 'three';
 import { CrossSectionAnnotation } from '../../models/annotations/cross-section.annotation';
@@ -41,6 +42,25 @@ export class CrossSectionToolService extends BaseToolService {
     origin: Vector3;
     dest: Vector3;
     lineAnno: TemporaryAnnotation<Line>;
+  }
+
+  constructor() {
+    super();
+
+    this.#modelManager.currentOpenGroup$.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+    ).subscribe(group => {
+      const annos = group
+        ?.getAllAnnotationsRecursively()
+        .filter((anno): anno is CrossSectionAnnotation => anno instanceof CrossSectionAnnotation)
+        ?? [];
+
+      this.#crossSectionsSubject.next(Object.freeze(annos));
+      if (this.#selectedSubject.value && !annos.includes(this.#selectedSubject.value)) {
+        this.#selectedSubject.next(null);
+      }
+    })
   }
 
   selectCrossSection(selected: CrossSectionAnnotation | null) {

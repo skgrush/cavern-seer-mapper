@@ -42,7 +42,11 @@ export class DistanceMeasureToolService extends BaseToolService {
           ?.getAllAnnotationsRecursively()
           .filter((anno): anno is MeasureDistanceAnnotation => anno instanceof MeasureDistanceAnnotation)
           ?? [];
+
         this.#measuresSubject.next(Object.freeze(annos));
+        if (this.#selectedMeasureSubject.value && !annos.includes(this.#selectedMeasureSubject.value)) {
+          this.#selectedMeasureSubject.next(undefined);
+        }
       }),
     ).subscribe();
   }
