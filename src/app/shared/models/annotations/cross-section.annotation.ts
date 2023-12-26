@@ -7,7 +7,7 @@ import { BaseAnnotation } from "./base.annotation";
 
 const degreesPerRadian = 180 / Math.PI;
 
-function vectorAngleAroundY(from: Vector3, to: Vector3) {
+export function vectorAngleAroundY(from: Vector3, to: Vector3) {
   const angle = from.angleTo(to);
 
   if (from.clone().cross(to).y >= 0) {
@@ -74,48 +74,6 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
     this.#group.rotateY(-this.#radiansToNorthAroundY);
     this.#group.position.copy(centerPoint);
-  }
-
-  static fromCrosslineAndBoundingBox(
-    identifier: string,
-    origin: Vector3,
-    dest: Vector3,
-    depth: number,
-    boundingBoxOfModels: Box3
-  ) {
-    const { min: { y: minY }, max: { y: maxY } } = boundingBoxOfModels;
-
-    const originAtMin = origin.clone().setY(minY);
-    const destAtMin = dest.clone().setY(minY);
-
-    const height = maxY - minY;
-    const width = originAtMin.distanceTo(destAtMin);
-    const dimensions = new Vector3(width, height, depth);
-
-    const vectorFromOriginToDest =
-      destAtMin
-        .clone()
-        .sub(originAtMin);
-
-    const angleToNorthOfBoxNormal =
-      vectorAngleAroundY(new Vector3(1, 0, 0), vectorFromOriginToDest);
-
-    const centerPoint = originAtMin
-      .clone()
-      .add(vectorFromOriginToDest.clone().divideScalar(2))
-      .add(new Vector3(0, height / 2, 0));
-
-    // const normalVector = vectorFromOriginToDest
-    //   .clone()
-    //   .normalize()
-    //   .applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2); // rotate vector to be the normal of the original vector
-
-    return new CrossSectionAnnotation(
-      identifier,
-      dimensions,
-      centerPoint,
-      angleToNorthOfBoxNormal,
-    );
   }
 
   #addCamera() {

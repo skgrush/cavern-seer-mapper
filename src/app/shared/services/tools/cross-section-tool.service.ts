@@ -1,18 +1,20 @@
 import { Injectable, inject } from '@angular/core';
-import { BaseToolService } from './base-tool.service';
-import { BehaviorSubject, Subject, distinctUntilChanged, filter, last, merge, switchMap, takeUntil, tap } from 'rxjs';
-import { CanvasService } from '../canvas.service';
+import { BehaviorSubject, Subject, distinctUntilChanged, filter, merge, switchMap, takeUntil, tap } from 'rxjs';
 import { BufferGeometry, GridHelper, Intersection, Line, LineBasicMaterial, Vector2, Vector3 } from 'three';
-import { RenderingOrder } from '../../models/rendering-layers';
-import { ModelManagerService } from '../model-manager.service';
-import { GroupRenderModel } from '../../models/render/group.render-model';
-import { TemporaryAnnotation } from '../../models/annotations/temporary.annotation';
 import { CrossSectionAnnotation } from '../../models/annotations/cross-section.annotation';
+import { TemporaryAnnotation } from '../../models/annotations/temporary.annotation';
+import { GroupRenderModel } from '../../models/render/group.render-model';
+import { RenderingOrder } from '../../models/rendering-layers';
+import { AnnotationBuilderService } from '../annotation-builder.service';
+import { CanvasService } from '../canvas.service';
+import { ModelManagerService } from '../model-manager.service';
+import { BaseToolService } from './base-tool.service';
 
 @Injectable()
 export class CrossSectionToolService extends BaseToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
+  readonly #annoBuilder = inject(AnnotationBuilderService);
 
   readonly normalCursor = 'pointer';
   readonly movingCursor = 'col-resize';
@@ -175,7 +177,7 @@ export class CrossSectionToolService extends BaseToolService {
 
         const { origin, dest } = preview;
 
-        const crossSection = CrossSectionAnnotation.fromCrosslineAndBoundingBox(
+        const crossSection = this.#annoBuilder.buildCrossSectionFromCrosslineAndBoundingBox(
           Date.now().toString(),
           origin,
           dest,
