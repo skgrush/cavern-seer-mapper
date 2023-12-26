@@ -358,6 +358,7 @@ export class CanvasService {
           unsubscribe: () => renderer.dispose(),
         }),
         map(() => renderer),
+        distinctUntilChanged(), // don't emit on each animation frame!
       );
     });
   }

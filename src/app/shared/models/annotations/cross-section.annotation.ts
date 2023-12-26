@@ -1,10 +1,10 @@
-import { Vector3, Group, Object3DEventMap, Box3, BoxGeometry, Mesh, MeshBasicMaterial, OrthographicCamera } from "three";
+import { Subject, defer, tap } from "rxjs";
+import { Box3, BoxGeometry, BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, Object3DEventMap, OrthographicCamera, Vector3 } from "three";
 import { AnnotationType } from "../annotation-type.enum";
 import { IMetadataBaseAnnotationV0 } from "../manifest/types.v0";
-import { BaseAnnotation } from "./base.annotation";
 import { IMapperUserData } from "../user-data";
+import { BaseAnnotation } from "./base.annotation";
 
-const NormalY = new Vector3(0, 1, 0);
 const degreesPerRadian = 180 / Math.PI;
 
 function vectorAngleAroundY(from: Vector3, to: Vector3) {
@@ -37,16 +37,15 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   get angleToNorthAroundY() {
     return this.#radiansToNorthAroundY * degreesPerRadian;
   }
-  get camera() {
-    return this.#camera;
-  }
 
   #identifier: string;
   #radiansToNorthAroundY: number;
   #dimensions: Vector3;
-  #camera?: OrthographicCamera;
   readonly #boxMesh: Mesh<BoxGeometry>;
   readonly #group: Group;
+
+  #camera?: OrthographicCamera;
+  #measureLine?: Line<BufferGeometry>;
 
   constructor(
     identifier: string,
@@ -119,18 +118,18 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     );
   }
 
-  addCamera() {
-    if (this.camera) {
+  #addCamera() {
+    if (this.#camera) {
       throw new Error('already have a camera');
     }
     this.#camera = new OrthographicCamera();
     this.#group.add(this.#camera);
-    this.updateCamera();
+    this.#updateCamera();
 
     return this.#camera;
   }
 
-  removeCamera() {
+  #removeCamera() {
     if (!this.#camera) {
       return;
     }
@@ -138,7 +137,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#camera = undefined;
   }
 
-  updateCamera() {
+  #updateCamera() {
     const cam = this.#camera;
     if (!cam) {
       return;
@@ -154,6 +153,30 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     cam.updateProjectionMatrix();
   }
 
+  #drawLine() {
+    if (this.#measureLine) {
+      throw new Error('already have a line');
+    }
+    this.#measureLine = new LineSegments(
+      new BufferGeometry(),
+      new LineBasicMaterial({ color: 0xFFFFFF }),
+    );
+
+    this.#updateLine();
+  }
+
+  #updateLine() {
+    if (!this.#measureLine) {
+      return;
+    }
+
+    this.#measureLine.geometry.setFromPoints([
+      ...this.#getMeasureLinePoints(),
+    ]);
+    this.#measureLine.computeLineDistances();
+    this.#measureLine.position.set(0, -this.dimensions.y / 2 + 0.5, -0.5);
+  }
+
   changeDimensions(newDimensions: Vector3) {
     const difference = newDimensions.clone().sub(this.#dimensions);
     if (difference.length() === 0) {
@@ -163,7 +186,8 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#boxMesh.position.setZ(-newDimensions.z / 2);
     this.#boxMesh.geometry = new BoxGeometry(newDimensions.x, newDimensions.y, newDimensions.z);
     this.#dimensions = newDimensions.clone();
-    this.updateCamera();
+    this.#updateCamera();
+    this.#updateLine();
   }
 
   changeCenterPoint(pos: Vector3) {
@@ -186,4 +210,48 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#group.visible = show;
   }
 
+  startRenderMode() {
+    this.#addCamera();
+
+    return {
+      camera: this.#camera!,
+      crossSectionRenderMode$: defer(() => {
+        if (!this.#camera) {
+          throw new Error('Subscribed to crossSectionRenderMode$ after camera cleaned up');
+        }
+
+        this.#boxMesh.visible = false;
+
+        this.#drawLine();
+        this.#group.add(this.#measureLine!);
+
+        return new Subject<void>();
+      }).pipe(
+        tap({
+          unsubscribe: () => {
+            this.#boxMesh.visible = this.#group.visible;
+            this.#removeCamera();
+            this.#group.remove(this.#measureLine!);
+            this.#measureLine = undefined;
+          },
+        })
+      ),
+    };
+  }
+
+  *#getMeasureLinePoints() {
+    const xVector = new Vector3(1, 0, 0);
+
+    const width = this.dimensions.x;
+
+    const leftOrigin = new Vector3()
+      .sub(xVector.clone().multiplyScalar(width / 2 + 1));
+
+    const currentPoint = leftOrigin.clone();
+    for (let i = 0; i < width + 2; ++i) {
+      yield currentPoint.clone();
+
+      currentPoint.add(xVector);
+    }
+  }
 }

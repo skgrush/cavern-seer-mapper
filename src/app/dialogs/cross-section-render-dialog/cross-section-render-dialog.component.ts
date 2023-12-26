@@ -59,7 +59,6 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
   #init() {
     const canvas = this.canvasElement.nativeElement;
     const crossSection = this.#dialogData.crossSection;
-    crossSection.toggleVisibility(false);
 
     const dimensions = crossSection.dimensions;
 
@@ -71,41 +70,36 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
     canvas.height = height;
 
     const sym = Symbol('cross-section-renderer');
-    const camera = crossSection.addCamera();
+    const { camera, crossSectionRenderMode$ } = crossSection.startRenderMode();
 
     const export$ = this.exportSubject.pipe(
       switchMap(() => this.#export(camera, sym)),
     );
 
     // all render logic
-    this.#canvasService.initializeSubRenderer$(
+    const subRenderer$ = this.#canvasService.initializeSubRenderer$(
       sym,
       canvas,
       { width, height },
       camera
     ).pipe(
-      takeUntilDestroyed(this.#destroyRef),
-      tap({
-        // cleanup logic
-        unsubscribe: () => {
-          crossSection.toggleVisibility(true);
-          crossSection.removeCamera();
-        },
-      }),
       switchMap(renderer => {
-        const dimChange$ = this.formGroup.controls.dimensions.valueChanges.pipe(
+        return this.formGroup.controls.dimensions.valueChanges.pipe(
           tap(dimensions => {
             const newRatio = dimensions.width! / dimensions.height!;
             const [newWidth, newHeight] = this.calculateDimensions(newRatio);
             renderer.setSize(newWidth, newHeight);
           }),
         );
-
-        return merge(
-          dimChange$,
-          export$,
-        );
       }),
+    );
+
+    merge(
+      subRenderer$,
+      export$,
+      crossSectionRenderMode$,
+    ).pipe(
+      takeUntilDestroyed(this.#destroyRef),
     ).subscribe();
   }
 
