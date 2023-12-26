@@ -46,24 +46,29 @@ export class CrossSectionToolService extends BaseToolService {
     })
 
     const pointerDown$ = this.#canvasService.eventOnRenderer('pointerdown');
-    const pointerUp$ = this.#canvasService.eventOnRenderer('pointerup');
-    const pointerMove$ = this.#canvasService.eventOnRenderer('pointermove');
-    const pointerCancel$ = this.#canvasService.eventOnRenderer('pointercancel');
-    const pointerLeave$ = this.#canvasService.eventOnRenderer('pointerleave');
 
-    if (!(pointerDown$ && pointerUp$ && pointerMove$ && pointerCancel$ && pointerLeave$)) {
+    if (!(pointerDown$)) {
       console.error('Cannot start CrossSectionTool as there is no rendererTarget');
       return false;
     }
+
+    const pointerUp$ = this.#canvasService.eventOnRenderer('pointerup')!;
+    const pointerMove$ = this.#canvasService.eventOnRenderer('pointermove')!;
+    const pointerCancel$ = this.#canvasService.eventOnRenderer('pointercancel')!;
+    const pointerLeave$ = this.#canvasService.eventOnRenderer('pointerleave')!;
+    const keyCancel$ = this.#canvasService.eventOnRenderer('keyup')!.pipe(
+      filter(e => e.code === 'Escape'),
+    );
 
     this.#canvasService.enableControls(false);
 
     const cancel$ = merge(
       pointerCancel$,
       pointerLeave$,
+      keyCancel$,
     ).pipe(tap(() => {
       this.#cursor.next(this.normalCursor);
-      console.debug('pointer cancel');
+      this.#cancelDraw();
     }));
 
     const start$ = pointerDown$.pipe(
@@ -104,7 +109,7 @@ export class CrossSectionToolService extends BaseToolService {
           throw new Error('missing group??');
         }
 
-        const { origin, dest, lineAnno } = preview;
+        const { origin, dest } = preview;
 
         const crossSection = CrossSectionAnnotation.fromCrosslineAndBoundingBox(
           Date.now().toString(),
@@ -122,8 +127,7 @@ export class CrossSectionToolService extends BaseToolService {
         ]));
 
         // clean up
-        group.removeAnnotations(new Set([lineAnno]));
-        this.#preview = undefined;
+        this.#cancelDraw();
       }),
     );
 
@@ -145,13 +149,23 @@ export class CrossSectionToolService extends BaseToolService {
 
   override stop(): boolean {
     this.#stopSubject.next();
+    this.#cancelDraw();
 
     this.#canvasService.enableControls(true);
 
     return true;
   }
 
-  #getDimensions() { }
+  #cancelDraw() {
+    const preview = this.#preview;
+    const group = this.#currentModelRef?.deref();
+    if (!preview) {
+      return;
+    }
+
+    group?.removeAnnotations(new Set([preview.lineAnno]));
+    this.#preview = undefined;
+  }
 
   #pointerEventToGridCoordinate(e: PointerEvent) {
     const targetCoords = new Vector2(e.offsetX, e.offsetY);
