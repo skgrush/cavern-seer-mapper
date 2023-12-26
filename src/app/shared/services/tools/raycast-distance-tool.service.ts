@@ -68,7 +68,7 @@ export class RaycastDistanceToolService extends BaseToolService {
     }
     this.#showCeilingHeightsSubject.next(show);
     for (const ch of this.#ceilingDistancesSubject.value) {
-      ch.toggleVisibility(show)
+      ch.toggleVisibility(show);
     }
   }
 

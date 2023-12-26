@@ -1,0 +1,45 @@
+<p>
+  Results of using
+  <mat-icon>{{ crossSectionTool.icon }}</mat-icon> {{ crossSectionTool.label }}
+  tool
+</p>
+
+<div mat-subheader>
+  <!-- <mat-form-field>
+    <mat-label>Selected cross-section</mat-label>
+    <mat-select [formControl]="formGroup.controls.selected">
+      <mat-option [value]="null"></mat-option>
+      @for (opt of crossSectionTool.crossSections$| async; track opt) {
+      <mat-option [value]="opt">{{ opt.identifier }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field> -->
+
+  <mat-button-toggle-group [ngModel]="crossSectionTool.visibility$ | async"
+    (ngModelChange)="crossSectionTool.toggleVisibility($event)">
+    <mat-button-toggle [value]="true">Show</mat-button-toggle>
+    <mat-button-toggle [value]="false">Hide</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  <span class="spanner"></span>
+
+  <span>
+    <button mat-icon-button [disabled]="formGroup.controls.selected.value.length !== 1"
+      [matMenuTriggerFor]="optionsMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #optionsMenu="matMenu">
+      <button mat-menu-item (click)="deleteCrossSection()">Delete cross-section</button>
+      <button mat-menu-item (click)="rename()">Rename cross-section</button>
+    </mat-menu>
+  </span>
+</div>
+
+<mat-selection-list #selectionList [multiple]="false" [formControl]="formGroup.controls.selected">
+
+  @for (crossSection of (crossSectionTool.crossSections$ | async); track crossSection) {
+  <mat-list-option [value]="crossSection">
+    <h3 matListItemTitle>{{ crossSection.identifier }}</h3>
+  </mat-list-option>
+  }
+</mat-selection-list>

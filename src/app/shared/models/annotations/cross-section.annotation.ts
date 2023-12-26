@@ -5,6 +5,7 @@ import { BaseAnnotation } from "./base.annotation";
 import { IMapperUserData } from "../user-data";
 
 const NormalY = new Vector3(0, 1, 0);
+const degreesPerRadian = 180 / Math.PI;
 
 function vectorAngleAroundY(from: Vector3, to: Vector3) {
   const angle = from.angleTo(to);
@@ -30,9 +31,15 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   override get anchorPoint() {
     return this.#group.position;
   }
+  get dimensions() {
+    return this.#dimensions;
+  }
+  get angleToNorthAroundY() {
+    return this.#radiansToNorthAroundY * degreesPerRadian;
+  }
 
   #identifier: string;
-  #angleToNorthAroundY: number;
+  #radiansToNorthAroundY: number;
   #dimensions: Vector3;
   readonly #boxMesh: Mesh<BoxGeometry>;
   readonly #group: Group;
@@ -46,7 +53,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     super();
 
     this.#identifier = identifier;
-    this.#angleToNorthAroundY = angleToNorthAroundY;
+    this.#radiansToNorthAroundY = angleToNorthAroundY;
     this.#dimensions = dimensions;
 
     const geometry = new BoxGeometry(dimensions.x, dimensions.y, dimensions.z);
@@ -61,7 +68,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#group.add(this.#boxMesh);
     this.#boxMesh.position.set(0, 0, -dimensions.z / 2);
 
-    this.#group.rotateY(-this.#angleToNorthAroundY);
+    this.#group.rotateY(-this.#radiansToNorthAroundY);
     this.#group.position.copy(centerPoint);
   }
 

@@ -23,6 +23,12 @@ export class CrossSectionToolService extends BaseToolService {
   readonly #crossSectionsSubject = new BehaviorSubject<readonly CrossSectionAnnotation[]>([]);
   readonly crossSections$ = this.#crossSectionsSubject.asObservable();
 
+  readonly #selectedSubject = new BehaviorSubject<CrossSectionAnnotation | null>(null);
+  readonly selected$ = this.#selectedSubject.asObservable();
+
+  readonly #visibilitySubject = new BehaviorSubject<boolean>(true);
+  readonly visibility$ = this.#visibilitySubject.asObservable();
+
   override readonly id = 'cross-section';
   override readonly label = 'Cross section';
   override readonly icon = 'looks';
@@ -33,6 +39,56 @@ export class CrossSectionToolService extends BaseToolService {
     origin: Vector3;
     dest: Vector3;
     lineAnno: TemporaryAnnotation<Line>;
+  }
+
+  selectCrossSection(selected: CrossSectionAnnotation | null) {
+    this.#selectedSubject.next(selected);
+  }
+
+  changeCrossSectionPosition(cs: CrossSectionAnnotation, position: Vector3) {
+    cs.changeCenterPoint(position);
+  }
+  changeCrossSectionDimensions(cs: CrossSectionAnnotation, dimensions: Vector3) {
+    cs.changeDimensions(dimensions);
+  }
+
+  deleteCrossSection(annos: readonly CrossSectionAnnotation[]) {
+    const set = new Set(annos);
+    this.#modelManager.removeAnnotations(set);
+
+    const newCrossSectionSubjectList = this.#crossSectionsSubject.value
+      .filter(anno => !annos.includes(anno) || set.has(anno));
+
+    this.#crossSectionsSubject.next(Object.freeze(
+      newCrossSectionSubjectList,
+    ));
+
+    return (set.size === 0);
+  }
+
+  renameCrossSection(anno: CrossSectionAnnotation, newIdentifier: string) {
+    anno.rename(newIdentifier);
+    this.#crossSectionsSubject.next(this.#crossSectionsSubject.value);
+  }
+
+  crossSectionRenameIsValid(oldName: string, newName: string) {
+    for (const anno of this.#crossSectionsSubject.value) {
+      if (anno.identifier === oldName) {
+        continue;
+      }
+
+      if (anno.identifier === newName) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  toggleVisibility(show: boolean) {
+    this.#visibilitySubject.next(show);
+    for (const cs of this.#crossSectionsSubject.value) {
+      cs.toggleVisibility(show);
+    }
   }
 
   override start(): boolean {
@@ -47,7 +103,7 @@ export class CrossSectionToolService extends BaseToolService {
 
     const pointerDown$ = this.#canvasService.eventOnRenderer('pointerdown');
 
-    if (!(pointerDown$)) {
+    if (!pointerDown$) {
       console.error('Cannot start CrossSectionTool as there is no rendererTarget');
       return false;
     }

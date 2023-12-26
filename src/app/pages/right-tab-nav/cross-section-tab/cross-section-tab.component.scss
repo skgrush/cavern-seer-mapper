@@ -1,0 +1,15 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+[mat-subheader] {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: min-content 1fr min-content;
+}
+
+mat-selection-list {
+  overflow-y: auto;
+}
