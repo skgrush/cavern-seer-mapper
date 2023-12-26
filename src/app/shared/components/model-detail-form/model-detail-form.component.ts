@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
-import { BaseRenderModel, BaseVisibleRenderModel } from '../../models/render/base.render-model';
 import { NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { BehaviorSubject, debounceTime, startWith, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, filter, startWith, switchMap, tap } from 'rxjs';
+import { simpleVector3Equality } from '../../functions/vector-equality';
+import { BaseRenderModel, BaseVisibleRenderModel } from '../../models/render/base.render-model';
 import { ISimpleVector3 } from '../../models/simple-types';
 
 const zeroVec = Object.freeze({
@@ -36,9 +37,9 @@ export class ModelDetailFormComponent implements OnInit {
 
   readonly formGroup = new FormGroup({
     position: new FormGroup({
-      x: new FormControl(0, { nonNullable: true }),
-      y: new FormControl(0, { nonNullable: true }),
-      z: new FormControl(0, { nonNullable: true }),
+      x: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+      y: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+      z: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
     }),
   });
 
@@ -62,10 +63,13 @@ export class ModelDetailFormComponent implements OnInit {
       }),
     ).subscribe();
 
-    this.formGroup.valueChanges.pipe(
+    this.formGroup.controls.position.valueChanges.pipe(
       takeUntilDestroyed(this.#destroyRef),
       debounceTime(50),
-      tap(({ position }) => {
+      filter(() => this.formGroup.valid),
+      distinctUntilChanged(simpleVector3Equality),
+      tap((position) => {
+        debugger;
         if (!(this.model instanceof BaseVisibleRenderModel)) {
           return;
         }
