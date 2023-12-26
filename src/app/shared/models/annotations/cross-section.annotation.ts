@@ -1,4 +1,4 @@
-import { Vector3, Group, Object3DEventMap, Box3, BoxGeometry, Mesh, MeshBasicMaterial } from "three";
+import { Vector3, Group, Object3DEventMap, Box3, BoxGeometry, Mesh, MeshBasicMaterial, OrthographicCamera } from "three";
 import { AnnotationType } from "../annotation-type.enum";
 import { IMetadataBaseAnnotationV0 } from "../manifest/types.v0";
 import { BaseAnnotation } from "./base.annotation";
@@ -37,10 +37,14 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   get angleToNorthAroundY() {
     return this.#radiansToNorthAroundY * degreesPerRadian;
   }
+  get camera() {
+    return this.#camera;
+  }
 
   #identifier: string;
   #radiansToNorthAroundY: number;
   #dimensions: Vector3;
+  #camera?: OrthographicCamera;
   readonly #boxMesh: Mesh<BoxGeometry>;
   readonly #group: Group;
 
@@ -62,6 +66,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
       opacity: 0.5,
       transparent: true,
     }));
+    this.#boxMesh.frustumCulled = false;
 
     this.#group = new Group();
     (this.#group as IMapperUserData).isAnnotationGroup = true;
@@ -114,14 +119,51 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     );
   }
 
+  addCamera() {
+    if (this.camera) {
+      throw new Error('already have a camera');
+    }
+    this.#camera = new OrthographicCamera();
+    this.#group.add(this.#camera);
+    this.updateCamera();
+
+    return this.#camera;
+  }
+
+  removeCamera() {
+    if (!this.#camera) {
+      return;
+    }
+    this.#camera.removeFromParent();
+    this.#camera = undefined;
+  }
+
+  updateCamera() {
+    const cam = this.#camera;
+    if (!cam) {
+      return;
+    }
+    const dims = this.dimensions;
+
+    cam.left = dims.x / -2;
+    cam.right = dims.x / 2;
+    cam.top = dims.y / 2;
+    cam.bottom = dims.y / -2;
+    cam.near = 0;
+    cam.far = dims.z;
+    cam.updateProjectionMatrix();
+  }
+
   changeDimensions(newDimensions: Vector3) {
     const difference = newDimensions.clone().sub(this.#dimensions);
     if (difference.length() === 0) {
       return;
     }
 
-    this.#boxMesh.position.setZ(newDimensions.z / 2);
+    this.#boxMesh.position.setZ(-newDimensions.z / 2);
     this.#boxMesh.geometry = new BoxGeometry(newDimensions.x, newDimensions.y, newDimensions.z);
+    this.#dimensions = newDimensions.clone();
+    this.updateCamera();
   }
 
   changeCenterPoint(pos: Vector3) {
