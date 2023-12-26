@@ -69,7 +69,6 @@ export class ModelDetailFormComponent implements OnInit {
       filter(() => this.formGroup.valid),
       distinctUntilChanged(simpleVector3Equality),
       tap((position) => {
-        debugger;
         if (!(this.model instanceof BaseVisibleRenderModel)) {
           return;
         }

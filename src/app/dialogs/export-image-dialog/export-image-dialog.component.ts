@@ -10,9 +10,12 @@ import { CanvasService } from '../../shared/services/canvas.service';
 import { BehaviorSubject, tap } from 'rxjs';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { BytesPipe } from "../../shared/pipes/bytes.pipe";
+import type { Camera } from 'three';
 
 export type IExportImageDialogData = {
   readonly titleText: string;
+  readonly rendererSymbol?: symbol;
+  readonly camera?: Camera;
 }
 
 @Component({
@@ -78,6 +81,8 @@ export class ExportImageDialogComponent {
       return;
     }
 
+    const { camera, rendererSymbol } = this.#dialogData;
+
     this.formGroup.disable();
     this.resultSubject.next(undefined);
     this.#dialogRef.disableClose = true;
@@ -87,6 +92,8 @@ export class ExportImageDialogComponent {
     this.#exportService.downloadCanvasImage$(
       fileName,
       type,
+      rendererSymbol,
+      camera,
       scaleFactor,
     ).pipe(
       tap({

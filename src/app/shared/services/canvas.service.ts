@@ -20,9 +20,16 @@ export class CanvasService {
   readonly #scene = new Scene();
   readonly #raycaster = new Raycaster();
 
+  readonly rendererSymbol = Symbol('main-renderer');
+
   #renderer?: WebGLRenderer;
   /** Emits any time the renderer is created or destroyed. */
   readonly #rendererChangedSubject = new Subject<void>();
+
+  /**
+   * weak map of known renderers, keyed by symbols.
+   */
+  readonly #rendererMap = new WeakMap<any, WebGLRenderer>();
 
   #orthoCamera?: OrthographicCamera;
   #orthoControls?: MapControls;
@@ -110,11 +117,26 @@ export class CanvasService {
   /**
    * Export a blob of the canvas to the given type.
    *
+   * @param type - the export type
+   * @param sym - the symbol of the renderer to use
+   * @param cam - which camera to use
+   * @param sizeMultiplier - how to scale the image
+   * @param quality - the lossy quality of the image
+   *
    * @throws Error if the renderer or camera are not ready.
    */
-  async exportToImage(type: `image/${string}`, sizeMultiplier = 1, quality?: number) {
-    const dimensions = this.getRendererDimensions();
-    if (!this.#renderer?.domElement || !dimensions) {
+  async exportToImage(
+    type: `image/${string}`,
+    sym = this.rendererSymbol,
+    cam?: Camera,
+    sizeMultiplier = 1,
+    quality?: number,
+  ) {
+
+    const renderer = this.#rendererMap.get(sym);
+
+    const dimensions = this.getRendererDimensions(sym);
+    if (!renderer?.domElement || !dimensions) {
       throw new Error('Renderer or canvas not ready to export');
     }
     if (quality !== undefined && (quality < 0 || quality > 1)) {
@@ -124,7 +146,7 @@ export class CanvasService {
     const { x: width, y: height } = dimensions.multiplyScalar(sizeMultiplier);
 
     const sceneCopy = this.#scene.clone(true);
-    const camera = sceneCopy.children.find((c): c is OrthographicCamera => c instanceof OrthographicCamera);
+    const camera = cam ?? this.#orthoCamera;
 
     if (!camera) {
       throw new Error('Could not find camera in sceneCopy');
@@ -166,8 +188,8 @@ export class CanvasService {
     this.#renderer = undefined;
   }
 
-  getRendererDimensions() {
-    const ele = this.#renderer?.domElement;
+  getRendererDimensions(sym = this.rendererSymbol) {
+    const ele = this.#rendererMap.get(sym)?.domElement;
     if (!ele) {
       return null;
     }
@@ -313,6 +335,7 @@ export class CanvasService {
    * and will be cleaned up when you unsubscribe.
    */
   initializeSubRenderer$(
+    sym: Symbol,
     canvas: HTMLCanvasElement,
     { width, height }: { width: number, height: number },
     camera: Camera,
@@ -321,6 +344,7 @@ export class CanvasService {
       const renderer = new WebGLRenderer({
         canvas,
       });
+      this.#rendererMap.set(sym, renderer);
 
       renderer.setSize(width, height);
 
@@ -348,6 +372,7 @@ export class CanvasService {
     this.#renderer = new WebGLRenderer({
       canvas,
     });
+    this.#rendererMap.set(this.rendererSymbol, this.#renderer);
     this.#renderer.autoClear = false;
     this.#renderer.setSize(width, height);
     // TODO: setting pixel ratio screws with raycasting??
