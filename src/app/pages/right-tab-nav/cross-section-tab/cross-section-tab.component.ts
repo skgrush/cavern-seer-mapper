@@ -14,6 +14,8 @@ import { CrossSectionToolService } from '../../../shared/services/tools/cross-se
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
+import { CrossSectionDetailsForm, CrossSectionDetailsFormComponent } from "../../../shared/components/cross-section-details-form/cross-section-details-form.component";
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'mapper-cross-section-tab',
@@ -21,7 +23,7 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './cross-section-tab.component.html',
   styleUrl: './cross-section-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatListModule, CommonModule, MatIconModule, MatButtonModule, MatButtonToggleModule, MatMenuModule, MatSelectModule, FormsModule, ReactiveFormsModule, VectorPipe, AsyncPipe],
+  imports: [MatListModule, CommonModule, MatIconModule, MatButtonModule, MatButtonToggleModule, MatMenuModule, MatSelectModule, FormsModule, ReactiveFormsModule, VectorPipe, AsyncPipe, CrossSectionDetailsFormComponent]
 })
 export class CrossSectionTabComponent {
   readonly #dialog = inject(MatDialog);
@@ -29,17 +31,19 @@ export class CrossSectionTabComponent {
 
   readonly formGroup = new FormGroup({
     selected: new FormControl<CrossSectionAnnotation[]>([], { nonNullable: true }),
-    position: new FormGroup({
-      x: new FormControl(0, { nonNullable: true }),
-      y: new FormControl(0, { nonNullable: true }),
-      z: new FormControl(0, { nonNullable: true }),
-    }),
-    dimensions: new FormGroup({
-      width: new FormControl(0, { nonNullable: true, validators: [Validators.min(1)] }),
-      height: new FormControl(0, { nonNullable: true, validators: [Validators.min(1)] }),
-      depth: new FormControl(0, { nonNullable: true, validators: [Validators.min(1)] }),
-    }),
-    rotation: new FormControl({ value: 0, disabled: true }, { nonNullable: true }),
+    details: new FormGroup({
+      position: new FormGroup({
+        x: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+        y: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+        z: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
+      }),
+      dimensions: new FormGroup({
+        width: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
+        height: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
+        depth: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
+      }),
+      rotationDegrees: new FormControl({ value: 0, disabled: true }, { nonNullable: true, validators: [Validators.required] }),
+    }) satisfies CrossSectionDetailsForm,
   });
 
   constructor() {
@@ -50,21 +54,23 @@ export class CrossSectionTabComponent {
       const dims = selected?.dimensions;
       this.formGroup.reset({
         selected: selected ? [selected] : [],
-        position: {
-          x: pos?.x ?? 0,
-          y: pos?.y ?? 0,
-          z: pos?.z ?? 0,
-        },
-        dimensions: {
-          width: dims?.x ?? 0,
-          height: dims?.y ?? 0,
-          depth: dims?.z ?? 0,
-        },
-        rotation: selected?.angleToNorthAroundY ?? 0,
+        details: {
+          position: {
+            x: pos?.x ?? 0,
+            y: pos?.y ?? 0,
+            z: pos?.z ?? 0,
+          },
+          dimensions: {
+            width: dims?.x ?? 0,
+            height: dims?.y ?? 0,
+            depth: dims?.z ?? 0,
+          },
+          rotationDegrees: selected?.angleToNorthAroundY ?? 0,
+        }
       }, {
         emitEvent: false,
       });
-      this.formGroup.controls.rotation.disable({ emitEvent: false });
+      this.formGroup.controls.details.controls.rotationDegrees.disable({ emitEvent: false });
     });
 
     this.formGroup.controls.selected.valueChanges.pipe(
@@ -72,9 +78,10 @@ export class CrossSectionTabComponent {
     ).subscribe(selected => {
       this.crossSectionTool.selectCrossSection(selected[0] ?? null);
     });
-    this.formGroup.controls.position.valueChanges.pipe(
+    this.formGroup.controls.details.controls.position.valueChanges.pipe(
       takeUntilDestroyed(),
       ignoreNullish(),
+      filter(() => this.formGroup.valid),
     ).subscribe(pos => {
       const selected = this.formGroup.value.selected?.[0];
       if (!selected || !this.formGroup.valid) {
@@ -84,14 +91,16 @@ export class CrossSectionTabComponent {
       this.crossSectionTool.changeCrossSectionPosition(selected, posVec);
     });
 
-    this.formGroup.controls.dimensions.valueChanges.pipe(
+    this.formGroup.controls.details.controls.dimensions.valueChanges.pipe(
       takeUntilDestroyed(),
       ignoreNullish(),
+      filter(() => this.formGroup.valid),
     ).subscribe(dims => {
       const selected = this.formGroup.value.selected?.[0];
-      if (!selected || !this.formGroup.valid) {
+      if (!selected) {
         return;
       }
+
       const dimsVec = new Vector3(dims.width, dims.height, dims.depth);
       this.crossSectionTool.changeCrossSectionDimensions(selected, dimsVec);
     });
@@ -142,5 +151,22 @@ export class CrossSectionTabComponent {
       }
       this.crossSectionTool.renameCrossSection(selected, result);
     });
+  }
+
+  async render() {
+    const selected = this.formGroup.controls.selected.value?.[0];
+    if (!selected) {
+      return;
+    }
+
+    const { CrossSectionRenderDialogComponent } = await import('../../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component');
+
+    CrossSectionRenderDialogComponent.open(
+      this.#dialog,
+      {
+        crossSection: selected,
+        formGroup: this.formGroup.controls.details,
+      },
+    );
   }
 }

@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+.label-and-form-trio {
+  display: grid;
+  grid-template-areas:
+    "label label label"
+    "x     y     z";
+
+
+  h3 {
+    grid-area: label;
+  }
+}

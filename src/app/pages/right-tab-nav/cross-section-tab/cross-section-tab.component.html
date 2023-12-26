@@ -21,6 +21,10 @@
     <mat-button-toggle [value]="false">Hide</mat-button-toggle>
   </mat-button-toggle-group>
 
+  <button mat-button [disabled]="formGroup.controls.selected.value.length !== 1" (click)="render()">
+    Render
+  </button>
+
   <span class="spanner"></span>
 
   <span>
@@ -43,3 +47,7 @@
   </mat-list-option>
   }
 </mat-selection-list>
+
+@if (formGroup.controls.selected.value[0]; as crossSection) {
+<mapper-cross-section-details-form [crossSection]="crossSection" [formGroup]="formGroup.controls.details" />
+}

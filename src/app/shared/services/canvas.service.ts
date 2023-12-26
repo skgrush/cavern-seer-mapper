@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, animationFrames, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil } from 'rxjs';
-import { AmbientLight, Box3, Clock, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
+import { AmbientLight, Box3, Camera, Clock, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { GroupRenderModel } from '../models/render/group.render-model';
@@ -227,7 +227,6 @@ export class CanvasService {
   }
 
   render$() {
-    const rendererGone$ = new Subject<void>();
     return animationFrames().pipe(
       takeUntil(this.#rendererChangedSubject),
       map(({ timestamp, elapsed }) => {
@@ -266,7 +265,7 @@ export class CanvasService {
     this.#renderer.setClearColor(bgColor);
   }
 
-  // TODO: refocus doesn't seem to actually reposition the camera? I expect lookAt to do that but it's not
+  // TODO: refocus doesn't seem to actually reposition the camera? I expect lookAt to do that but it's not; SEEMS to be due to controls
   #refocusCamera(bounds: Box3) {
     const controls = this.#orthoControls;
     const camera = this.#orthoCamera;
@@ -307,6 +306,36 @@ export class CanvasService {
     gridHelper.position.y = boundsMin.y;
     gridHelper.position.z = boundsMin.z + sizeZ / 2;
     this.#scene.add(gridHelper);
+  }
+
+  /**
+   * Initialize a sub-renderer which will animate as long as you are subscribed
+   * and will be cleaned up when you unsubscribe.
+   */
+  initializeSubRenderer$(
+    canvas: HTMLCanvasElement,
+    { width, height }: { width: number, height: number },
+    camera: Camera,
+  ) {
+    return defer(() => {
+      const renderer = new WebGLRenderer({
+        canvas,
+      });
+
+      renderer.setSize(width, height);
+
+      const subRender = () => {
+        renderer.render(this.#scene, camera);
+      };
+
+      return animationFrames().pipe(
+        tap({
+          next: subRender,
+          unsubscribe: () => renderer.dispose(),
+        }),
+        map(() => renderer),
+      );
+    });
   }
 
   initializeRenderer(
