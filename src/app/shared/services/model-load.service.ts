@@ -1,21 +1,25 @@
 import { Injectable, Injector, Type, inject } from '@angular/core';
-import { MonoTypeOperatorFunction, Observable, defer, filter, first, firstValueFrom, forkJoin, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
-import { Group, Loader } from 'three';
-import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { FileLoadCompleteEvent, FileLoadEvent, FileLoadProgressEvent, convertFileLoadEvent } from '../events/file-load-events';
-import { GltfRenderModel } from '../models/render/gltf.render-model';
-import { FileModelType } from '../models/model-type.enum';
-import { ObjRenderModel } from '../models/render/obj.render-model';
-import { FileTypeService } from './file-type.service';
-import { GroupRenderModel } from '../models/render/group.render-model';
-import { UploadFileModel } from '../models/upload-file-model';
-import { UnknownRenderModel } from '../models/render/unknown.render-model';
-import { AnyRenderModel } from '../models/render/any-render-model';
-import type { IUnzipDirEntry, IUnzipEntry, IZipEntry } from './zip.service';
-import { BaseRenderModel } from '../models/render/base.render-model';
+import { MonoTypeOperatorFunction, Observable, catchError, defer, first, firstValueFrom, forkJoin, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { Loader } from 'three';
 import { BaseModelManifest, ModelManifestV0, modelManifestParse } from '../models/model-manifest';
+import { FileModelType } from '../models/model-type.enum';
+import { AnyRenderModel } from '../models/render/any-render-model';
+import { BaseRenderModel } from '../models/render/base.render-model';
+import { GltfRenderModel } from '../models/render/gltf.render-model';
+import { GroupRenderModel } from '../models/render/group.render-model';
+import { ObjRenderModel } from '../models/render/obj.render-model';
+import { UnknownRenderModel } from '../models/render/unknown.render-model';
 import { TransportProgressHandler } from '../models/transport-progress-handler';
+import { UploadFileModel } from '../models/upload-file-model';
+import { ignoreNullishArray } from '../operators/ignore-nullish';
 import { AnnotationBuilderService } from './annotation-builder.service';
+import { FileTypeService } from './file-type.service';
+import type { IUnzipDirEntry, IUnzipEntry, IZipEntry } from './zip.service';
+
+type IModelLoadResult<T extends BaseRenderModel<any>> = {
+  result?: T;
+  errors: Error[];
+}
 
 @Injectable()
 export class ModelLoadService {
@@ -52,7 +56,7 @@ export class ModelLoadService {
   loadFile(
     file: UploadFileModel,
     progress?: TransportProgressHandler,
-  ): Observable<FileLoadEvent<AnyRenderModel>> {
+  ): Observable<IModelLoadResult<AnyRenderModel>> {
     return defer(() => {
       switch (file.type) {
 
@@ -66,7 +70,10 @@ export class ModelLoadService {
           return this.loadGroup(file, progress);
 
         default:
-          return of(new FileLoadCompleteEvent(UnknownRenderModel.fromUploadModel(file)));
+          return of({
+            result: UnknownRenderModel.fromUploadModel(file),
+            errors: [],
+          });
       }
     }).pipe(tap({
       next: v => console.info('loadFile.next', v),
@@ -78,14 +85,14 @@ export class ModelLoadService {
   loadObj(
     file: UploadFileModel,
     progress?: TransportProgressHandler,
-  ): Observable<FileLoadEvent<ObjRenderModel>> {
+  ): Observable<IModelLoadResult<ObjRenderModel>> {
     const url = new URL(URL.createObjectURL(file.blob));
     return this.#rawLoadObjFromUrl(url, progress).pipe(
       this.#revokeUrlOnEnd(url),
-      map(event => convertFileLoadEvent(
-        event,
-        (inp: Group) => ObjRenderModel.fromUploadModel(file, inp),
-      ))
+      map(({ result, errors }) => ({
+        errors,
+        result: result ? ObjRenderModel.fromUploadModel(file, result) : undefined,
+      })),
     );
   }
 
@@ -101,14 +108,14 @@ export class ModelLoadService {
   loadGltf(
     file: UploadFileModel,
     progress?: TransportProgressHandler,
-  ): Observable<FileLoadEvent<GltfRenderModel>> {
+  ): Observable<IModelLoadResult<GltfRenderModel>> {
     const url = new URL(URL.createObjectURL(file.blob));
     return this.#rawLoadGltfFromUrl(url, progress).pipe(
       this.#revokeUrlOnEnd(url),
-      map(event => convertFileLoadEvent(
-        event,
-        (inp: GLTF) => GltfRenderModel.fromUploadModel(file, inp),
-      )),
+      map(({ result, errors }) => ({
+        errors,
+        result: result ? GltfRenderModel.fromUploadModel(file, result) : undefined,
+      })),
     );
   }
 
@@ -124,7 +131,7 @@ export class ModelLoadService {
   loadGroup(
     file: UploadFileModel,
     progress?: TransportProgressHandler,
-  ): Observable<FileLoadEvent<GroupRenderModel>> {
+  ): Observable<IModelLoadResult<GroupRenderModel>> {
     if (this.#fileTypeService.isZip(file.mime, file.identifier)) {
       return this.#zipService$.pipe(
         tap(() => progress?.setLoadedCount(0, `Unzipping...`)),
@@ -132,7 +139,10 @@ export class ModelLoadService {
         tap(() => progress?.setLoadedCount(0, `Unzipped! Preparing models...`)),
         switchMap(({ file, ...dirEntry }) => this.#readAndRemoveManifest$(dirEntry)),
         switchMap(({ dirEntry, manifest }) => this.#loadZipEntriesRecursively$(dirEntry, manifest, progress)),
-        map(group => new FileLoadCompleteEvent(group)),
+        map(({ result, errors }): IModelLoadResult<GroupRenderModel> => ({
+          errors,
+          result: result as GroupRenderModel,
+        })),
         tap(compl => console.info('group complete')),
       )
     }
@@ -203,39 +213,55 @@ export class ModelLoadService {
     unzipEntry: IUnzipEntry,
     manifest?: BaseModelManifest,
     progress?: TransportProgressHandler,
-  ): Observable<BaseRenderModel<any>> {
-    return defer(() => {
+  ): Observable<IModelLoadResult<AnyRenderModel>> {
+    return defer((): Observable<IModelLoadResult<AnyRenderModel>> => {
       if (unzipEntry.dir) {
+        // entry is a directory
         if (unzipEntry.children.length === 0) {
-          return of(GroupRenderModel.fromModels(unzipEntry.name, []));
-        } else {
-          return forkJoin(
-            unzipEntry.children.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress)),
-          ).pipe(
-            map(results => GroupRenderModel.fromModels(unzipEntry.name, results)),
-          );
+          return of({
+            result: GroupRenderModel.fromModels(unzipEntry.name, []),
+            errors: [],
+          });
         }
-      } else {
-        return defer(() => unzipEntry.loader()).pipe(
-          switchMap(blob =>
-            this.loadFile(
-              UploadFileModel.fromUnzip(
-                unzipEntry,
-                blob,
-                this.#fileTypeService.getType(blob.type, unzipEntry.name),
-              ),
-              progress
-            ),
-          ),
-          filter((event): event is FileLoadCompleteEvent<BaseRenderModel<any>> => event instanceof FileLoadCompleteEvent),
-          map(event => event.result),
+
+        // entry is a directory with entries
+        return forkJoin(
+          unzipEntry.children.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress)),
+        ).pipe(
+          map((results): IModelLoadResult<GroupRenderModel> => {
+            const models = results.map(r => r.result).filter(ignoreNullishArray);
+            return {
+              errors: results.flatMap(r => r.errors),
+              result: GroupRenderModel.fromModels(unzipEntry.name, models),
+            };
+          }),
         );
       }
+
+      // file is not a directory
+      return defer(() => unzipEntry.loader()).pipe(
+        switchMap(blob =>
+          this.loadFile(
+            UploadFileModel.fromUnzip(
+              unzipEntry,
+              blob,
+              this.#fileTypeService.getType(blob.type, unzipEntry.name),
+            ),
+            progress
+          ),
+        ),
+      );
     }).pipe(
-      tap(model => {
-        if (manifest) {
-          model.setFromManifest(manifest, unzipEntry.path, this.#annotationBuilder);
+      catchError(err => of({
+        errors: [err],
+        result: undefined,
+      })),
+      map((result: IModelLoadResult<AnyRenderModel>) => {
+        if (manifest && result.result) {
+          result.errors.push(...result.result.setFromManifest(manifest, unzipEntry.path, this.#annotationBuilder));
         }
+
+        return result;
       }),
     )
   }
@@ -276,19 +302,26 @@ export class ModelLoadService {
   ) {
     type T = TLoader extends Type<Loader<infer TInner>> ? TInner : never;
 
-    return new Observable<FileLoadEvent<T>>(subscriber => {
+    return new Observable<{ result?: T, errors: Error[] }>(subscriber => {
       const loader = new loaderType();
       loader.load(
         url.toString(),
-        data => {
-          subscriber.next(new FileLoadCompleteEvent(data));
+        (data: any) => {
+          subscriber.next({
+            result: data,
+            errors: [],
+          });
           subscriber.complete();
         },
         prog => {
           progress?.addToLoadedCount(prog.loaded);
-          subscriber.next(new FileLoadProgressEvent(prog.loaded, prog.total));
         },
-        err => subscriber.error(err),
+        (error: any) => {
+          subscriber.next({
+            errors: [error],
+          });
+          subscriber.complete();
+        },
       );
     });
   }

@@ -8,39 +8,40 @@ import { MeasureDistanceAnnotation } from '../models/annotations/measure-distanc
 import { IMetadataBaseAnnotationV0 } from '../models/manifest/types.v0';
 import { vector3FromSimpleVector3 } from '../models/simple-types';
 import { LocalizeService } from './localize.service';
+import { Result, makeResult } from '../models/result';
 
 @Injectable()
 export class AnnotationBuilderService {
 
   readonly #localize = inject(LocalizeService);
 
-  buildAnnotationFromManifest(manifestEntry: IMetadataBaseAnnotationV0): BaseAnnotation {
+  buildAnnotationFromManifest(manifestEntry: IMetadataBaseAnnotationV0): Result<BaseAnnotation> {
     switch (manifestEntry.type) {
       case AnnotationType.ceilingHeight: {
-        return this.buildCeilingHeight(
+        return makeResult(this.buildCeilingHeight(
           manifestEntry.identifier,
           vector3FromSimpleVector3(manifestEntry.anchorPoint),
           manifestEntry.distance,
-        );
+        ));
       }
       case AnnotationType.measureDistance: {
-        return this.buildMeasureDistance(
+        return makeResult(this.buildMeasureDistance(
           manifestEntry.identifier,
           vector3FromSimpleVector3(manifestEntry.anchorPoint),
           manifestEntry.additionalPoints.map(vector3FromSimpleVector3),
-        );
+        ));
       }
       case AnnotationType.crossSection: {
-        return this.buildCrossSection(
+        return makeResult(this.buildCrossSection(
           manifestEntry.identifier,
           vector3FromSimpleVector3(manifestEntry.dimensions),
           vector3FromSimpleVector3(manifestEntry.centerPoint),
           manifestEntry.angleToNorthAroundY,
-        );
+        ));
       }
       default: {
         const { type } = manifestEntry as IMetadataBaseAnnotationV0;
-        throw new Error(`Unexpected AnnotationType ${type}`);
+        return makeResult<BaseAnnotation>(undefined, new Error(`Unexpected AnnotationType ${type}`));
       }
     }
   }

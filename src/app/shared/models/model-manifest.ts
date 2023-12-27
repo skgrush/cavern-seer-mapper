@@ -4,6 +4,7 @@ import { BaseAnnotation } from "./annotations/base.annotation";
 import { IMetadataBaseAnnotationV0, IMetadataEntryV0 } from "./manifest/types.v0";
 import { BaseRenderModel, BaseVisibleRenderModel } from "./render/base.render-model";
 import { GroupRenderModel } from "./render/group.render-model";
+import { Result } from "./result";
 import { ISimpleVector3, simpleVector3FromVector3 } from "./simple-types";
 
 
@@ -23,7 +24,7 @@ export abstract class BaseModelManifest {
   abstract readonly version: number;
 
   abstract getPosition(path: string): ISimpleVector3 | undefined;
-  abstract getAnnotations(path: string, annoBuilder: AnnotationBuilderService): undefined | readonly BaseAnnotation[];
+  abstract getAnnotations(path: string, annoBuilder: AnnotationBuilderService): undefined | readonly Result<BaseAnnotation>[];
 }
 
 /**
@@ -121,7 +122,7 @@ export class ModelManifestV0 extends BaseModelManifest {
     return this.metadata[path]?.position;
   }
 
-  override getAnnotations(path: string, annoBuilder: AnnotationBuilderService): readonly BaseAnnotation[] | undefined {
+  override getAnnotations(path: string, annoBuilder: AnnotationBuilderService): readonly Result<BaseAnnotation>[] | undefined {
     return this.metadata[path]
       ?.annotations
       ?.map(anno => annoBuilder.buildAnnotationFromManifest(anno));

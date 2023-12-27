@@ -3,10 +3,12 @@ export function makeResult<TExpected>(result: TExpected | undefined, error?: Err
   return new ResultIMPL(error, result) as Result<TExpected>;
 }
 
+const resultSymbol = Symbol('Result');
+
 export type ResultFailure<TExpected> =
-  { readonly success: false, readonly failure: true, readonly error: Error };
+  { readonly success: false, readonly failure: true, readonly error: Error, readonly [resultSymbol]: true };
 export type ResultSuccess<TExpected> =
-  { readonly success: true, readonly failure: false, readonly result: TExpected };
+  { readonly success: true, readonly failure: false, readonly result: TExpected, readonly [resultSymbol]: true };
 
 export type Result<TExpected> =
   | ResultFailure<TExpected>
@@ -27,6 +29,8 @@ class ResultIMPL<TExpected> {
   readonly #error?: Error;
   readonly #result?: TExpected;
 
+  readonly [resultSymbol] = true;
+
   get result() {
     return this.#result;
   }
@@ -43,10 +47,6 @@ class ResultIMPL<TExpected> {
 
   constructor(error: Error | undefined, result?: TExpected) {
     this.#success = !error;
-    if (error) {
-      this.#error = error;
-    } else {
-      this.#result = result;
-    }
+
   }
 }
