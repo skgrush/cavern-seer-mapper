@@ -7,6 +7,7 @@ import { Camera } from 'three';
 import { CrossSectionDetailsForm, CrossSectionDetailsFormComponent } from '../../shared/components/cross-section-details-form/cross-section-details-form.component';
 import { CrossSectionAnnotation } from '../../shared/models/annotations/cross-section.annotation';
 import { CanvasService } from '../../shared/services/canvas.service';
+import { ErrorService } from '../../shared/services/error.service';
 
 export type ICrossSectionRenderDialogData = {
   readonly crossSection: CrossSectionAnnotation;
@@ -30,6 +31,7 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
   // readonly #resizeService = inject(ResizeService);
   readonly #canvasService = inject(CanvasService);
   readonly #dialog = inject(MatDialog);
+  readonly #errorService = inject(ErrorService);
 
   static open(
     dialog: MatDialog,
@@ -100,7 +102,9 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
       crossSectionRenderMode$,
     ).pipe(
       takeUntilDestroyed(this.#destroyRef),
-    ).subscribe();
+    ).subscribe({
+      error: e => this.#errorService.alertError(e),
+    });
   }
 
   calculateDimensions(ratio: number): [width: number, height: number] {

@@ -24,6 +24,8 @@ import { INTL_UNIT_LIST_FORMAT } from './shared/tokens/intl-unit-list-format.tok
 import { AnnotationBuilderService } from './shared/services/annotation-builder.service';
 import { DialogOpenerService } from './shared/services/dialog-opener.service';
 import { LocalizeService } from './shared/services/localize.service';
+import { ErrorService } from './shared/services/error.service';
+import { MAT_SNACK_BAR_DEFAULT_OPTIONS, MatSnackBarConfig, MatSnackBarModule } from '@angular/material/snack-bar';
 
 
 
@@ -46,6 +48,15 @@ export const appConfig: ApplicationConfig = {
     ToolManagerService,
     AnnotationBuilderService,
     DialogOpenerService,
+    ErrorService,
+    importProvidersFrom(MatSnackBarModule),
+    {
+      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+      useValue: {
+        verticalPosition: 'top',
+        duration: 5e3,
+      } satisfies MatSnackBarConfig,
+    },
     toolsProviders(),
     provideSettings(),
     { provide: LOCALE_ID, useFactory: () => globalThis.navigator.language },
@@ -55,9 +66,7 @@ export const appConfig: ApplicationConfig = {
     { provide: LOCAL_STORAGE, useFactory: () => globalThis.localStorage },
     {
       provide: ErrorHandler,
-      useValue: {
-        handleError: (e: any) => console.error('UNCAUGHT EXCEPTION:', e)
-      } satisfies ErrorHandler,
+      useExisting: ErrorService,
     },
   ],
 };
