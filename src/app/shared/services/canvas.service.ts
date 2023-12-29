@@ -1,15 +1,15 @@
 import { Injectable, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
 import { AmbientLight, Box3, Camera, Clock, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
-import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
+import { ModelChangeType } from '../models/model-change-type.enum';
 import { GroupRenderModel } from '../models/render/group.render-model';
+import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 import { ModelManagerService } from './model-manager.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ignoreNullish } from '../operators/ignore-nullish';
-import { ModelChangeType } from '../models/model-change-type.enum';
 
 @Injectable()
 export class CanvasService {
@@ -27,9 +27,9 @@ export class CanvasService {
   readonly #rendererChangedSubject = new Subject<void>();
 
   /**
-   * weak map of known renderers, keyed by symbols.
+   * Map of WeakRefs to known renderers, keyed by symbols.
    */
-  readonly #rendererMap = new WeakMap<any, WebGLRenderer>();
+  readonly #rendererMap = new Map<symbol, WeakRef<WebGLRenderer>>();
 
   #orthoCamera?: OrthographicCamera;
   #orthoControls?: MapControls;
@@ -133,7 +133,7 @@ export class CanvasService {
     quality?: number,
   ) {
 
-    const renderer = this.#rendererMap.get(sym);
+    const renderer = this.#rendererMap.get(sym)?.deref();
 
     const dimensions = this.getRendererDimensions(sym);
     if (!renderer?.domElement || !dimensions) {
@@ -189,7 +189,7 @@ export class CanvasService {
   }
 
   getRendererDimensions(sym = this.rendererSymbol) {
-    const ele = this.#rendererMap.get(sym)?.domElement;
+    const ele = this.#rendererMap.get(sym)?.deref()?.domElement;
     if (!ele) {
       return null;
     }
@@ -335,7 +335,7 @@ export class CanvasService {
    * and will be cleaned up when you unsubscribe.
    */
   initializeSubRenderer$(
-    sym: Symbol,
+    sym: symbol,
     canvas: HTMLCanvasElement,
     { width, height }: { width: number, height: number },
     camera: Camera,
@@ -344,7 +344,7 @@ export class CanvasService {
       const renderer = new WebGLRenderer({
         canvas,
       });
-      this.#rendererMap.set(sym, renderer);
+      this.#rendererMap.set(sym, new WeakRef(renderer));
 
       renderer.setSize(width, height);
 
@@ -373,7 +373,7 @@ export class CanvasService {
     this.#renderer = new WebGLRenderer({
       canvas,
     });
-    this.#rendererMap.set(this.rendererSymbol, this.#renderer);
+    this.#rendererMap.set(this.rendererSymbol, new WeakRef(this.#renderer));
     this.#renderer.autoClear = false;
     this.#renderer.setSize(width, height);
     // TODO: setting pixel ratio screws with raycasting??
