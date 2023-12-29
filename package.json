@@ -13,13 +13,12 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "npm run clean && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "clean": "rimraf dist",
-    "build-and-migrate": "npm run clean && npm run build && npm run migrate",
     "migrate": "sync-s3 .env.json",
-    "static-serve": "npm run clean && npm run build && mv dist/cavern-seer-mapper/browser dist/mapper && http-server dist/"
+    "static-serve": "npm run clean && npm run build && cp dist/cavern-seer-mapper/browser dist/mapper && http-server dist/"
   },
   "private": true,
   "dependencies": {
