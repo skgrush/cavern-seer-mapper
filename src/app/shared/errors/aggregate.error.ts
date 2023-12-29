@@ -1,6 +1,7 @@
 
 
-export class AggregateError extends Error {
+export class AggregateError2 extends Error {
+  override readonly name = 'AggregateError2';
   readonly #errors: Error[];
 
   get errors() {

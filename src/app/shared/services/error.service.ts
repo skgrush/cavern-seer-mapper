@@ -19,6 +19,9 @@ export class ErrorService implements ErrorHandler {
   readonly #snackbar = inject(MatSnackBar);
 
   alertError(error: Error) {
-    this.#snackbar.open(`${error}`);
+    console.error(error);
+    this.#snackbar.open(`${error}`, 'X', {
+      duration: Infinity,
+    });
   }
 }

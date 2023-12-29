@@ -47,6 +47,6 @@ class ResultIMPL<TExpected> {
 
   constructor(error: Error | undefined, result?: TExpected) {
     this.#success = !error;
-
+    this.#result = result;
   }
 }

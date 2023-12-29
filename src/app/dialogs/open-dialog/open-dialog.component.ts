@@ -14,6 +14,7 @@ import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 import { ErrorService } from '../../shared/services/error.service';
 import { FileTypeService } from '../../shared/services/file-type.service';
 import { ModelLoadService } from '../../shared/services/model-load.service';
+import { AggregateError2 } from '../../shared/errors/aggregate.error';
 
 export type IOpenDialogData = {
   readonly titleText: string;
@@ -106,9 +107,9 @@ export class OpenDialogComponent implements OnInit {
         const errors = results.flatMap(r => r.errors);
         const successes = results.map(r => r.result).filter(ignoreNullishArray);
         if (errors.length) {
-          this.#errorService.alertError(new AggregateError(
-            errors,
+          this.#errorService.alertError(new AggregateError2(
             'While opening dialog',
+            errors,
           ));
         }
         this.#dialogRef.close(successes);
