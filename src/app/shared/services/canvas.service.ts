@@ -257,7 +257,7 @@ export class CanvasService {
     );
   }
 
-  #wasAnimating = false;
+  #wasAnimatingCompass = false;
 
   render() {
     if (!this.#renderer) { return false; }
@@ -266,11 +266,17 @@ export class CanvasService {
 
     if (this.#compass?.animating) {
       this.#compass.update(delta);
+      this.#wasAnimatingCompass = true;
+    } else {
+      if (this.#wasAnimatingCompass) {
+        // just finished animating
+        // I CANNOT figure out why I can't just update controls, but I seem to need to rebuild
+        this.#orthoControls?.dispose();
+        this.#orthoControls = new MapControls(this.#orthoCamera!, this.#renderer.domElement);
+      }
+
+      this.#wasAnimatingCompass = false;
     }
-    // if (this.#compass?.animating === false && this.#wasAnimating) {
-    //   this.#orthoControls?.reset();
-    // }
-    // this.#wasAnimating = this.#compass?.animating ?? false;
 
     this.#renderer.clear();
     this.#renderer.render(this.#scene, this.#orthoCamera!);
@@ -287,26 +293,21 @@ export class CanvasService {
     this.#renderer.setClearColor(bgColor);
   }
 
-  // TODO: refocus doesn't seem to actually reposition the camera? I expect lookAt to do that but it's not; SEEMS to be due to controls
   #refocusCamera(bounds: Box3) {
     const controls = this.#orthoControls;
-    const camera = this.#orthoCamera;
-    if (!controls || !camera) {
+    if (!controls) {
       console.error('missing controls/camera', this);
       return;
     }
 
-    camera.near = 0.1;
-    camera.position.set(
+    controls.object.position.set(
       0,
-      bounds.max.y + 1,
-      0
+      bounds.max.y + 5,
+      0.0000001 // sliiightly offset the Z so we (should) always look from Z when reseting controls
     );
-    camera.lookAt(0, 0, 0);
+    controls.target.set(0, 0, 0);
 
-    camera.updateProjectionMatrix();
-
-    // controls.update();
+    controls.update();
   }
 
   #rebuildBottomGrid(bounds: Box3) {
@@ -390,10 +391,10 @@ export class CanvasService {
     this.#compassDivSubject.pipe(
       takeUntil(this.#rendererChangedSubject),
       map(ele => {
-        if (!ele || !this.#orthoCamera || !this.#renderer?.domElement) {
+        if (!ele || !this.#orthoControls || !this.#renderer?.domElement) {
           return undefined;
         }
-        const compass = new ViewHelper(this.#orthoCamera, this.#renderer.domElement);
+        const compass = new ViewHelper(this.#orthoControls.object, this.#renderer.domElement);
         ele.addEventListener('pointerup', e => compass.handleClick(e));
         this.#compass = compass;
         return compass;
