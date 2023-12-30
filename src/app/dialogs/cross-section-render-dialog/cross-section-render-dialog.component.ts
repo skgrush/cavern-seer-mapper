@@ -1,9 +1,12 @@
+import { AsyncPipe } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { Subject, defer, merge, switchMap, tap } from 'rxjs';
-import { Camera } from 'three';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { Subject, defer, map, merge, switchMap, tap } from 'rxjs';
+import { Camera, FrontSide } from 'three';
 import { CrossSectionDetailsForm, CrossSectionDetailsFormComponent } from '../../shared/components/cross-section-details-form/cross-section-details-form.component';
 import { CrossSectionAnnotation } from '../../shared/models/annotations/cross-section.annotation';
 import { CanvasService } from '../../shared/services/canvas.service';
@@ -20,7 +23,7 @@ export type ICrossSectionRenderDialogData = {
   templateUrl: './cross-section-render-dialog.component.html',
   styleUrl: './cross-section-render-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CrossSectionDetailsFormComponent, MatDialogModule, MatButtonModule],
+  imports: [CrossSectionDetailsFormComponent, MatDialogModule, MatButtonModule, MatIconModule, AsyncPipe, MatTooltipModule],
 })
 export class CrossSectionRenderDialogComponent implements AfterViewInit {
 
@@ -28,10 +31,13 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
   canvasElement!: ElementRef<HTMLCanvasElement>;
 
   readonly #destroyRef = inject(DestroyRef);
-  // readonly #resizeService = inject(ResizeService);
   readonly #canvasService = inject(CanvasService);
   readonly #dialog = inject(MatDialog);
   readonly #errorService = inject(ErrorService);
+
+  readonly isFrontSideMaterial$ = this.#canvasService.materialSide$.pipe(
+    map(side => side === FrontSide),
+  );
 
   static open(
     dialog: MatDialog,
@@ -58,6 +64,10 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
     this.#init();
   }
 
+  toggleDoubleSided() {
+    this.#canvasService.toggleDoubleSideMaterial();
+  }
+
   #init() {
     const canvas = this.canvasElement.nativeElement;
     const crossSection = this.#dialogData.crossSection;
@@ -66,7 +76,7 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
 
     const ratio = dimensions.x / dimensions.y;
 
-    const [width, height] = this.calculateDimensions(ratio);
+    const [width, height] = this.#calculateDimensions(ratio);
 
     canvas.width = width;
     canvas.height = height;
@@ -89,7 +99,7 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
         return this.formGroup.controls.dimensions.valueChanges.pipe(
           tap(dimensions => {
             const newRatio = dimensions.width! / dimensions.height!;
-            const [newWidth, newHeight] = this.calculateDimensions(newRatio);
+            const [newWidth, newHeight] = this.#calculateDimensions(newRatio);
             renderer.setSize(newWidth, newHeight);
           }),
         );
@@ -107,7 +117,7 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
     });
   }
 
-  calculateDimensions(ratio: number): [width: number, height: number] {
+  #calculateDimensions(ratio: number): [width: number, height: number] {
 
     const maxDimension = window.innerHeight - 330;
 

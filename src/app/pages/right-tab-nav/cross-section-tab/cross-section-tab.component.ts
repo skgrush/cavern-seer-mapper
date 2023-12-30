@@ -81,9 +81,8 @@ export class CrossSectionTabComponent {
     });
     this.formGroup.controls.details.controls.position.valueChanges.pipe(
       takeUntilDestroyed(),
-      debounceTime(0), // delay to allow formGroup validity to bubble
       ignoreNullish(),
-      filter(() => this.formGroup.valid),
+      filter(() => this.formGroup.controls.details.controls.position.valid),
     ).subscribe(pos => {
       const selected = this.formGroup.value.selected?.[0];
       if (!selected || !this.formGroup.valid) {
@@ -95,9 +94,8 @@ export class CrossSectionTabComponent {
 
     this.formGroup.controls.details.controls.dimensions.valueChanges.pipe(
       takeUntilDestroyed(),
-      debounceTime(0), // delay to allow formGroup validity to bubble
       ignoreNullish(),
-      filter(() => this.formGroup.valid),
+      filter(() => this.formGroup.controls.details.controls.dimensions.valid),
     ).subscribe(dims => {
       const selected = this.formGroup.value.selected?.[0];
       if (!selected) {

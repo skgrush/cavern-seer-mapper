@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
-import { AmbientLight, Box3, Camera, Clock, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
 import { ModelChangeType } from '../models/model-change-type.enum';
@@ -39,6 +39,9 @@ export class CanvasService {
 
   readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
   #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
+
+  readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
+  readonly materialSide$ = this.#materialSideSubject.asObservable();
 
   #bottomGrid = new GridHelper();
 
@@ -112,6 +115,12 @@ export class CanvasService {
       next: ele => this.#compassDivSubject.next(ele),
       complete: () => this.#compassDivSubject.next(undefined),
     });
+  }
+
+  toggleDoubleSideMaterial() {
+    this.#materialSideSubject.next(
+      this.#material.toggleDoubleSide()
+    );
   }
 
   /**

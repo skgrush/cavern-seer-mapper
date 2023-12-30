@@ -1,4 +1,4 @@
-import { DoubleSide, FrontSide, Material, Scene, Side } from 'three';
+import { DoubleSide, FrontSide, Material, Side } from 'three';
 
 export class BaseMaterialService<T extends Material> {
 
@@ -11,9 +11,12 @@ export class BaseMaterialService<T extends Material> {
   }
 
   toggleDoubleSide() {
-    this.material.side =
+    const newValue =
       this.material.side === FrontSide
         ? DoubleSide
         : FrontSide;
+
+    this.material.side = newValue;
+    return newValue;
   }
 }
