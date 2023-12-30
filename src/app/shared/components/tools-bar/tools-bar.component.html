@@ -5,3 +5,12 @@
   </mat-button-toggle>
   }
 </mat-button-toggle-group>
+
+<div class="standalone-buttons">
+  @for (tool of nonExclusiveTools; track tool) {
+  <button mat-flat-button (click)="tool.click()" [matTooltip]="tool.label">
+    <mat-icon *ngIf="tool.fontSet$ | async as fontSet" [fontSet]="fontSet">{{ tool.icon }}</mat-icon>
+  </button>
+  }
+
+</div>

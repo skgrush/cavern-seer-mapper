@@ -5,12 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Subject, defer, map, merge, switchMap, tap } from 'rxjs';
-import { Camera, FrontSide } from 'three';
+import { Subject, defer, merge, switchMap, tap } from 'rxjs';
+import { Camera } from 'three';
 import { CrossSectionDetailsForm, CrossSectionDetailsFormComponent } from '../../shared/components/cross-section-details-form/cross-section-details-form.component';
 import { CrossSectionAnnotation } from '../../shared/models/annotations/cross-section.annotation';
 import { CanvasService } from '../../shared/services/canvas.service';
 import { ErrorService } from '../../shared/services/error.service';
+import { ToggleMaterialSidesToolService } from '../../shared/services/tools/toggle-material-sides-tool.service';
 
 export type ICrossSectionRenderDialogData = {
   readonly crossSection: CrossSectionAnnotation;
@@ -35,9 +36,7 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
   readonly #dialog = inject(MatDialog);
   readonly #errorService = inject(ErrorService);
 
-  readonly isFrontSideMaterial$ = this.#canvasService.materialSide$.pipe(
-    map(side => side === FrontSide),
-  );
+  readonly toggleMaterial = inject(ToggleMaterialSidesToolService);
 
   static open(
     dialog: MatDialog,
@@ -62,10 +61,6 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.#init();
-  }
-
-  toggleDoubleSided() {
-    this.#canvasService.toggleDoubleSideMaterial();
   }
 
   #init() {

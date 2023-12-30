@@ -1,3 +1,18 @@
 :host {
-  display: block;
+  display: flex;
+  gap: 1em;
+  align-items: stretch;
+}
+
+.standalone-buttons {
+  &>button {
+    height: 100%;
+    padding: 0;
+    min-width: 0;
+    aspect-ratio: 1;
+
+    &>mat-icon {
+      margin: 0;
+    }
+  }
 }
