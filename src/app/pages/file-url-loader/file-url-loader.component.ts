@@ -2,7 +2,7 @@ import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, first, map, switchMap } from 'rxjs';
+import { BehaviorSubject, first, map, switchMap, throwError } from 'rxjs';
 import { fromFetch } from 'rxjs/fetch';
 import { AggregateError2 } from '../../shared/errors/aggregate.error';
 import { UploadFileModel } from '../../shared/models/upload-file-model';
@@ -58,7 +58,13 @@ export class FileUrlLoaderComponent {
           mode: 'same-origin',
           cache: 'default',
         })).pipe(
-          switchMap(resp => resp.blob()),
+          switchMap(resp => {
+            if (resp.ok) {
+              return resp.blob();
+            } else {
+              return throwError(() => new Error(`${resp.status} ${resp.statusText}: ${fileId}`));
+            }
+          }),
           switchMap(blob => {
             const fileModel = new UploadFileModel(
               fileId,
@@ -85,7 +91,10 @@ export class FileUrlLoaderComponent {
       }),
     ).subscribe({
       next: model => this.#modelManager.importModels([model]),
-      error: (err) => this.#errorService.alertError(err),
+      error: (err) => {
+        this.show$.next(false);
+        this.#errorService.alertError(err);
+      },
       complete: () => {
         this.show$.next(false);
       }
