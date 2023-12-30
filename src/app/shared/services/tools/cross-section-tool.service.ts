@@ -73,6 +73,9 @@ export class CrossSectionToolService extends BaseToolService {
   changeCrossSectionDimensions(cs: CrossSectionAnnotation, dimensions: Vector3) {
     cs.changeDimensions(dimensions);
   }
+  changeCrossSectionRotation(cs: CrossSectionAnnotation, angleDegrees: number) {
+    cs.changeRotation(angleDegrees);
+  }
 
   deleteCrossSection(annos: readonly CrossSectionAnnotation[]) {
     const set = new Set(annos);

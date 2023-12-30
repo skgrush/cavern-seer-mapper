@@ -44,7 +44,7 @@ export class CrossSectionTabComponent {
         height: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
         depth: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
       }),
-      rotationDegrees: new FormControl({ value: 0, disabled: true }, { nonNullable: true, validators: [Validators.required] }),
+      rotationDegrees: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
     }) satisfies CrossSectionDetailsForm,
   });
 
@@ -72,7 +72,6 @@ export class CrossSectionTabComponent {
       }, {
         emitEvent: false,
       });
-      this.formGroup.controls.details.controls.rotationDegrees.disable({ emitEvent: false });
     });
 
     this.formGroup.controls.selected.valueChanges.pipe(
@@ -107,6 +106,19 @@ export class CrossSectionTabComponent {
 
       const dimsVec = new Vector3(dims.width, dims.height, dims.depth);
       this.crossSectionTool.changeCrossSectionDimensions(selected, dimsVec);
+    });
+    this.formGroup.controls.details.controls.rotationDegrees.valueChanges.pipe(
+      takeUntilDestroyed(),
+      debounceTime(0),
+      ignoreNullish(),
+      filter(() => this.formGroup.valid),
+    ).subscribe(angleDegrees => {
+      const selected = this.formGroup.value.selected?.[0];
+      if (!selected) {
+        return;
+      }
+
+      this.crossSectionTool.changeCrossSectionRotation(selected, angleDegrees);
     });
   }
 

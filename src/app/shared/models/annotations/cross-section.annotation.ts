@@ -149,6 +149,15 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#updateLine();
   }
 
+  changeRotation(angleDegrees: number) {
+    this.#radiansToNorthAroundY = angleDegrees / degreesPerRadian;
+
+    this.#group.setRotationFromAxisAngle(new Vector3(0, 1, 0), -this.#radiansToNorthAroundY);
+
+    this.#updateCamera();
+    this.#updateLine();
+  }
+
   changeCenterPoint(pos: Vector3) {
     this.#group.position.copy(pos);
   }
