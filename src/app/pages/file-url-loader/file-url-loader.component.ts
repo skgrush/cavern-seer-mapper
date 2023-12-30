@@ -2,12 +2,13 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, first, map, switchMap, throwError } from 'rxjs';
+import { first, map, switchMap, throwError } from 'rxjs';
 import { fromFetch } from 'rxjs/fetch';
 import { AggregateError2 } from '../../shared/errors/aggregate.error';
 import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
 import { UploadFileModel } from '../../shared/models/upload-file-model';
 import { ignoreNullish } from '../../shared/operators/ignore-nullish';
+import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 import { ErrorService } from '../../shared/services/error.service';
 import { FileTypeService } from '../../shared/services/file-type.service';
 import { ModelLoadService } from '../../shared/services/model-load.service';
@@ -17,10 +18,10 @@ import { ModelManagerService } from '../../shared/services/model-manager.service
 @Component({
   selector: 'mapper-file-url-loader',
   standalone: true,
-  imports: [MatProgressSpinnerModule, AsyncPipe],
   templateUrl: './file-url-loader.component.html',
   styleUrl: './file-url-loader.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatProgressSpinnerModule, AsyncPipe, BytesPipe]
 })
 export class FileUrlLoaderComponent {
 
@@ -29,8 +30,6 @@ export class FileUrlLoaderComponent {
   readonly #modelManager = inject(ModelManagerService);
   readonly #modelLoader = inject(ModelLoadService);
   readonly #fileType = inject(FileTypeService);
-
-  readonly show$ = new BehaviorSubject(false);
 
   readonly progress = new TransportProgressHandler();
 
@@ -55,7 +54,7 @@ export class FileUrlLoaderComponent {
         const base = isAsset ? 'assets/' : '/';
         const url = `${base}files/${author}/${fileId}`;
 
-        this.show$.next(true);
+        this.progress.reset(true);
 
         return fromFetch(new Request(url, {
           mode: 'same-origin',
@@ -69,6 +68,9 @@ export class FileUrlLoaderComponent {
             }
           }),
           switchMap(blob => {
+
+            this.progress.changeTotal(blob.size);
+
             const fileModel = new UploadFileModel(
               fileId,
               blob,
@@ -76,7 +78,7 @@ export class FileUrlLoaderComponent {
               this.#fileType.getType(blob.type, ''),
               null
             );
-            return this.#modelLoader.loadFile(fileModel);
+            return this.#modelLoader.loadFile(fileModel, this.progress);
           }),
           map(loadResult => {
             if (loadResult.errors.length) {
@@ -95,11 +97,11 @@ export class FileUrlLoaderComponent {
     ).subscribe({
       next: model => this.#modelManager.importModels([model]),
       error: (err) => {
-        this.show$.next(false);
+        this.progress.deactivate();
         this.#errorService.alertError(err);
       },
       complete: () => {
-        this.show$.next(false);
+        this.progress.deactivate();
       }
     });
   }
