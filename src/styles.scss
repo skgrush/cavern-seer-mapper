@@ -25,3 +25,13 @@ p>mat-icon {
 .form-fields-grid {
   display: grid;
 }
+
+mat-snack-bar-container {
+
+  &.error-snack-panel {
+    .mdc-snackbar__surface {
+      background-color: var(--mat-form-field-error-text-color);
+    }
+  }
+
+}

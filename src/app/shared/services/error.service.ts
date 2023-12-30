@@ -22,6 +22,7 @@ export class ErrorService implements ErrorHandler {
     console.error(error);
     this.#snackbar.open(`${error}`, 'X', {
       duration: Infinity,
+      panelClass: 'error-snack-panel',
     });
   }
 }
