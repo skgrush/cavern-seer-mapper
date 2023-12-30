@@ -2,7 +2,6 @@ import { ApplicationConfig, ErrorHandler, LOCALE_ID, importProvidersFrom } from 
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideClientHydration } from '@angular/platform-browser';
 import { CanvasService } from './shared/services/canvas.service';
 import { ResizeService } from './shared/services/resize.service';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -32,7 +31,6 @@ import { MAT_SNACK_BAR_DEFAULT_OPTIONS, MatSnackBarConfig, MatSnackBarModule } f
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideClientHydration(),
     provideAnimations(),
     provideStore(),
     CanvasService,
