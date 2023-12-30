@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BaseToolService } from './base-tool.service';
 import { of } from 'rxjs';
+import { BaseExclusiveToolService } from './base-tool.service';
 
 @Injectable()
-export class NoToolService extends BaseToolService {
+export class NoToolService extends BaseExclusiveToolService {
 
   override readonly id = 'no-tool';
   override readonly label = 'No tool';

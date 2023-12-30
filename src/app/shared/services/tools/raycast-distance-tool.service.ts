@@ -1,13 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, Subject, distinctUntilChanged, map, of, takeUntil, tap } from 'rxjs';
+import { BehaviorSubject, Subject, distinctUntilChanged, map, of, takeUntil } from 'rxjs';
 import { Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
 import { CeilingHeightAnnotation } from '../../models/annotations/ceiling-height.annotation';
+import { IMapperUserData } from '../../models/user-data';
 import { AnnotationBuilderService } from '../annotation-builder.service';
 import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
-import { BaseToolService } from './base-tool.service';
-import { IMapperUserData } from '../../models/user-data';
+import { BaseExclusiveToolService } from './base-tool.service';
 
 export enum RaycastDistanceMode {
   fromCamera = 1,
@@ -23,7 +23,7 @@ export enum RaycastDistanceMode {
 // }
 
 @Injectable()
-export class RaycastDistanceToolService extends BaseToolService {
+export class RaycastDistanceToolService extends BaseExclusiveToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
   readonly #annotationBuilder = inject(AnnotationBuilderService);

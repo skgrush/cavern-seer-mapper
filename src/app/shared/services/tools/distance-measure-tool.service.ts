@@ -1,17 +1,17 @@
 import { Injectable, inject } from '@angular/core';
-import { BaseToolService } from './base-tool.service';
-import { CanvasService } from '../canvas.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Subject, distinctUntilChanged, map, of, take, takeUntil, tap } from 'rxjs';
 import { Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
 import { MeasureDistanceAnnotation } from '../../models/annotations/measure-distance.annotation';
-import { ModelManagerService } from '../model-manager.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AnnotationBuilderService } from '../annotation-builder.service';
-import { ignoreNullish } from '../../operators/ignore-nullish';
 import { IMapperUserData } from '../../models/user-data';
+import { ignoreNullish } from '../../operators/ignore-nullish';
+import { AnnotationBuilderService } from '../annotation-builder.service';
+import { CanvasService } from '../canvas.service';
+import { ModelManagerService } from '../model-manager.service';
+import { BaseExclusiveToolService } from './base-tool.service';
 
 @Injectable()
-export class DistanceMeasureToolService extends BaseToolService {
+export class DistanceMeasureToolService extends BaseExclusiveToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
   readonly #annotationBuilder = inject(AnnotationBuilderService);

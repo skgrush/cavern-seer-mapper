@@ -19,9 +19,10 @@ export class ToolsBarComponent {
 
   readonly #toolManager = inject(ToolManagerService);
 
-  readonly toolOptions = this.#toolManager.toolOptions;
-
+  readonly toolOptions = this.#toolManager.exclusiveToolOptions;
   readonly currentTool$ = this.#toolManager.currentToolId$;
+
+  readonly nonExclusiveTools = this.#toolManager.nonExclusiveTools;
 
   selectTool(id: string) {
     this.#toolManager.selectTool(id);

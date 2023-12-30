@@ -9,10 +9,10 @@ import { RenderingOrder } from '../../models/rendering-layers';
 import { AnnotationBuilderService } from '../annotation-builder.service';
 import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
-import { BaseToolService } from './base-tool.service';
+import { BaseExclusiveToolService } from './base-tool.service';
 
 @Injectable()
-export class CrossSectionToolService extends BaseToolService {
+export class CrossSectionToolService extends BaseExclusiveToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
   readonly #annoBuilder = inject(AnnotationBuilderService);
