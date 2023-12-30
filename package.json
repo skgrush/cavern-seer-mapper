@@ -18,7 +18,7 @@
     "test": "ng test",
     "clean": "rimraf dist/mapper dist/browser",
     "migrate": "sync-s3 .env.json",
-    "static-serve": "npm run clean && npm run build && cp -R dist/cavern-seer-mapper/browser dist/mapper && http-server dist/"
+    "static-serve": "npm run build && cp -R dist/cavern-seer-mapper/browser dist/mapper && http-server dist/"
   },
   "private": true,
   "dependencies": {
