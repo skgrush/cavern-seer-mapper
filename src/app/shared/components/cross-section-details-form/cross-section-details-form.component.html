@@ -1,6 +1,11 @@
 <form (submit)="$event.preventDefault(); formSubmitted.emit()">
   <section class="label-and-form-trio">
     <h3>Position</h3>
+    <div>
+      <button mat-icon-button (click)="forward(1)" matTooltip="Move forward"><mat-icon>arrow_upward</mat-icon></button>
+      <button mat-icon-button (click)="forward(-1)"
+        matTooltip="Move backward"><mat-icon>arrow_downward</mat-icon></button>
+    </div>
     <mat-form-field>
       <mat-label>X</mat-label>
       <input matInput type="number" [formControl]="formGroup.controls.position.controls.x">
@@ -16,6 +21,7 @@
   </section>
   <section class="label-and-form-trio">
     <h3>Dimensions</h3>
+    <div></div>
     <mat-form-field>
       <mat-label>Width</mat-label>
       <input matInput type="number" [formControl]="formGroup.controls.dimensions.controls.width">
@@ -31,7 +37,7 @@
   </section>
   <mat-form-field>
     <mat-label>Rotation (from North)</mat-label>
-    <input matInput type="number" [formControl]="formGroup.controls.rotationDegrees">
+    <input matInput type="number" [formControl]="formGroup.controls.rotationDegrees" class="angle-input">
     <span matTextSuffix>&deg;</span>
   </mat-form-field>
 </form>

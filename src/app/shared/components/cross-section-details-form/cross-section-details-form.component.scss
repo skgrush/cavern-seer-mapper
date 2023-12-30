@@ -5,11 +5,15 @@
 .label-and-form-trio {
   display: grid;
   grid-template-areas:
-    "label label label"
+    "label label additional"
     "x     y     z";
 
 
   h3 {
     grid-area: label;
   }
+}
+
+.angle-input {
+  text-align: right;
 }
