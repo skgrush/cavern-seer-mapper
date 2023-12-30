@@ -41,8 +41,7 @@
               "jszip"
             ],
             "scripts": [],
-            "server": "src/main.server.ts",
-            "prerender": true,
+            "prerender": false,
             "namedChunks": true
           },
           "configurations": {

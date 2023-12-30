@@ -6,11 +6,13 @@ import { ISimpleVector3 } from "../simple-types";
 import { BaseModelManifest } from "../model-manifest";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { AnnotationBuilderService } from "../../services/annotation-builder.service";
+import { ModelChangeType } from "../model-change-type.enum";
+import { filterErrors, filterSuccesses } from "../result";
 
 export abstract class BaseRenderModel<T extends FileModelType> {
 
   abstract readonly type: T;
-  abstract readonly childOrPropertyChanged$: Observable<void>;
+  abstract readonly childOrPropertyChanged$: Observable<ModelChangeType>;
   abstract readonly identifier: string;
   abstract readonly position: Readonly<Vector3>;
   abstract readonly rendered: boolean;
@@ -24,7 +26,9 @@ export abstract class BaseRenderModel<T extends FileModelType> {
 
   abstract dispose(): void;
 
-  setFromManifest(manifest: BaseModelManifest, path: string, annoBuilder: AnnotationBuilderService): void { }
+  setFromManifest(manifest: BaseModelManifest, path: string, annoBuilder: AnnotationBuilderService): Error[] {
+    return [];
+  }
 }
 
 export abstract class BaseVisibleRenderModel<T extends FileModelType> extends BaseRenderModel<T> {
@@ -44,19 +48,24 @@ export abstract class BaseVisibleRenderModel<T extends FileModelType> extends Ba
 
   abstract setPosition(pos: ISimpleVector3): boolean;
 
-  override setFromManifest(manifest: BaseModelManifest, path: string, annoBuilder: AnnotationBuilderService): void {
+  override setFromManifest(manifest: BaseModelManifest, path: string, annoBuilder: AnnotationBuilderService): Error[] {
     const pos = manifest.getPosition(path);
-    const annos = manifest.getAnnotations(path, annoBuilder);
+    const annoResults = manifest.getAnnotations(path, annoBuilder);
+
+    const errors: Error[] = [];
 
     if (pos) {
       this.setPosition(pos);
     }
-    if (annos) {
-      for (const anno of annos) {
+    if (annoResults) {
+      errors.push(...filterErrors(annoResults).map(r => r.error));
+      for (const anno of filterSuccesses(annoResults).map(r => r.result)) {
         this.addAnnotation(anno);
       }
     }
 
-    super.setFromManifest(manifest, path, annoBuilder);
+    errors.push(...super.setFromManifest(manifest, path, annoBuilder));
+
+    return errors;
   }
 }

@@ -1,23 +1,25 @@
 import { Injectable, inject } from '@angular/core';
-import { BaseToolService, TOOL_SERVICES } from './tools/base-tool.service';
 import { BehaviorSubject, map, switchMap } from 'rxjs';
+import { BaseExclusiveToolService, EXCLUSIVE_TOOL_SERVICES, NONEXCLUSIVE_TOOL_SERVICES } from './tools/base-tool.service';
 import { NoToolService } from './tools/no-tool.service';
 
 @Injectable()
 export class ToolManagerService {
 
-  readonly #tools = new Map(
-    inject(TOOL_SERVICES)
+  readonly #nonexclusiveTools = inject(NONEXCLUSIVE_TOOL_SERVICES);
+  readonly #exclusiveTools = new Map(
+    inject(EXCLUSIVE_TOOL_SERVICES)
       .map(tool => [tool.id, tool]),
   );
   readonly #noTool = inject(NoToolService);
 
-  readonly #currentTool = new BehaviorSubject<BaseToolService>(this.#noTool);
+  readonly #currentTool = new BehaviorSubject<BaseExclusiveToolService>(this.#noTool);
   readonly currentToolId$ = this.#currentTool.pipe(map(t => t.id));
   readonly currentToolCursor$ = this.#currentTool.pipe(switchMap(t => t.cursor$));
 
-  readonly toolOptions = [...this.#tools.values()]
+  readonly exclusiveToolOptions = [...this.#exclusiveTools.values()]
     .map(({ id, label, icon }) => ({ id, label, icon } as const));
+  readonly nonExclusiveTools = Object.freeze([...this.#nonexclusiveTools]);
 
   /**
    * @returns true if the new tool was successfully started, and old tool stopped
@@ -28,7 +30,7 @@ export class ToolManagerService {
       toolId = this.#noTool.id;
     }
 
-    const tool = this.#tools.get(toolId);
+    const tool = this.#exclusiveTools.get(toolId);
     if (!tool) {
       throw new Error(`Unknown tool ${toolId}`);
     }

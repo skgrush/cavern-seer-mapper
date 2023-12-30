@@ -7,10 +7,11 @@ import { ISimpleVector3 } from "../simple-types";
 import { UploadFileModel } from "../upload-file-model";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { IMapperUserData } from "../user-data";
+import { ModelChangeType } from "../model-change-type.enum";
 
 export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
-  readonly #childOrPropertyChanged = new Subject<void>();
+  readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly identifier: string;
   override comment: string | null;
@@ -66,7 +67,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#object.position.set(x, y, z);
-    this.#childOrPropertyChanged.next();
+    this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
   }
 
@@ -103,7 +104,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
 
     anno.addToGroup(this.#object);
     this.#annotations.add(anno);
-    this.#childOrPropertyChanged.next();
+    this.#childOrPropertyChanged.next(ModelChangeType.EntityAdded);
     return true;
   }
 
@@ -116,7 +117,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
       }
 
       anno.removeFromGroup(this.#object);
-      this.#childOrPropertyChanged.next();
+      this.#childOrPropertyChanged.next(ModelChangeType.EntityRemoved);
 
       annosToDelete.delete(anno);
     }

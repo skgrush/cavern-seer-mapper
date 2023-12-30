@@ -1,10 +1,8 @@
 import { NEVER } from "rxjs";
-import { Vector3, Group, Object3DEventMap } from "three";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
+import { Group, Object3DEventMap, Vector3 } from "three";
 import { FileModelType } from "../model-type.enum";
-import { BaseRenderModel } from "./base.render-model";
 import { UploadFileModel } from "../upload-file-model";
-import { ISimpleVector3 } from "../simple-types";
+import { BaseRenderModel } from "./base.render-model";
 
 
 export class UnknownRenderModel extends BaseRenderModel<FileModelType.unknown> {

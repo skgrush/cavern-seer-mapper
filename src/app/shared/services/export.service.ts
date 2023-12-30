@@ -5,6 +5,7 @@ import { ModelManagerService } from './model-manager.service';
 import { ModelLoadService } from './model-load.service';
 import { TransportProgressHandler } from '../models/transport-progress-handler';
 import { CanvasService } from './canvas.service';
+import type { Camera } from 'three';
 
 @Injectable()
 export class ExportService {
@@ -55,9 +56,15 @@ export class ExportService {
     )
   }
 
-  downloadCanvasImage$(baseName: string, ext: 'png' | 'jpeg' | 'webp', sizeMultiplier?: number, quality?: number) {
+  downloadCanvasImage$(
+    baseName: string, ext: 'png' | 'jpeg' | 'webp',
+    rendererSymbol?: symbol,
+    camera?: Camera,
+    sizeMultiplier?: number,
+    quality?: number,
+  ) {
     const type = `image/${ext}` as const;
-    return defer(() => this.#canvasService.exportToImage(type, sizeMultiplier, quality)).pipe(
+    return defer(() => this.#canvasService.exportToImage(type, rendererSymbol, camera, sizeMultiplier, quality)).pipe(
       switchMap(blob => {
         if (blob.type && blob.type !== type) {
           console.info('Seems browser does not support', ext, '; defaulting...');

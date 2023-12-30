@@ -7,4 +7,6 @@ export type IMapperUserData = {
   fromSerializedModel?: true,
   /** indicates a group is part of an annotation */
   isAnnotationGroup?: true,
+  /** This is an annotation mesh and is temporary */
+  isTemporaryAnnotation?: true,
 }

@@ -1,13 +1,15 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, animationFrames, distinctUntilChanged, fromEvent, map, scan, takeUntil, tap } from 'rxjs';
-import { AmbientLight, Box3, Clock, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
-import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
+import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
+import { ModelChangeType } from '../models/model-change-type.enum';
 import { GroupRenderModel } from '../models/render/group.render-model';
+import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 import { ModelManagerService } from './model-manager.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable()
 export class CanvasService {
@@ -18,9 +20,16 @@ export class CanvasService {
   readonly #scene = new Scene();
   readonly #raycaster = new Raycaster();
 
+  readonly rendererSymbol = Symbol('main-renderer');
+
   #renderer?: WebGLRenderer;
   /** Emits any time the renderer is created or destroyed. */
   readonly #rendererChangedSubject = new Subject<void>();
+
+  /**
+   * Map of WeakRefs to known renderers, keyed by symbols.
+   */
+  readonly #rendererMap = new Map<symbol, WeakRef<WebGLRenderer>>();
 
   #orthoCamera?: OrthographicCamera;
   #orthoControls?: MapControls;
@@ -31,6 +40,9 @@ export class CanvasService {
   readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
   #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
 
+  readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
+  readonly materialSide$ = this.#materialSideSubject.asObservable();
+
   #bottomGrid = new GridHelper();
 
   #currentGroupInScene?: GroupRenderModel;
@@ -39,27 +51,45 @@ export class CanvasService {
     this.#modelManager.currentOpenGroup$.pipe(
       takeUntilDestroyed(),
       distinctUntilChanged(),
-      tap(group => {
-        // clean up the existing group if any
-        this.#currentGroupInScene?.removeFromScene(this.#scene);
-        this.#currentGroupInScene?.dispose();
+    ).subscribe(group => {
+      // clean up the existing group if any
+      this.#currentGroupInScene?.removeFromScene(this.#scene);
+      this.#currentGroupInScene?.dispose();
 
-        this.#currentGroupInScene = group;
-        // if there's a group, update the scene
-        if (group) {
-          group.addToScene(this.#scene);
-          group.setMaterial(this.#material);
+      this.#currentGroupInScene = group;
+      // if there's a group, update the scene
+      if (group) {
+        group.addToScene(this.#scene);
+        group.setMaterial(this.#material);
 
-          const bounds = group.getBoundingBox();
+        const bounds = group.getBoundingBox();
 
-          this.#rebuildBottomGrid(bounds);
-          this.#refocusCamera(bounds);
-        }
+        this.#rebuildBottomGrid(bounds);
+        this.#refocusCamera(bounds);
+      }
 
-        // regardless, update the renderer
-        this.render();
-      }),
-    ).subscribe();
+      // regardless, update the renderer
+      this.render();
+    });
+
+    const modelChangeRedrawBox =
+      ModelChangeType.EntityAdded |
+      ModelChangeType.EntityRemoved |
+      ModelChangeType.PositionChanged;
+
+    // react to changes to childOrPropertyChanged$
+    this.#modelManager.currentOpenGroup$.pipe(
+      ignoreNullish(),
+      switchMap(
+        group => group.childOrPropertyChanged$.pipe(
+          filter(e => (e & modelChangeRedrawBox) !== 0),
+          map(() => group),
+        ),
+      ),
+    ).subscribe(cog => {
+      const bounds = cog.getBoundingBox();
+      this.#rebuildBottomGrid(bounds);
+    });
   }
 
   /**
@@ -87,14 +117,35 @@ export class CanvasService {
     });
   }
 
+  toggleDoubleSideMaterial() {
+    this.#materialSideSubject.next(
+      this.#material.toggleDoubleSide()
+    );
+  }
+
   /**
    * Export a blob of the canvas to the given type.
    *
+   * @param type - the export type
+   * @param sym - the symbol of the renderer to use
+   * @param cam - which camera to use
+   * @param sizeMultiplier - how to scale the image
+   * @param quality - the lossy quality of the image
+   *
    * @throws Error if the renderer or camera are not ready.
    */
-  async exportToImage(type: `image/${string}`, sizeMultiplier = 1, quality?: number) {
-    const dimensions = this.getRendererDimensions();
-    if (!this.#renderer?.domElement || !dimensions) {
+  async exportToImage(
+    type: `image/${string}`,
+    sym = this.rendererSymbol,
+    cam?: Camera,
+    sizeMultiplier = 1,
+    quality?: number,
+  ) {
+
+    const renderer = this.#rendererMap.get(sym)?.deref();
+
+    const dimensions = this.getRendererDimensions(sym);
+    if (!renderer?.domElement || !dimensions) {
       throw new Error('Renderer or canvas not ready to export');
     }
     if (quality !== undefined && (quality < 0 || quality > 1)) {
@@ -104,7 +155,7 @@ export class CanvasService {
     const { x: width, y: height } = dimensions.multiplyScalar(sizeMultiplier);
 
     const sceneCopy = this.#scene.clone(true);
-    const camera = sceneCopy.children.find((c): c is OrthographicCamera => c instanceof OrthographicCamera);
+    const camera = cam ?? this.#orthoCamera;
 
     if (!camera) {
       throw new Error('Could not find camera in sceneCopy');
@@ -146,8 +197,8 @@ export class CanvasService {
     this.#renderer = undefined;
   }
 
-  getRendererDimensions() {
-    const ele = this.#renderer?.domElement;
+  getRendererDimensions(sym = this.rendererSymbol) {
+    const ele = this.#rendererMap.get(sym)?.deref()?.domElement;
     if (!ele) {
       return null;
     }
@@ -207,7 +258,6 @@ export class CanvasService {
   }
 
   render$() {
-    const rendererGone$ = new Subject<void>();
     return animationFrames().pipe(
       takeUntil(this.#rendererChangedSubject),
       map(({ timestamp, elapsed }) => {
@@ -216,7 +266,7 @@ export class CanvasService {
     );
   }
 
-  #wasAnimating = false;
+  #wasAnimatingCompass = false;
 
   render() {
     if (!this.#renderer) { return false; }
@@ -225,11 +275,17 @@ export class CanvasService {
 
     if (this.#compass?.animating) {
       this.#compass.update(delta);
+      this.#wasAnimatingCompass = true;
+    } else {
+      if (this.#wasAnimatingCompass) {
+        // just finished animating
+        // I CANNOT figure out why I can't just update controls, but I seem to need to rebuild
+        this.#orthoControls?.dispose();
+        this.#orthoControls = new MapControls(this.#orthoCamera!, this.#renderer.domElement);
+      }
+
+      this.#wasAnimatingCompass = false;
     }
-    // if (this.#compass?.animating === false && this.#wasAnimating) {
-    //   this.#orthoControls?.reset();
-    // }
-    // this.#wasAnimating = this.#compass?.animating ?? false;
 
     this.#renderer.clear();
     this.#renderer.render(this.#scene, this.#orthoCamera!);
@@ -246,26 +302,21 @@ export class CanvasService {
     this.#renderer.setClearColor(bgColor);
   }
 
-  // TODO: refocus doesn't seem to actually reposition the camera? I expect lookAt to do that but it's not
   #refocusCamera(bounds: Box3) {
     const controls = this.#orthoControls;
-    const camera = this.#orthoCamera;
-    if (!controls || !camera) {
+    if (!controls) {
       console.error('missing controls/camera', this);
       return;
     }
 
-    camera.near = 0.1;
-    camera.position.set(
+    controls.object.position.set(
       0,
-      bounds.max.y,
-      0
+      bounds.max.y + 5,
+      0.0000001 // sliiightly offset the Z so we (should) always look from Z when reseting controls
     );
-    camera.lookAt(0, 0, 0);
+    controls.target.set(0, 0, 0);
 
-    camera.updateProjectionMatrix();
-
-    // controls.update();
+    controls.update();
   }
 
   #rebuildBottomGrid(bounds: Box3) {
@@ -289,6 +340,39 @@ export class CanvasService {
     this.#scene.add(gridHelper);
   }
 
+  /**
+   * Initialize a sub-renderer which will animate as long as you are subscribed
+   * and will be cleaned up when you unsubscribe.
+   */
+  initializeSubRenderer$(
+    sym: symbol,
+    canvas: HTMLCanvasElement,
+    { width, height }: { width: number, height: number },
+    camera: Camera,
+  ) {
+    return defer(() => {
+      const renderer = new WebGLRenderer({
+        canvas,
+      });
+      this.#rendererMap.set(sym, new WeakRef(renderer));
+
+      renderer.setSize(width, height);
+
+      const subRender = () => {
+        renderer.render(this.#scene, camera);
+      };
+
+      return animationFrames().pipe(
+        tap({
+          next: subRender,
+          unsubscribe: () => renderer.dispose(),
+        }),
+        map(() => renderer),
+        distinctUntilChanged(), // don't emit on each animation frame!
+      );
+    });
+  }
+
   initializeRenderer(
     canvas: HTMLCanvasElement,
     { width, height }: DOMRectReadOnly,
@@ -299,6 +383,7 @@ export class CanvasService {
     this.#renderer = new WebGLRenderer({
       canvas,
     });
+    this.#rendererMap.set(this.rendererSymbol, new WeakRef(this.#renderer));
     this.#renderer.autoClear = false;
     this.#renderer.setSize(width, height);
     // TODO: setting pixel ratio screws with raycasting??
@@ -315,10 +400,10 @@ export class CanvasService {
     this.#compassDivSubject.pipe(
       takeUntil(this.#rendererChangedSubject),
       map(ele => {
-        if (!ele || !this.#orthoCamera || !this.#renderer?.domElement) {
+        if (!ele || !this.#orthoControls || !this.#renderer?.domElement) {
           return undefined;
         }
-        const compass = new ViewHelper(this.#orthoCamera, this.#renderer.domElement);
+        const compass = new ViewHelper(this.#orthoControls.object, this.#renderer.domElement);
         ele.addEventListener('pointerup', e => compass.handleClick(e));
         this.#compass = compass;
         return compass;

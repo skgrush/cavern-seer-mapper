@@ -1,18 +1,20 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { BehaviorSubject, filter, forkJoin, map, tap } from 'rxjs';
-import { FileLoadCompleteEvent, FileLoadProgressEvent } from '../../shared/events/file-load-events';
+import { BehaviorSubject, forkJoin } from 'rxjs';
+import { FileIconComponent } from '../../shared/components/file-icon/file-icon.component';
 import { BaseRenderModel } from '../../shared/models/render/base.render-model';
+import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
 import { UploadFileModel } from '../../shared/models/upload-file-model';
+import { ignoreNullishArray } from '../../shared/operators/ignore-nullish';
+import { BytesPipe } from "../../shared/pipes/bytes.pipe";
+import { ErrorService } from '../../shared/services/error.service';
 import { FileTypeService } from '../../shared/services/file-type.service';
 import { ModelLoadService } from '../../shared/services/model-load.service';
-import { FileIconComponent } from '../../shared/components/file-icon/file-icon.component';
-import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
-import { MatButtonModule } from '@angular/material/button';
-import { BytesPipe } from "../../shared/pipes/bytes.pipe";
+import { AggregateError2 } from '../../shared/errors/aggregate.error';
 
 export type IOpenDialogData = {
   readonly titleText: string;
@@ -31,6 +33,7 @@ export type IOpenDialogData = {
 })
 export class OpenDialogComponent implements OnInit {
 
+  readonly #errorService = inject(ErrorService);
   readonly #modelService = inject(ModelLoadService);
   readonly #fileTypeService = inject(FileTypeService);
   readonly #dialogRef = inject<MatDialogRef<OpenDialogComponent, BaseRenderModel<any>[]>>(MatDialogRef);
@@ -96,32 +99,27 @@ export class OpenDialogComponent implements OnInit {
     this.uploadError = undefined;
 
     const fileObservables = files.map(file =>
-      this.#modelService.loadFile(file, this.uploadProgress).pipe(
-        map(event => {
-          if (event instanceof FileLoadProgressEvent) {
-            this.uploadProgress.setLoadedCount(event.loaded, file.identifier);
-          }
-          else if (event instanceof FileLoadCompleteEvent) {
-            return event.result;
-          }
-          return null;
-        }),
-        filter((val): val is Exclude<typeof val, null> => !!val),
-      ),
+      this.#modelService.loadFile(file, this.uploadProgress),
     );
 
-    forkJoin(fileObservables).pipe(
-      map(results => {
-        this.#dialogRef.close(results);
-      }),
-      tap({
-        error: (err) => {
-          console.error('open error', err);
-          this.#dialogRef.disableClose = false;
-          this.uploadProgress.deactivate();
-          this.uploadError = err;
+    forkJoin(fileObservables).subscribe({
+      next: results => {
+        const errors = results.flatMap(r => r.errors);
+        const successes = results.map(r => r.result).filter(ignoreNullishArray);
+        if (errors.length) {
+          this.#errorService.alertError(new AggregateError2(
+            'While opening dialog',
+            errors,
+          ));
         }
-      }),
-    ).subscribe();
+        this.#dialogRef.close(successes);
+      },
+      error: err => {
+        this.#errorService.alertError(err);
+        this.#dialogRef.disableClose = false;
+        this.uploadProgress.deactivate();
+        this.uploadError = err;
+      },
+    });
   }
 }

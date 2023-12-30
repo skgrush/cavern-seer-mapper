@@ -1,0 +1,21 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+[mat-subheader] {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: min-content min-content 1fr min-content;
+  align-items: center;
+  gap: 0.5em;
+
+  #cross-section-render-btn {
+    height: 100%;
+  }
+}
+
+mat-selection-list {
+  overflow-y: auto;
+}
