@@ -43,6 +43,8 @@ export class FileUrlLoaderComponent {
         }
         return { author, fileId, isAsset };
       }),
+      // on initial load of the page, query params are sometimes missing.
+      // we want to get the first non-nullish params
       ignoreNullish(),
       first(),
       switchMap(({ author, fileId, isAsset }) => {
@@ -54,6 +56,7 @@ export class FileUrlLoaderComponent {
 
         return fromFetch(new Request(url, {
           mode: 'same-origin',
+          cache: 'default',
         })).pipe(
           switchMap(resp => resp.blob()),
           switchMap(blob => {
