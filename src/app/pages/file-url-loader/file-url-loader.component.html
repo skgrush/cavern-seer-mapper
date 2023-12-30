@@ -1,1 +1,6 @@
-<mat-spinner *ngIf="show$ | async"></mat-spinner>
+@if((progress.progress$ | async); as progress) {
+@if(progress.active) {
+<mat-progress-spinner [mode]="progress.determinate ? 'determinate' : 'indeterminate'"
+  [value]="progress.loaded / progress.total" />
+}
+}

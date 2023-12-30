@@ -1,10 +1,11 @@
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, first, map, switchMap, throwError } from 'rxjs';
 import { fromFetch } from 'rxjs/fetch';
 import { AggregateError2 } from '../../shared/errors/aggregate.error';
+import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
 import { UploadFileModel } from '../../shared/models/upload-file-model';
 import { ignoreNullish } from '../../shared/operators/ignore-nullish';
 import { ErrorService } from '../../shared/services/error.service';
@@ -16,7 +17,7 @@ import { ModelManagerService } from '../../shared/services/model-manager.service
 @Component({
   selector: 'mapper-file-url-loader',
   standalone: true,
-  imports: [MatProgressSpinnerModule, NgIf, AsyncPipe],
+  imports: [MatProgressSpinnerModule, AsyncPipe],
   templateUrl: './file-url-loader.component.html',
   styleUrl: './file-url-loader.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -30,6 +31,8 @@ export class FileUrlLoaderComponent {
   readonly #fileType = inject(FileTypeService);
 
   readonly show$ = new BehaviorSubject(false);
+
+  readonly progress = new TransportProgressHandler();
 
   ngOnInit(): void {
     this.#route.queryParamMap.pipe(
