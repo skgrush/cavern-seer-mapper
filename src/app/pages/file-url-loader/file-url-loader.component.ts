@@ -38,8 +38,6 @@ export class FileUrlLoaderComponent {
         const fileId = qp.get('fileId');
         const isAsset = qp.get('asset') !== null;
 
-        debugger;
-
         if (!author || !fileId) {
           return null;
         }
