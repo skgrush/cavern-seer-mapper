@@ -70,12 +70,16 @@
         justify-self: end;
         align-self: end;
       }
+
+      &>mapper-file-url-loader {
+        grid-area: main;
+        justify-self: center;
+        align-self: center;
+      }
     }
   }
 
   mat-sidenav-content {
     overflow: hidden;
   }
-
-
 }

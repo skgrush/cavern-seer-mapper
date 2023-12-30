@@ -1,24 +1,24 @@
-import { ChangeDetectionStrategy, Component, HostBinding, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { ChangeDetectionStrategy, Component, HostBinding, HostListener, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CanvasComponent } from "./pages/canvas/canvas.component";
-import { SidenavComponent } from "./shared/components/sidenav/sidenav.component";
-import { ToolsBarComponent } from './shared/components/tools-bar/tools-bar.component';
+import { FileUrlLoaderComponent } from "./pages/file-url-loader/file-url-loader.component";
 import { RightTabNavComponent } from "./pages/right-tab-nav/right-tab-nav.component";
 import { CompassComponent } from "./shared/components/compass/compass.component";
+import { SidenavComponent } from "./shared/components/sidenav/sidenav.component";
+import { ToolsBarComponent } from './shared/components/tools-bar/tools-bar.component';
 import { DialogOpenerService } from './shared/services/dialog-opener.service';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'mapper-root',
   standalone: true,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  imports: [CommonModule, RouterOutlet, CanvasComponent, MatSidenavModule, MatButtonModule, MatIconModule, SidenavComponent, ToolsBarComponent, RightTabNavComponent, CompassComponent, MatTooltipModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, CanvasComponent, MatSidenavModule, MatButtonModule, MatIconModule, SidenavComponent, ToolsBarComponent, RightTabNavComponent, CompassComponent, MatTooltipModule, FileUrlLoaderComponent]
 })
 export class AppComponent {
 
