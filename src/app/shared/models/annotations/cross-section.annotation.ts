@@ -188,6 +188,10 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#group.visible = show;
   }
 
+  /**
+   * Create a camera and an observable; the camera and render behaviors
+   * will be cleaned up when unsubscribing from the observable.
+   */
   startRenderMode() {
     this.#addCamera();
 
