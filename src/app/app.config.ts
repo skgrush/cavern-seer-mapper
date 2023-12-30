@@ -1,4 +1,4 @@
-import { ApplicationConfig, ErrorHandler, LOCALE_ID, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, LOCALE_ID, importProvidersFrom, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -25,6 +25,7 @@ import { DialogOpenerService } from './shared/services/dialog-opener.service';
 import { LocalizeService } from './shared/services/localize.service';
 import { ErrorService } from './shared/services/error.service';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS, MatSnackBarConfig, MatSnackBarModule } from '@angular/material/snack-bar';
+import { provideServiceWorker } from '@angular/service-worker';
 
 
 
@@ -66,5 +67,9 @@ export const appConfig: ApplicationConfig = {
       provide: ErrorHandler,
       useExisting: ErrorService,
     },
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
 };
