@@ -28,10 +28,15 @@ p>mat-icon {
 
 mat-snack-bar-container {
 
-  &.error-snack-panel {
+  &.snack-panel-error {
     .mdc-snackbar__surface {
       background-color: var(--mat-form-field-error-text-color);
     }
   }
 
+  &.snack-panel-info {
+    .mdc-snackbar__surface {
+      // background-color: var(--mat-form-field-error-text-color);
+    }
+  }
 }

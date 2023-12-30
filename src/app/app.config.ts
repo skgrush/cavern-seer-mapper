@@ -2,6 +2,7 @@ import { ApplicationConfig, ErrorHandler, LOCALE_ID, importProvidersFrom, isDevM
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
+import { AlertService } from './shared/services/alert.service';
 import { CanvasService } from './shared/services/canvas.service';
 import { ResizeService } from './shared/services/resize.service';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -48,6 +49,7 @@ export const appConfig: ApplicationConfig = {
     AnnotationBuilderService,
     DialogOpenerService,
     ErrorService,
+    AlertService,
     importProvidersFrom(MatSnackBarModule),
     {
       provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
