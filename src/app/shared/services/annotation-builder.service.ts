@@ -82,6 +82,7 @@ export class AnnotationBuilderService {
       dimensions,
       centerPoint,
       angleToNorthAroundY / degreesPerRadian,
+      this.#localize,
     );
   }
 
@@ -119,6 +120,7 @@ export class AnnotationBuilderService {
       dimensions,
       centerPoint,
       radiansToNorthOfBoxNormal,
+      this.#localize,
     );
   }
 }
