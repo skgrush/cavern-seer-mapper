@@ -35,9 +35,13 @@ export class LocalizeService {
   readonly #unitLengthLookup = new Map<`${SupportedUnit}-${number}-${number}`, Intl.NumberFormat>();
   readonly #decimalLookup = new Map<`${number}-${number}`, Intl.NumberFormat>();
 
+  get isMetric() {
+    return this.#settings.measurementSystem === MeasurementSystem.metric;
+  }
+
   getLocalLengthUnits(): SupportedUnit {
     return (
-      this.#settings.measurementSystem === MeasurementSystem.metric
+      this.isMetric
         ? 'meter'
         : 'foot'
     );
@@ -51,14 +55,14 @@ export class LocalizeService {
   }
 
   metersToLocalLength(valueInMeters: number) {
-    if (this.#settings.measurementSystem === MeasurementSystem.metric) {
+    if (this.isMetric) {
       return valueInMeters;
     }
     return this.metersToFeet(valueInMeters);
   }
 
   localLengthToMeters(localLength: number) {
-    if (this.#settings.measurementSystem === MeasurementSystem.metric) {
+    if (this.isMetric) {
       return localLength;
     }
     return this.feetToMeters(localLength);

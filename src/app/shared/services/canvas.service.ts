@@ -336,9 +336,21 @@ export class CanvasService {
 
     this.#scene.remove(this.#bottomGrid);
     const gridHelper = this.#bottomGrid = new GridHelper(size, this.#localize.metersToLocalLength(size));
-    gridHelper.position.x = boundsMin.x + sizeX / 2;
-    gridHelper.position.y = boundsMin.y;
-    gridHelper.position.z = boundsMin.z + sizeZ / 2;
+
+    let xDelta = sizeX / 2;
+    let zDelta = sizeZ / 2;
+
+    // attempt to adjust the localized grid to be aligned with the localized coordinates
+    if (!this.#localize.isMetric) {
+      xDelta = this.#localize.localLengthToMeters(Math.round(this.#localize.metersToLocalLength(xDelta)));
+      zDelta = this.#localize.localLengthToMeters(Math.round(this.#localize.metersToLocalLength(zDelta)));
+    }
+
+    gridHelper.position.set(
+      boundsMin.x + xDelta,
+      boundsMin.y,
+      boundsMin.z + zDelta,
+    );
     this.#scene.add(gridHelper);
   }
 
