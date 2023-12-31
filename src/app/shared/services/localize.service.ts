@@ -1,6 +1,9 @@
 import { Injectable, LOCALE_ID, inject } from '@angular/core';
 import { SettingsService } from './settings/settings.service';
 import { MeasurementSystem } from './settings/measurement-system';
+import { ISimpleVector3 } from '../models/simple-types';
+
+const metersPerFoot = 0.3408;
 
 export enum ByteFormatType {
   binary = 'binary',
@@ -26,15 +29,54 @@ type SupportedUnit =
 @Injectable()
 export class LocalizeService {
 
-  readonly #whitespace = '\u8239';
   readonly #settings = inject(SettingsService);
   readonly #localeId = inject(LOCALE_ID);
 
   readonly #unitLengthLookup = new Map<`${SupportedUnit}-${number}-${number}`, Intl.NumberFormat>();
   readonly #decimalLookup = new Map<`${number}-${number}`, Intl.NumberFormat>();
 
+  getLocalLengthUnits(): SupportedUnit {
+    return (
+      this.#settings.measurementSystem === MeasurementSystem.metric
+        ? 'meter'
+        : 'foot'
+    );
+  }
+
   metersToFeet(valueInMeters: number) {
-    return valueInMeters / 0.3408;
+    return valueInMeters / metersPerFoot;
+  }
+  feetToMeters(valueInFeet: number) {
+    return valueInFeet * metersPerFoot;
+  }
+
+  metersToLocalLength(valueInMeters: number) {
+    if (this.#settings.measurementSystem === MeasurementSystem.metric) {
+      return valueInMeters;
+    }
+    return this.metersToFeet(valueInMeters);
+  }
+
+  localLengthToMeters(localLength: number) {
+    if (this.#settings.measurementSystem === MeasurementSystem.metric) {
+      return localLength;
+    }
+    return this.feetToMeters(localLength);
+  }
+
+  vectorMetersToLocalLength({ x, y, z }: ISimpleVector3): ISimpleVector3 {
+    return {
+      x: this.metersToLocalLength(x),
+      y: this.metersToLocalLength(y),
+      z: this.metersToLocalLength(z),
+    };
+  }
+  vectorLocalLengthToMeters({ x, y, z }: ISimpleVector3): ISimpleVector3 {
+    return {
+      x: this.localLengthToMeters(x),
+      y: this.localLengthToMeters(y),
+      z: this.localLengthToMeters(z),
+    };
   }
 
   /**
@@ -42,10 +84,8 @@ export class LocalizeService {
    */
   formatLength(valueInMeters: number, minimumFractionDigits = 1, maximumFractionDigits = 2) {
 
-    const [value, unit] =
-      this.#settings.measurementSystem === MeasurementSystem.metric
-        ? [valueInMeters, 'meter'] as const
-        : [this.metersToFeet(valueInMeters), 'foot'] as const;
+    const value = this.metersToLocalLength(valueInMeters);
+    const unit = this.getLocalLengthUnits();
 
     const mapKey = `${unit}-${minimumFractionDigits}-${maximumFractionDigits}` as const;
 
