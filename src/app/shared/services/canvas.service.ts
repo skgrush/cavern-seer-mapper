@@ -10,11 +10,13 @@ import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 import { ModelManagerService } from './model-manager.service';
+import { LocalizeService } from './localize.service';
 
 @Injectable()
 export class CanvasService {
 
   readonly #modelManager = inject(ModelManagerService);
+  readonly #localize = inject(LocalizeService);
 
   readonly #renderClock = new Clock();
   readonly #scene = new Scene();
@@ -333,7 +335,7 @@ export class CanvasService {
     const size = Math.max(sizeX, sizeZ);
 
     this.#scene.remove(this.#bottomGrid);
-    const gridHelper = this.#bottomGrid = new GridHelper(size, size);
+    const gridHelper = this.#bottomGrid = new GridHelper(size, this.#localize.metersToLocalLength(size));
     gridHelper.position.x = boundsMin.x + sizeX / 2;
     gridHelper.position.y = boundsMin.y;
     gridHelper.position.z = boundsMin.z + sizeZ / 2;
