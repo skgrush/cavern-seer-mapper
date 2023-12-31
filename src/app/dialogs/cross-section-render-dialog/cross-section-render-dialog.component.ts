@@ -93,7 +93,7 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
       switchMap(renderer => {
         return this.formGroup.controls.dimensions.valueChanges.pipe(
           tap(dimensions => {
-            const newRatio = dimensions.width! / dimensions.height!;
+            const newRatio = dimensions.x! / dimensions.y!;
             const [newWidth, newHeight] = this.#calculateDimensions(newRatio);
             renderer.setSize(newWidth, newHeight);
           }),

@@ -16,7 +16,9 @@ export class VectorPipe implements PipeTransform {
     const ary: number[] = [];
     value.toArray(ary);
 
-    const parts = ary.map(p => this.#localize.formatNumber(p, minimumFractionDigits, maximumFractionDigits));
+    const parts = ary
+      .map(p => this.#localize.metersToLocalLength(p))
+      .map(p => this.#localize.formatNumber(p, minimumFractionDigits, maximumFractionDigits));
 
     return this.#unitListFormat.format(parts);
   }
