@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgIf } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,7 +24,7 @@ export type ICrossSectionRenderDialogData = {
   templateUrl: './cross-section-render-dialog.component.html',
   styleUrl: './cross-section-render-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CrossSectionDetailsFormComponent, MatDialogModule, MatButtonModule, MatIconModule, AsyncPipe, MatTooltipModule],
+  imports: [CrossSectionDetailsFormComponent, MatDialogModule, MatButtonModule, MatIconModule, AsyncPipe, NgIf, MatTooltipModule],
 })
 export class CrossSectionRenderDialogComponent implements AfterViewInit {
 

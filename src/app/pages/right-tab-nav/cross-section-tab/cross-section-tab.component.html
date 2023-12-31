@@ -5,15 +5,6 @@
 </p>
 
 <div mat-subheader>
-  <!-- <mat-form-field>
-    <mat-label>Selected cross-section</mat-label>
-    <mat-select [formControl]="formGroup.controls.selected">
-      <mat-option [value]="null"></mat-option>
-      @for (opt of crossSectionTool.crossSections$| async; track opt) {
-      <mat-option [value]="opt">{{ opt.identifier }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field> -->
 
   <mat-button-toggle-group [ngModel]="crossSectionTool.visibility$ | async"
     (ngModelChange)="crossSectionTool.toggleVisibility($event)">

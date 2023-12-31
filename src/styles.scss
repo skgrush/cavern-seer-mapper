@@ -25,3 +25,18 @@ p>mat-icon {
 .form-fields-grid {
   display: grid;
 }
+
+mat-snack-bar-container {
+
+  &.snack-panel-error {
+    .mdc-snackbar__surface {
+      background-color: var(--mat-form-field-error-text-color);
+    }
+  }
+
+  &.snack-panel-info {
+    .mdc-snackbar__surface {
+      // background-color: var(--mat-form-field-error-text-color);
+    }
+  }
+}

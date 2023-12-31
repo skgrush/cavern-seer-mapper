@@ -218,6 +218,7 @@ export class ModelLoadService {
       if (unzipEntry.dir) {
         // entry is a directory
         if (unzipEntry.children.length === 0) {
+          // entry is an *empty* directory
           return of({
             result: GroupRenderModel.fromModels(unzipEntry.name, []),
             errors: [],
@@ -303,6 +304,7 @@ export class ModelLoadService {
     type T = TLoader extends Type<Loader<infer TInner>> ? TInner : never;
 
     return new Observable<{ result?: T, errors: Error[] }>(subscriber => {
+      let loadedSoFar = 0;
       const loader = new loaderType();
       loader.load(
         url.toString(),
@@ -314,7 +316,9 @@ export class ModelLoadService {
           subscriber.complete();
         },
         prog => {
-          progress?.addToLoadedCount(prog.loaded);
+          const diff = prog.loaded - loadedSoFar;
+          loadedSoFar = prog.loaded;
+          progress?.addToLoadedCount(diff);
         },
         (error: any) => {
           subscriber.next({

@@ -1,0 +1,15 @@
+@if((progress.progress$ | async); as progress) {
+
+@if(progress.active) {
+<mat-progress-spinner [mode]="progress.determinate ? 'determinate' : 'indeterminate'"
+  [value]="progress.loaded / progress.total * 100" />
+
+@if(progress.determinate) {
+<span>{{ progress.loaded | bytes }} / {{ progress.total | bytes }}</span>
+} @else {
+<span>Loading...</span>
+}
+
+}
+
+}

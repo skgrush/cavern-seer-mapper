@@ -56,6 +56,7 @@
         justify-self: center;
         align-self: end;
         margin-bottom: 1em;
+        z-index: 2;
       }
 
       &>mapper-canvas {
@@ -69,6 +70,13 @@
         grid-area: main;
         justify-self: end;
         align-self: end;
+        z-index: 1;
+      }
+
+      &>mapper-file-url-loader {
+        grid-area: main;
+        justify-self: center;
+        align-self: center;
       }
     }
   }
@@ -76,6 +84,4 @@
   mat-sidenav-content {
     overflow: hidden;
   }
-
-
 }

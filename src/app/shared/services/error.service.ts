@@ -1,6 +1,6 @@
 import { ErrorHandler, Injectable, inject } from '@angular/core';
 
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { AlertService, AlertType } from './alert.service';
 
 class UncaughtError extends Error {
 
@@ -16,11 +16,11 @@ export class ErrorService implements ErrorHandler {
     this.alertError(new UncaughtError(error));
   }
 
-  readonly #snackbar = inject(MatSnackBar);
+  readonly #alert = inject(AlertService);
 
   alertError(error: Error) {
     console.error(error);
-    this.#snackbar.open(`${error}`, 'X', {
+    this.#alert.alert(AlertType.error, `${error}`, 'X', {
       duration: Infinity,
     });
   }
