@@ -401,7 +401,8 @@ export class CanvasService {
     this.#rendererMap.set(this.rendererSymbol, new WeakRef(this.#renderer));
     this.#renderer.autoClear = false;
     this.#renderer.setSize(width, height);
-    // TODO: setting pixel ratio screws with raycasting??
+    // #TODO: #10: https://github.com/skgrush/cavern-seer-mapper/issues/10
+    // // setting pixel ratio screws with raycasting??
     // this.#renderer.setPixelRatio(pixelRatio);
 
     this.#orthoCamera = this.#buildNewCamera(width, height);
