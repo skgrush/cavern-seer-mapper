@@ -340,6 +340,7 @@ export class CanvasService {
     let xDelta = sizeX / 2;
     let zDelta = sizeZ / 2;
 
+    // TODO: #9 https://github.com/skgrush/cavern-seer-mapper/issues/9
     // attempt to adjust the localized grid to be aligned with the localized coordinates
     if (!this.#localize.isMetric) {
       xDelta = this.#localize.localLengthToMeters(Math.round(this.#localize.metersToLocalLength(xDelta)));
