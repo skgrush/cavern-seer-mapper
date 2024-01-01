@@ -1,6 +1,7 @@
 {
   "name": "CavernSeer Mapper",
   "short_name": "CavernSeer Mapper",
+  "description": "Map viewer and builder for compositing and annotating 3D models.",
   "theme_color": "#ffffff",
   "background_color": "#303030",
   "display": "standalone",

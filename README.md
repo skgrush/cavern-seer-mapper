@@ -1,3 +1,3 @@
 # CavernSeer Mapper
 
-Map viewer and analysis tools for OBJs and similar models.
+Map viewer and builder for compositing and annotating 3D models.
