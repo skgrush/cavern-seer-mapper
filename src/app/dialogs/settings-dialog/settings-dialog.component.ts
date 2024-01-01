@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -27,6 +27,7 @@ export class SettingsDialogComponent implements OnInit {
 
   readonly #destroyRef = inject(DestroyRef);
   readonly #settings = inject(SettingsService);
+  readonly #document = inject(DOCUMENT);
 
   readonly formGroup = new FormGroup({
     measurementSystem: new FormControl(undefined as MeasurementSystem | undefined, { validators: [Validators.required], nonNullable: true }),
@@ -46,5 +47,6 @@ export class SettingsDialogComponent implements OnInit {
 
   save() {
     this.#settings.updateSettings(this.formGroup.value);
+    this.#document.location.reload();
   }
 }

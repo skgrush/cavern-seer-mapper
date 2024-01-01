@@ -10,11 +10,13 @@ import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { BehaviorSubject, debounceTime, filter } from 'rxjs';
-import { Vector3 } from 'three';
 import { CrossSectionDetailsForm, CrossSectionDetailsFormComponent } from "../../../shared/components/cross-section-details-form/cross-section-details-form.component";
+import { zeroVector3 } from '../../../shared/constants/zero-vectors';
 import { CrossSectionAnnotation } from '../../../shared/models/annotations/cross-section.annotation';
+import { ISimpleVector3, vector3FromSimpleVector3 } from '../../../shared/models/simple-types';
 import { ignoreNullish } from '../../../shared/operators/ignore-nullish';
 import { VectorPipe } from '../../../shared/pipes/vector.pipe';
+import { LocalizeService } from '../../../shared/services/localize.service';
 import { CrossSectionToolService } from '../../../shared/services/tools/cross-section-tool.service';
 
 @Component({
@@ -28,6 +30,7 @@ import { CrossSectionToolService } from '../../../shared/services/tools/cross-se
 export class CrossSectionTabComponent {
   readonly #dialog = inject(MatDialog);
   readonly crossSectionTool = inject(CrossSectionToolService);
+  readonly #localize = inject(LocalizeService);
 
   readonly dialogOpen$ = new BehaviorSubject(false);
 
@@ -40,9 +43,9 @@ export class CrossSectionTabComponent {
         z: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
       }),
       dimensions: new FormGroup({
-        width: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
-        height: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
-        depth: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(1)] }),
+        x: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(0.1)] }),
+        y: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(0.1)] }),
+        z: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(0.1)] }),
       }),
       rotationDegrees: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
     }) satisfies CrossSectionDetailsForm,
@@ -57,16 +60,8 @@ export class CrossSectionTabComponent {
       this.formGroup.reset({
         selected: selected ? [selected] : [],
         details: {
-          position: {
-            x: pos?.x ?? 0,
-            y: pos?.y ?? 0,
-            z: pos?.z ?? 0,
-          },
-          dimensions: {
-            width: dims?.x ?? 0,
-            height: dims?.y ?? 0,
-            depth: dims?.z ?? 0,
-          },
+          position: this.#localize.vectorMetersToLocalLength(pos ?? zeroVector3),
+          dimensions: this.#localize.vectorMetersToLocalLength(dims ?? zeroVector3),
           rotationDegrees: selected?.angleToNorthAroundY ?? 0,
         }
       }, {
@@ -88,7 +83,11 @@ export class CrossSectionTabComponent {
       if (!selected || !this.formGroup.valid) {
         return;
       }
-      const posVec = new Vector3(pos.x, pos.y, pos.z);
+
+      const posVec = vector3FromSimpleVector3(
+        this.#localize.vectorLocalLengthToMeters(pos as ISimpleVector3)
+      );
+
       this.crossSectionTool.changeCrossSectionPosition(selected, posVec);
     });
 
@@ -102,7 +101,9 @@ export class CrossSectionTabComponent {
         return;
       }
 
-      const dimsVec = new Vector3(dims.width, dims.height, dims.depth);
+      const dimsVec = vector3FromSimpleVector3(
+        this.#localize.vectorLocalLengthToMeters(dims as ISimpleVector3),
+      );
       this.crossSectionTool.changeCrossSectionDimensions(selected, dimsVec);
     });
     this.formGroup.controls.details.controls.rotationDegrees.valueChanges.pipe(

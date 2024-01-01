@@ -10,11 +10,13 @@ import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 import { ModelManagerService } from './model-manager.service';
+import { LocalizeService } from './localize.service';
 
 @Injectable()
 export class CanvasService {
 
   readonly #modelManager = inject(ModelManagerService);
+  readonly #localize = inject(LocalizeService);
 
   readonly #renderClock = new Clock();
   readonly #scene = new Scene();
@@ -333,10 +335,23 @@ export class CanvasService {
     const size = Math.max(sizeX, sizeZ);
 
     this.#scene.remove(this.#bottomGrid);
-    const gridHelper = this.#bottomGrid = new GridHelper(size, size);
-    gridHelper.position.x = boundsMin.x + sizeX / 2;
-    gridHelper.position.y = boundsMin.y;
-    gridHelper.position.z = boundsMin.z + sizeZ / 2;
+    const gridHelper = this.#bottomGrid = new GridHelper(size, this.#localize.metersToLocalLength(size));
+
+    let xDelta = sizeX / 2;
+    let zDelta = sizeZ / 2;
+
+    // TODO: #9 https://github.com/skgrush/cavern-seer-mapper/issues/9
+    // attempt to adjust the localized grid to be aligned with the localized coordinates
+    if (!this.#localize.isMetric) {
+      xDelta = this.#localize.localLengthToMeters(Math.round(this.#localize.metersToLocalLength(xDelta)));
+      zDelta = this.#localize.localLengthToMeters(Math.round(this.#localize.metersToLocalLength(zDelta)));
+    }
+
+    gridHelper.position.set(
+      boundsMin.x + xDelta,
+      boundsMin.y,
+      boundsMin.z + zDelta,
+    );
     this.#scene.add(gridHelper);
   }
 
@@ -386,7 +401,8 @@ export class CanvasService {
     this.#rendererMap.set(this.rendererSymbol, new WeakRef(this.#renderer));
     this.#renderer.autoClear = false;
     this.#renderer.setSize(width, height);
-    // TODO: setting pixel ratio screws with raycasting??
+    // #TODO: #10: https://github.com/skgrush/cavern-seer-mapper/issues/10
+    // // setting pixel ratio screws with raycasting??
     // this.#renderer.setPixelRatio(pixelRatio);
 
     this.#orthoCamera = this.#buildNewCamera(width, height);

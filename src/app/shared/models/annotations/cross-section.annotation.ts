@@ -5,6 +5,7 @@ import { IMetadataCrossSectionV0 } from "../manifest/types.v0";
 import { simpleVector3FromVector3 } from "../simple-types";
 import { IMapperUserData } from "../user-data";
 import { BaseAnnotation } from "./base.annotation";
+import { LocalizeService } from "../../services/localize.service";
 
 export const degreesPerRadian = 180 / Math.PI;
 
@@ -45,6 +46,8 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   readonly #boxMesh: Mesh<BoxGeometry>;
   readonly #group: Group;
 
+  readonly #localize: LocalizeService;
+
   #camera?: OrthographicCamera;
   #measureLine?: Line<BufferGeometry>;
 
@@ -53,8 +56,11 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     dimensions: Vector3,
     centerPoint: Vector3,
     radiansToNorthAroundY: number,
+    localize: LocalizeService,
   ) {
     super();
+
+    this.#localize = localize;
 
     this.#identifier = identifier;
     this.#radiansToNorthAroundY = radiansToNorthAroundY;
@@ -222,15 +228,18 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   }
 
   *#getMeasureLinePoints() {
-    const xVector = new Vector3(1, 0, 0);
+    const unit = this.#localize.localLengthToMeters(1);
+    const xVector = new Vector3(unit, 0, 0);
 
     const width = this.dimensions.x;
 
+    const totalCount = this.#localize.metersToLocalLength(width + 2);
+
     const leftOrigin = new Vector3()
-      .sub(xVector.clone().multiplyScalar(width / 2 + 1));
+      .sub(xVector.clone().multiplyScalar(totalCount / 2 + 1));
 
     const currentPoint = leftOrigin.clone();
-    for (let i = 0; i < width + 2; ++i) {
+    for (let i = 0; i < totalCount; ++i) {
       yield currentPoint.clone();
 
       currentPoint.add(xVector);

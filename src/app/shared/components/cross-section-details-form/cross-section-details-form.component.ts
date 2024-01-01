@@ -16,9 +16,9 @@ export type CrossSectionDetailsForm = FormGroup<{
     z: FormControl<number>,
   }>,
   dimensions: FormGroup<{
-    width: FormControl<number>,
-    height: FormControl<number>,
-    depth: FormControl<number>,
+    x: FormControl<number>,
+    y: FormControl<number>,
+    z: FormControl<number>,
   }>,
   rotationDegrees: FormControl<number>,
 }>;

@@ -5,15 +5,12 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, filter, startWith, switchMap, tap } from 'rxjs';
+import { zeroVector3 } from '../../constants/zero-vectors';
 import { simpleVector3Equality } from '../../functions/vector-equality';
 import { BaseRenderModel, BaseVisibleRenderModel } from '../../models/render/base.render-model';
 import { ISimpleVector3 } from '../../models/simple-types';
+import { LocalizeService } from '../../services/localize.service';
 
-const zeroVec = Object.freeze({
-  x: 0,
-  y: 0,
-  z: 0,
-});
 
 @Component({
   selector: 'mapper-model-detail-form',
@@ -25,6 +22,8 @@ const zeroVec = Object.freeze({
 })
 export class ModelDetailFormComponent implements OnInit {
   readonly #destroyRef = inject(DestroyRef);
+  readonly #localize = inject(LocalizeService);
+
   readonly #model = new BehaviorSubject<BaseRenderModel<any>>(undefined!);
 
   @Input({ required: true })
@@ -50,13 +49,8 @@ export class ModelDetailFormComponent implements OnInit {
       startWith(undefined),
       tap(() => {
         const model = this.model;
-        const { x, y, z } = model.position;
         this.formGroup.reset({
-          position: {
-            x,
-            y,
-            z,
-          }
+          position: this.#localize.vectorMetersToLocalLength(model.position),
         }, {
           emitEvent: false,
         });
@@ -66,15 +60,14 @@ export class ModelDetailFormComponent implements OnInit {
     this.formGroup.controls.position.valueChanges.pipe(
       takeUntilDestroyed(this.#destroyRef),
       debounceTime(50),
-      filter(() => this.formGroup.valid),
+      filter(() => this.formGroup.controls.position.valid),
       distinctUntilChanged(simpleVector3Equality),
       tap((position) => {
         if (!(this.model instanceof BaseVisibleRenderModel)) {
           return;
         }
-        const positionVector = { ...zeroVec, ...(position) as ISimpleVector3 };
-        console.info('position changed', position);
-        this.model.setPosition(positionVector);
+        const positionVector = { ...zeroVector3, ...(position) as ISimpleVector3 };
+        this.model.setPosition(this.#localize.vectorLocalLengthToMeters(positionVector));
       })
     ).subscribe();
   }
