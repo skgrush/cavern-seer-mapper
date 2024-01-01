@@ -10,7 +10,8 @@ import { BaseAnnotation } from "../annotations/base.annotation";
 import { ModelChangeType } from "../model-change-type.enum";
 
 /**
- * TODO: basically unimplemented so far...
+ * TODO: #11: https://github.com/skgrush/cavern-seer-mapper/issues/11
+ * Basically unimplemented so far...
  */
 export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> {
   override readonly type = FileModelType.gLTF;
