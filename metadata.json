@@ -4,5 +4,8 @@
   },
   "mapper/ngsw.json": {
     "CacheControl": "public, must-revalidate, proxy-revalidate, max-age=0"
+  },
+  "mapper/manifest.webmanifest": {
+    "CacheControl": "public, proxy-revalidate, max-age=28800"
   }
 }
