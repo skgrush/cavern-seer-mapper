@@ -4,13 +4,16 @@ import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctU
 import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
+import { traverseMatrixUpdate } from '../functions/traverse-matrix-update';
 import { ModelChangeType } from '../models/model-change-type.enum';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
-import { ModelManagerService } from './model-manager.service';
 import { LocalizeService } from './localize.service';
+import { ModelManagerService } from './model-manager.service';
+
+// Object3D.DEFAULT_MATRIX_WORLD_AUTO_UPDATE = false;
 
 @Injectable()
 export class CanvasService {
@@ -353,6 +356,13 @@ export class CanvasService {
       boundsMin.z + zDelta,
     );
     this.#scene.add(gridHelper);
+
+    traverseMatrixUpdate(
+      gridHelper,
+      false,
+      false,
+      true,
+    );
   }
 
   /**

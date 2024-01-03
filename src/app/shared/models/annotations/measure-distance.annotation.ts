@@ -5,6 +5,7 @@ import { RenderingOrder } from "../rendering-layers";
 import { simpleVector3FromVector3 } from "../simple-types";
 import { IMapperUserData } from "../user-data";
 import { BaseAnnotation } from "./base.annotation";
+import { traverseMatrixUpdate } from "../../functions/traverse-matrix-update";
 
 
 export class MeasureDistanceAnnotation extends BaseAnnotation {
@@ -77,6 +78,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
 
     this.#lineGroup = new Group();
     this.#lineGroup.add(this.#line);
+    traverseMatrixUpdate(this.#lineGroup, false, false, true);
 
     (this.#lineGroup.userData as IMapperUserData).isAnnotationGroup = true;
 
@@ -127,6 +129,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
       this.anchorPoint,
       ...this.#additionalPoints,
     ]);
+    this.#line.updateMatrix();
   }
 
   override rename(newIdentifier: string): void {
@@ -152,6 +155,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
 
   override addToGroup(group: Group): void {
     group.add(this.#lineGroup);
+    this.#lineGroup.updateMatrix();
   }
   override removeFromGroup(group: Group): void {
     group.remove(this.#lineGroup);

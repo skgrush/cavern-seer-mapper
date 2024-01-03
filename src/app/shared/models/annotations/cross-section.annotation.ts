@@ -73,6 +73,8 @@ export class CrossSectionAnnotation extends BaseAnnotation {
       transparent: true,
     }));
     this.#boxMesh.frustumCulled = false;
+    this.#boxMesh.matrixWorldAutoUpdate = false;
+    this.#boxMesh.matrixWorldNeedsUpdate = true;
 
     this.#group = new Group();
     (this.#group as IMapperUserData).isAnnotationGroup = true;
@@ -81,6 +83,8 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
     this.#group.rotateY(-this.#radiansToNorthAroundY);
     this.#group.position.copy(centerPoint);
+    this.#group.matrixWorldAutoUpdate = false;
+    this.#group.matrixWorldNeedsUpdate = true;
   }
 
   #addCamera() {
@@ -88,6 +92,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
       throw new Error('already have a camera');
     }
     this.#camera = new OrthographicCamera();
+    this.#camera.matrixWorldAutoUpdate = false;
     this.#group.add(this.#camera);
     this.#updateCamera();
 
@@ -116,6 +121,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     cam.near = 0;
     cam.far = dims.z;
     cam.updateProjectionMatrix();
+    cam.matrixWorldNeedsUpdate = true;
   }
 
   #drawLine() {
@@ -126,6 +132,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
       new BufferGeometry(),
       new LineBasicMaterial({ color: 0xFFFFFF }),
     );
+    this.#measureLine.matrixWorldAutoUpdate = false;
 
     this.#updateLine();
   }
@@ -140,6 +147,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     ]);
     this.#measureLine.computeLineDistances();
     this.#measureLine.position.set(0, -this.dimensions.y / 2 + 0.5, -0.5);
+    this.#measureLine.matrixWorldNeedsUpdate = true;
   }
 
   changeDimensions(newDimensions: Vector3) {
@@ -150,6 +158,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
     this.#boxMesh.position.setZ(-newDimensions.z / 2);
     this.#boxMesh.geometry = new BoxGeometry(newDimensions.x, newDimensions.y, newDimensions.z);
+    this.#boxMesh.matrixWorldNeedsUpdate = true;
     this.#dimensions = newDimensions.clone();
     this.#updateCamera();
     this.#updateLine();
@@ -159,6 +168,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#radiansToNorthAroundY = angleDegrees / degreesPerRadian;
 
     this.#group.setRotationFromAxisAngle(new Vector3(0, 1, 0), -this.#radiansToNorthAroundY);
+    this.#group.matrixWorldNeedsUpdate = true;
 
     this.#updateCamera();
     this.#updateLine();
@@ -166,6 +176,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
   changeCenterPoint(pos: Vector3) {
     this.#group.position.copy(pos);
+    this.#group.matrixWorldNeedsUpdate = true;
   }
 
   override rename(newIdentifier: string): void {
@@ -185,6 +196,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     }
   }
   override addToGroup(group: Group<Object3DEventMap>): void {
+    this.#group.matrixWorldNeedsUpdate = true;
     group.add(this.#group);
   }
   override removeFromGroup(group: Group<Object3DEventMap>): void {

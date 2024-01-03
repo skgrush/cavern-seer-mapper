@@ -36,6 +36,8 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     super();
     this.identifier = identifier;
     this.#group.name = identifier;
+    this.#group.matrixWorldAutoUpdate = false;
+    this.#group.matrixWorldNeedsUpdate = true;
   }
 
   public static fromModels(identifier: string, models: BaseRenderModel<any>[]) {
@@ -97,6 +99,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
   addToScene(scene: Scene) {
     scene.add(this.#group);
+    this.#group.matrixWorldNeedsUpdate = true;
   }
   removeFromScene(scene: Scene) {
     scene.remove(this.#group);
@@ -126,6 +129,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#group.position.set(x, y, z);
+    this.#group.matrixWorldNeedsUpdate = true;
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
   }
@@ -141,6 +145,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     if (this.#group.parent !== null) {
       throw new Error('attempted to add GroupRenderModel to group while model already has parent');
     }
+    this.#group.matrixWorldNeedsUpdate = true;
     group.add(this.#group);
   }
   override removeFromGroup(group: Group<Object3DEventMap>): void {

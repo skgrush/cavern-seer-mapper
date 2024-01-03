@@ -8,6 +8,7 @@ import { UploadFileModel } from "../upload-file-model";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { IMapperUserData } from "../user-data";
 import { ModelChangeType } from "../model-change-type.enum";
+import { traverseMatrixUpdate } from "../../functions/traverse-matrix-update";
 
 export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
@@ -35,6 +36,8 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     this.#object = object;
     this.#blob = blob;
     this.#boxHelper = new BoxHelper(object);
+
+    traverseMatrixUpdate(this.#object, false, false, true);
 
     this.identifier = identifier;
     this.comment = comment;
@@ -67,6 +70,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#object.position.set(x, y, z);
+    traverseMatrixUpdate(this.#object, undefined, undefined, true);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
   }
@@ -84,6 +88,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
       throw new Error('attempt to add ObjRenderModel to group while model already has a parent');
     }
     group.add(this.#object);
+    traverseMatrixUpdate(this.#object, undefined, undefined, true);
   }
   override removeFromGroup(group: Group): void {
     group.remove(this.#object);

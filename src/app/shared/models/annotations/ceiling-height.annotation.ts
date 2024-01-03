@@ -9,6 +9,7 @@ import { simpleVector3FromVector3 } from "../simple-types";
 import { IMapperUserData } from "../user-data";
 import { BaseAnnotation } from "./base.annotation";
 import { droidSansFont } from "./font";
+import { traverseMatrixUpdate } from "../../functions/traverse-matrix-update";
 
 export class CeilingHeightAnnotation extends BaseAnnotation {
   override readonly type = AnnotationType.ceilingHeight;
@@ -64,6 +65,7 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     this.#lineGroup = new Group();
     this.#lineGroup.add(this.#line, textMesh, circleMesh);
     this.#lineGroup.position.copy(this.anchorPoint);
+    traverseMatrixUpdate(this.#lineGroup, false, false, true);
 
     (this.#lineGroup.userData as IMapperUserData).isAnnotationGroup = true;
 
@@ -94,6 +96,7 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
 
   override addToGroup(group: Group): void {
     group.add(this.#lineGroup);
+    traverseMatrixUpdate(this.#lineGroup, undefined, undefined, true);
   }
   override removeFromGroup(group: Group): void {
     group.remove(this.#lineGroup);
