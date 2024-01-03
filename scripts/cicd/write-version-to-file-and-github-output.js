@@ -15,11 +15,11 @@ if (require.main === module) {
 async function main() {
 
   const argBuildNumber = process.argv[2]
-  const buildNumber = argBuildNumber ? `+${argBuildNumber}` : undefined
+  const buildNumber = argBuildNumber ? `${argBuildNumber}` : undefined
 
   const packageVersion = getVersion()
 
-  const version = packageVersion + buildNumber
+  const version = packageVersion + (buildNumber ? `+${buildNumber}` : '')
 
   if (!buildNumber) {
     console.info('No build number provided')
