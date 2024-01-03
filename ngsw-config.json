@@ -1,6 +1,12 @@
 {
   "$schema": "./node_modules/@angular/service-worker/config/schema.json",
   "index": "/index.html",
+  "appData": {
+    "version": {
+      "version": "0.0.0-local",
+      "packageVersion": "0.0.0-local"
+    }
+  },
   "assetGroups": [
     {
       "name": "app",

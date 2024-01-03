@@ -28,7 +28,8 @@ import { INTL_COLLATOR } from './shared/tokens/intl-collator.token';
 import { INTL_LOCALE } from './shared/tokens/intl-locale.token';
 import { INTL_UNIT_LIST_FORMAT } from './shared/tokens/intl-unit-list-format.token';
 import { LOCAL_STORAGE } from './shared/tokens/local-storage.token';
-
+import { MAPPER_VERSION, VersionObject } from './shared/tokens/version.token';
+import versionObject from '../version.json';
 
 
 export const appConfig: ApplicationConfig = {
@@ -61,6 +62,7 @@ export const appConfig: ApplicationConfig = {
     },
     toolsProviders(),
     provideSettings(),
+    { provide: MAPPER_VERSION, useValue: versionObject satisfies VersionObject },
     { provide: LOCALE_ID, useFactory: () => globalThis.navigator.language },
     { provide: INTL_LOCALE, useFactory: (locale: string) => new Intl.Locale(locale), deps: [LOCALE_ID] },
     { provide: INTL_COLLATOR, useFactory: (locale: string) => new Intl.Collator(locale), deps: [LOCALE_ID] },
