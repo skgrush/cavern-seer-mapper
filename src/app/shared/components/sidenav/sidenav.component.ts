@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject } from
 import { MatListModule } from '@angular/material/list';
 import { DialogOpenerService } from '../../services/dialog-opener.service';
 import { ServiceWorkerService } from '../../services/service-worker.service';
+import { MAPPER_VERSION } from '../../tokens/version.token';
 
 @Component({
   selector: 'mapper-sidenav',
@@ -14,6 +15,7 @@ import { ServiceWorkerService } from '../../services/service-worker.service';
 })
 export class SidenavComponent {
 
+  readonly mapperVersion = inject(MAPPER_VERSION).version;
   readonly dialogOpener = inject(DialogOpenerService);
   readonly #serviceWorker = inject(ServiceWorkerService);
 
