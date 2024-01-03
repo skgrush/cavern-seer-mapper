@@ -357,12 +357,11 @@ export class CanvasService {
     );
     this.#scene.add(gridHelper);
 
-    traverseMatrixUpdate(
-      gridHelper,
-      false,
-      false,
-      true,
-    );
+    traverseMatrixUpdate(gridHelper, {
+      matrixAutoUpdate: false,
+      matrixWorldAutoUpdate: false,
+      shouldUpdateMatrix: true,
+    });
   }
 
   /**

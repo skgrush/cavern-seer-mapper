@@ -65,7 +65,11 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
     this.#lineGroup = new Group();
     this.#lineGroup.add(this.#line, textMesh, circleMesh);
     this.#lineGroup.position.copy(this.anchorPoint);
-    traverseMatrixUpdate(this.#lineGroup, false, false, true);
+    traverseMatrixUpdate(this.#lineGroup, {
+      matrixAutoUpdate: false,
+      matrixWorldAutoUpdate: false,
+      shouldUpdateMatrix: true,
+    });
 
     (this.#lineGroup.userData as IMapperUserData).isAnnotationGroup = true;
 
@@ -96,7 +100,7 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
 
   override addToGroup(group: Group): void {
     group.add(this.#lineGroup);
-    traverseMatrixUpdate(this.#lineGroup, undefined, undefined, true);
+    traverseMatrixUpdate(this.#lineGroup, { shouldUpdateMatrix: true });
   }
   override removeFromGroup(group: Group): void {
     group.remove(this.#lineGroup);

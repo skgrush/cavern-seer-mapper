@@ -78,7 +78,11 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
 
     this.#lineGroup = new Group();
     this.#lineGroup.add(this.#line);
-    traverseMatrixUpdate(this.#lineGroup, false, false, true);
+    traverseMatrixUpdate(this.#lineGroup, {
+      matrixAutoUpdate: false,
+      matrixWorldAutoUpdate: false,
+      shouldUpdateMatrix: true,
+    });
 
     (this.#lineGroup.userData as IMapperUserData).isAnnotationGroup = true;
 

@@ -2,10 +2,11 @@ import type { Object3D } from "three";
 
 export function traverseMatrixUpdate(
   entity: Object3D,
-  matrixWorldAutoUpdate?: boolean,
-  matrixAutoUpdate?: boolean,
-  shouldUpdateMatrix?: boolean,
-) {
+  { matrixWorldAutoUpdate, matrixAutoUpdate, shouldUpdateMatrix }: {
+    matrixWorldAutoUpdate?: boolean,
+    matrixAutoUpdate?: boolean,
+    shouldUpdateMatrix?: boolean,
+  }) {
   type Fn = undefined | ((o: Object3D) => void);
 
   let setMatrixWorldAutoUpdate: Fn;
