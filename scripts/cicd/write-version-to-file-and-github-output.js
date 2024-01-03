@@ -43,5 +43,11 @@ async function main() {
 
   const versionJsonPath = join(__dirname, '../../src/version.json')
 
-  await writeFile(versionJsonPath, JSON.stringify(versionObject))
+  await writeFile(versionJsonPath, JSON.stringify(versionObject, undefined, 2))
+
+  const ngswConfigPath = '../../ngsw-config.json'
+  const ngswConfigJson = require(ngswConfigPath)
+  ngswConfigJson.appData.version = versionObject
+
+  await writeFile(ngswConfigPath, JSON.stringify(ngswConfigJson, undefined, 2))
 }
