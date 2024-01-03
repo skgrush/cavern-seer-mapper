@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SwUpdate } from '@angular/service-worker';
 import { defer, tap } from 'rxjs';
 import { AlertService, AlertType } from './alert.service';
+import { VersionObject } from '../tokens/version.token';
 
 @Injectable()
 export class ServiceWorkerService {
@@ -21,8 +22,10 @@ export class ServiceWorkerService {
         case 'VERSION_READY':
           console.log('Current app version:', e.currentVersion.hash);
           console.log('New app version ready for use:', e.latestVersion.hash);
+          const newVersion = (e.latestVersion.appData as { version: undefined | VersionObject })?.version?.version;
+          const versionMessage = newVersion ? ` (${newVersion})` : '';
 
-          this.#alert.alert(AlertType.info, `New app version available, refresh to update.`, 'X', { duration: Infinity });
+          this.#alert.alert(AlertType.info, `New app version available${versionMessage}, refresh to update.`, 'X', { duration: Infinity });
           break;
         case 'VERSION_INSTALLATION_FAILED':
           console.log('Failed to install app version', e.version.hash, ':', e.error);
