@@ -26,7 +26,7 @@ jobs:
       - run: npm run build
         name: Build
 
-      - run: npm run migrate:cicd -- #--execute
+      - run: npm run migrate:cicd -- --execute
         name: Migrate
         env:
           ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
