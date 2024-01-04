@@ -22,7 +22,7 @@ import {
  * Copy of Three.JS's
  * {@link https://github.com/mrdoob/three.js/blob/de6dd45d7e5aa58fed0fbc1dbe53def3402b39cc/examples/jsm/helpers/ViewHelper.js}
  *
- *
+ * but not reliant on auto updated matrices.
  */
 export class MyViewHelper extends Object3D {
   readonly camera: Camera;

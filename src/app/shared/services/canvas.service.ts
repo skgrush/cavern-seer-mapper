@@ -296,7 +296,7 @@ export class CanvasService {
       this.#wasAnimatingCompass = false;
     }
 
-    this.#renderer.clear();
+    // this.#renderer.clear();
     this.#renderer.render(this.#scene, this.#orthoCamera!);
     this.#compass?.render(this.#renderer);
 
