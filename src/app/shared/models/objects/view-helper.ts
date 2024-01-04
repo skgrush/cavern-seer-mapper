@@ -82,7 +82,7 @@ export class MyViewHelper extends Object3D {
 
     this.orthoCamera.position.set(0, 0, 2);
     this.orthoCamera.updateMatrix(); // Not in original implementation
-    this.orthoCamera.updateMatrixWorld(); // Not in original implementation
+    this.orthoCamera.updateMatrixWorld(true); // Not in original implementation
 
     this.xAxis = new Mesh(this.geometry, this.getAxisMaterial(color1));
     this.yAxis = new Mesh(this.geometry, this.getAxisMaterial(color2));
@@ -131,6 +131,8 @@ export class MyViewHelper extends Object3D {
     this.interactiveObjects.push(this.negXAxisHelper);
     this.interactiveObjects.push(this.negYAxisHelper);
     this.interactiveObjects.push(this.negZAxisHelper);
+
+    this.traverse(c => c.updateMatrix());
   }
 
   render(renderer: WebGLRenderer) {
@@ -140,7 +142,8 @@ export class MyViewHelper extends Object3D {
     const viewport = this.viewport;
 
     this.quaternion.copy(this.camera.quaternion).invert();
-    this.updateMatrixWorld();
+    this.updateMatrix();
+    this.updateMatrixWorld(true);
 
     point.set(0, 0, 1);
     point.applyQuaternion(this.camera.quaternion);
@@ -241,7 +244,7 @@ export class MyViewHelper extends Object3D {
 
     q1.rotateTowards(q2, step);
     this.camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.center);
-    this.camera.updateMatrixWorld();
+    this.camera.updateMatrixWorld(true);
 
     // animate orientation
 

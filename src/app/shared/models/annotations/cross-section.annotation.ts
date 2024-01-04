@@ -83,10 +83,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#group.rotateY(-this.#radiansToNorthAroundY);
     this.#group.position.copy(centerPoint);
 
-    traverseMatrixUpdate(this.#group, {
-      matrixAutoUpdate: false,
-      shouldUpdateMatrix: true,
-    });
+    traverseMatrixUpdate(this.#group);
   }
 
   #addCamera() {
@@ -94,7 +91,6 @@ export class CrossSectionAnnotation extends BaseAnnotation {
       throw new Error('already have a camera');
     }
     this.#camera = new OrthographicCamera();
-    this.#camera.matrixWorldAutoUpdate = false;
     this.#group.add(this.#camera);
     this.#updateCamera();
 
@@ -124,7 +120,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     cam.far = dims.z;
     cam.updateProjectionMatrix();
     cam.updateMatrix();
-    cam.updateMatrixWorld();
+    cam.updateMatrixWorld(true);
   }
 
   #drawLine() {
@@ -231,7 +227,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
         this.#drawLine();
         this.#group.add(this.#measureLine!);
-        this.#measureLine!.updateMatrixWorld();
+        this.#measureLine!.updateMatrixWorld(true);
 
         return new Subject<void>();
       }).pipe(

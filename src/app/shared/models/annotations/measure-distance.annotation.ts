@@ -78,11 +78,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
 
     this.#lineGroup = new Group();
     this.#lineGroup.add(this.#line);
-    traverseMatrixUpdate(this.#lineGroup, {
-      matrixAutoUpdate: false,
-      matrixWorldAutoUpdate: false,
-      shouldUpdateMatrix: true,
-    });
+    traverseMatrixUpdate(this.#lineGroup);
 
     (this.#lineGroup.userData as IMapperUserData).isAnnotationGroup = true;
 
@@ -134,7 +130,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
       ...this.#additionalPoints,
     ]);
     this.#line.updateMatrix();
-    this.#line.updateMatrixWorld();
+    this.#line.updateMatrixWorld(true);
   }
 
   override rename(newIdentifier: string): void {
@@ -161,7 +157,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
   override addToGroup(group: Group): void {
     group.add(this.#lineGroup);
     this.#lineGroup.updateMatrix();
-    this.#lineGroup.updateMatrixWorld();
+    this.#lineGroup.updateMatrixWorld(true);
   }
   override removeFromGroup(group: Group): void {
     group.remove(this.#lineGroup);

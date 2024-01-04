@@ -37,8 +37,6 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     super();
     this.identifier = identifier;
     this.#group.name = identifier;
-    this.#group.matrixWorldAutoUpdate = false;
-    this.#group.matrixWorldNeedsUpdate = true;
   }
 
   public static fromModels(identifier: string, models: BaseRenderModel<any>[]) {
@@ -101,13 +99,15 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   addToScene(scene: Scene) {
     scene.add(this.#group);
     this.#group.updateMatrix();
+    this.#group.updateMatrixWorld(true);
   }
+
   removeFromScene(scene: Scene) {
     scene.remove(this.#group);
   }
 
   getBoundingBox() {
-    traverseMatrixUpdate(this.#group, { shouldUpdateMatrix: true });
+    traverseMatrixUpdate(this.#group);
     const boxHelper = new BoxHelper(this.#group);
     boxHelper.geometry.computeBoundingBox();
     const box = boxHelper.geometry.boundingBox!;

@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
 import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, Object3D, OrthographicCamera, Raycaster, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { traverseMatrixUpdate } from '../functions/traverse-matrix-update';
 import { ModelChangeType } from '../models/model-change-type.enum';
 import { MyViewHelper } from '../models/objects/view-helper';
 import { GroupRenderModel } from '../models/render/group.render-model';
@@ -14,6 +13,7 @@ import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
 
 Object3D.DEFAULT_MATRIX_WORLD_AUTO_UPDATE = false;
+Object3D.DEFAULT_MATRIX_AUTO_UPDATE = false;
 
 @Injectable()
 export class CanvasService {
@@ -326,7 +326,7 @@ export class CanvasService {
     controls.target.set(0, 0, 0);
 
     controls.update();
-    controls.object.updateMatrixWorld();
+    controls.object.updateMatrixWorld(true);
   }
 
   #rebuildBottomGrid(bounds: Box3) {
@@ -362,11 +362,8 @@ export class CanvasService {
     );
     this.#scene.add(gridHelper);
 
-    traverseMatrixUpdate(gridHelper, {
-      matrixAutoUpdate: false,
-      matrixWorldAutoUpdate: false,
-      shouldUpdateMatrix: true,
-    });
+    gridHelper.updateMatrix();
+    gridHelper.updateMatrixWorld(true);
   }
 
   /**
@@ -420,6 +417,7 @@ export class CanvasService {
     // this.#renderer.setPixelRatio(pixelRatio);
 
     this.#orthoCamera = this.#buildNewCamera(width, height);
+    this.#orthoCamera.matrixAutoUpdate = true;
     this.#orthoControls = new MapControls(this.#orthoCamera, canvas);
     this.#scene.add(this.#orthoCamera);
 

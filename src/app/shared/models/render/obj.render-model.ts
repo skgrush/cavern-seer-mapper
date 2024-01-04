@@ -35,13 +35,11 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     super();
     this.#object = object;
     this.#blob = blob;
-    this.#boxHelper = new BoxHelper(object);
 
-    traverseMatrixUpdate(this.#object, {
-      matrixAutoUpdate: false,
-      matrixWorldAutoUpdate: false,
-      shouldUpdateMatrix: true,
-    });
+    traverseMatrixUpdate(this.#object);
+
+    this.#boxHelper = new BoxHelper(object);
+    this.#boxHelper.updateMatrix();
 
     this.identifier = identifier;
     this.comment = comment;
@@ -74,7 +72,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#object.position.set(x, y, z);
-    traverseMatrixUpdate(this.#object, { shouldUpdateMatrix: true });
+    traverseMatrixUpdate(this.#object);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
   }
@@ -92,7 +90,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
       throw new Error('attempt to add ObjRenderModel to group while model already has a parent');
     }
     group.add(this.#object);
-    traverseMatrixUpdate(this.#object, { shouldUpdateMatrix: true });
+    traverseMatrixUpdate(this.#object);
   }
   override removeFromGroup(group: Group): void {
     group.remove(this.#object);
