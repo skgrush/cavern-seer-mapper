@@ -1,5 +1,6 @@
 import { Subject, Subscription } from "rxjs";
 import { BoxHelper, Group, Object3DEventMap, Scene } from "three";
+import { traverseMatrixUpdate } from "../../functions/traverse-matrix-update";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { ModelChangeType } from "../model-change-type.enum";
@@ -99,13 +100,14 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
   addToScene(scene: Scene) {
     scene.add(this.#group);
-    this.#group.matrixWorldNeedsUpdate = true;
+    this.#group.updateMatrix();
   }
   removeFromScene(scene: Scene) {
     scene.remove(this.#group);
   }
 
   getBoundingBox() {
+    traverseMatrixUpdate(this.#group, { shouldUpdateMatrix: true });
     const boxHelper = new BoxHelper(this.#group);
     boxHelper.geometry.computeBoundingBox();
     const box = boxHelper.geometry.boundingBox!;
@@ -129,7 +131,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#group.position.set(x, y, z);
-    this.#group.matrixWorldNeedsUpdate = true;
+    this.#group.updateMatrix();
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
   }

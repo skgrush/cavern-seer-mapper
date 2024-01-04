@@ -21,6 +21,8 @@ export function traverseMatrixUpdate(
 
   let updateMatrix: Fn;
   if (shouldUpdateMatrix) {
+    entity.updateMatrixWorld(true);
+
     updateMatrix = o => o.updateMatrix();
   }
 

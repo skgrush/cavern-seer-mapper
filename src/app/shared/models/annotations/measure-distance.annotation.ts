@@ -134,6 +134,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
       ...this.#additionalPoints,
     ]);
     this.#line.updateMatrix();
+    this.#line.updateMatrixWorld();
   }
 
   override rename(newIdentifier: string): void {
@@ -160,6 +161,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
   override addToGroup(group: Group): void {
     group.add(this.#lineGroup);
     this.#lineGroup.updateMatrix();
+    this.#lineGroup.updateMatrixWorld();
   }
   override removeFromGroup(group: Group): void {
     group.remove(this.#lineGroup);
