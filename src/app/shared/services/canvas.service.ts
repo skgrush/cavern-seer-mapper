@@ -5,6 +5,7 @@ import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, Ort
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
 import { ModelChangeType } from '../models/model-change-type.enum';
+import { ControlViewHelper } from '../models/objects/control-view-helper';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
@@ -37,7 +38,7 @@ export class CanvasService {
   #orthoControls?: MapControls;
 
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
-  #compass?: ViewHelper;
+  #compass?: ControlViewHelper;
 
   readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
   #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
@@ -419,7 +420,7 @@ export class CanvasService {
         if (!ele || !this.#orthoControls || !this.#renderer?.domElement) {
           return undefined;
         }
-        const compass = new ViewHelper(this.#orthoControls.object, this.#renderer.domElement);
+        const compass = new ControlViewHelper(this.#orthoControls.object, this.#renderer.domElement);
         ele.addEventListener('pointerup', e => compass.handleClick(e));
         this.#compass = compass;
         return compass;
