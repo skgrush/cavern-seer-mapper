@@ -278,6 +278,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
         this.#preview.origin,
         this.#preview.dest,
       ]);
+      this.#preview.lineAnno.object.matrixWorldNeedsUpdate = true;
 
     } else {
       const group = this.#currentModelRef?.deref();
@@ -310,8 +311,6 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
         dest: destPoint,
         lineAnno,
       };
-
-
 
       group.addAnnotation(lineAnno);
     }

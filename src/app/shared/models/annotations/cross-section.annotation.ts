@@ -116,6 +116,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     cam.near = 0;
     cam.far = dims.z;
     cam.updateProjectionMatrix();
+    cam.matrixWorldNeedsUpdate = true;
   }
 
   #drawLine() {
@@ -150,6 +151,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
     this.#boxMesh.position.setZ(-newDimensions.z / 2);
     this.#boxMesh.geometry = new BoxGeometry(newDimensions.x, newDimensions.y, newDimensions.z);
+    this.#boxMesh.matrixWorldNeedsUpdate = true;
     this.#dimensions = newDimensions.clone();
     this.#updateCamera();
     this.#updateLine();
@@ -159,6 +161,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#radiansToNorthAroundY = angleDegrees / degreesPerRadian;
 
     this.#group.setRotationFromAxisAngle(new Vector3(0, 1, 0), -this.#radiansToNorthAroundY);
+    this.#group.matrixWorldNeedsUpdate = true;
 
     this.#updateCamera();
     this.#updateLine();
@@ -166,6 +169,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
   changeCenterPoint(pos: Vector3) {
     this.#group.position.copy(pos);
+    this.#group.matrixWorldNeedsUpdate = true;
   }
 
   override rename(newIdentifier: string): void {
@@ -221,6 +225,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
             this.#removeCamera();
             this.#group.remove(this.#measureLine!);
             this.#measureLine = undefined;
+            this.#group.matrixWorldNeedsUpdate = true;
           },
         })
       ),
