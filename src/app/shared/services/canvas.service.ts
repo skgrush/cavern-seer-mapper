@@ -6,6 +6,7 @@ import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
 import { traverseMatrixUpdate } from '../functions/traverse-matrix-update';
 import { ModelChangeType } from '../models/model-change-type.enum';
+import { MyViewHelper } from '../models/objects/view-helper';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
@@ -40,7 +41,7 @@ export class CanvasService {
   #orthoControls?: MapControls;
 
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
-  #compass?: ViewHelper;
+  #compass?: MyViewHelper;
 
   readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
   #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
@@ -428,7 +429,7 @@ export class CanvasService {
         if (!ele || !this.#orthoControls || !this.#renderer?.domElement) {
           return undefined;
         }
-        const compass = new ViewHelper(this.#orthoControls.object, this.#renderer.domElement);
+        const compass = new MyViewHelper(this.#orthoControls.object, this.#renderer.domElement);
         ele.addEventListener('pointerup', e => compass.handleClick(e));
         this.#compass = compass;
         return compass;
