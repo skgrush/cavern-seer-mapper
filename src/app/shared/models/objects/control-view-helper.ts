@@ -17,6 +17,8 @@ import {
   Vector4,
   WebGLRenderer
 } from 'three';
+import { OrthographicMapControls } from './orthographic-map-controls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 /**
  * Copy of Three.JS's
@@ -25,7 +27,7 @@ import {
  * but not reliant on auto updated matrices.
  */
 export class ControlViewHelper extends Object3D {
-  readonly #camera: Camera;
+  #worldControls: OrbitControls;
   readonly #domElement: HTMLElement;
 
   readonly isViewHelper = true;
@@ -69,10 +71,10 @@ export class ControlViewHelper extends Object3D {
   readonly #q2 = new Quaternion();
   #radius = 0;
 
-  constructor(camera: Camera, domElement: HTMLElement) {
+  constructor(controls: OrbitControls, domElement: HTMLElement) {
     super();
 
-    this.#camera = camera;
+    this.#worldControls = controls;
     this.#domElement = domElement;
 
     const color1 = new Color('#ff3653');
@@ -134,18 +136,22 @@ export class ControlViewHelper extends Object3D {
     this.traverse(c => c.updateMatrix());
   }
 
+  changeControls(controls: OrbitControls) {
+    this.#worldControls = controls;
+  }
+
   render(renderer: WebGLRenderer) {
 
     const point = this.#point;
     const dim = this.#dim;
     const viewport = this.#viewport;
 
-    this.quaternion.copy(this.#camera.quaternion).invert();
+    this.quaternion.copy(this.#worldControls.object.quaternion).invert();
     this.updateMatrix();
     this.updateMatrixWorld(true);
 
     point.set(0, 0, 1);
-    point.applyQuaternion(this.#camera.quaternion);
+    point.applyQuaternion(this.#worldControls.object.quaternion);
 
     if (point.x >= 0) {
 
@@ -236,18 +242,19 @@ export class ControlViewHelper extends Object3D {
 
     const q1 = this.#q1;
     const q2 = this.#q2;
+    const camera = this.#worldControls.object;
 
     const step = delta * this.#turnRate;
 
     // animate position by doing a slerp and then scaling the position on the unit sphere
 
     q1.rotateTowards(q2, step);
-    this.#camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.center);
-    this.#camera.updateMatrixWorld(true);
+    camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.center);
+    camera.updateMatrixWorld(true);
 
     // animate orientation
 
-    this.#camera.quaternion.rotateTowards(this.#targetQuaternion, step);
+    camera.quaternion.rotateTowards(this.#targetQuaternion, step);
 
     if (q1.angleTo(q2) === 0) {
 
@@ -322,12 +329,12 @@ export class ControlViewHelper extends Object3D {
 
     //
 
-    this.#radius = this.#camera.position.distanceTo(focusPoint);
+    this.#radius = this.#worldControls.object.position.distanceTo(focusPoint);
     this.#targetPosition.multiplyScalar(this.#radius).add(focusPoint);
 
     this.#dummy.position.copy(focusPoint);
 
-    this.#dummy.lookAt(this.#camera.position);
+    this.#dummy.lookAt(this.#worldControls.object.position);
     this.#q1.copy(this.#dummy.quaternion);
 
     this.#dummy.lookAt(this.#targetPosition);

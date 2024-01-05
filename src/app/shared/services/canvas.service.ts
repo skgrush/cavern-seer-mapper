@@ -289,11 +289,11 @@ export class CanvasService {
    * (First internally checks if the compass needs to render too).
    */
   render() {
-    if (!this.#renderer || !this.#orthoControls) { return false; }
+    if (!this.#renderer || !this.#orthoControls || !this.#compass) { return false; }
 
     const delta = this.#renderClock.getDelta();
 
-    if (this.#compass?.animating) {
+    if (this.#compass.animating) {
       this.#compass.update(delta);
       this.#wasAnimatingCompass = true;
       this.forceReRender = true;
@@ -304,6 +304,7 @@ export class CanvasService {
         const cam = this.#orthoControls.object;
         this.#orthoControls.dispose();
         this.#orthoControls = new OrthographicMapControls(cam, this.#renderer.domElement);
+        this.#compass.changeControls(this.#orthoControls);
       }
 
       this.#wasAnimatingCompass = false;
@@ -313,7 +314,7 @@ export class CanvasService {
       console.count('didRender');
       this.#renderer.clear();
       this.#renderer.render(this.#scene, this.#orthoControls.object);
-      this.#compass?.render(this.#renderer);
+      this.#compass.render(this.#renderer);
 
       this.forceReRender = false;
     }
@@ -444,7 +445,7 @@ export class CanvasService {
         if (!ele || !this.#orthoControls || !this.#renderer?.domElement) {
           return undefined;
         }
-        const compass = new ControlViewHelper(this.#orthoControls.object, this.#renderer.domElement);
+        const compass = new ControlViewHelper(this.#orthoControls, this.#renderer.domElement);
         ele.addEventListener('pointerup', e => compass.handleClick(e));
         this.#compass = compass;
         return compass;
