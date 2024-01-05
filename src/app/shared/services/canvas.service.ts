@@ -3,14 +3,15 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
 import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper.js';
+import { traverseSome } from '../functions/traverse-some';
 import { ModelChangeType } from '../models/model-change-type.enum';
+import { ControlViewHelper } from '../models/objects/control-view-helper';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
-import { ModelManagerService } from './model-manager.service';
 import { LocalizeService } from './localize.service';
+import { ModelManagerService } from './model-manager.service';
 
 @Injectable()
 export class CanvasService {
@@ -37,7 +38,7 @@ export class CanvasService {
   #orthoControls?: MapControls;
 
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
-  #compass?: ViewHelper;
+  #compass?: ControlViewHelper;
 
   readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
   #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
@@ -123,6 +124,7 @@ export class CanvasService {
     this.#materialSideSubject.next(
       this.#material.toggleDoubleSide()
     );
+    this.forceReRender = true;
   }
 
   /**
@@ -257,6 +259,7 @@ export class CanvasService {
     cam.updateProjectionMatrix();
 
     this.#renderer.setSize(width, height);
+    this.forceReRender = true;
   }
 
   render$() {
@@ -269,7 +272,14 @@ export class CanvasService {
   }
 
   #wasAnimatingCompass = false;
+  forceReRender = false;
 
+  /**
+   * If {@link forceReRender} is true OR any scene descendant has {@link Object3D#matrixWorldNeedsUpdate}
+   * then we will render the scene.
+   *
+   * (First internally checks if the compass needs to render too).
+   */
   render() {
     if (!this.#renderer) { return false; }
 
@@ -278,6 +288,7 @@ export class CanvasService {
     if (this.#compass?.animating) {
       this.#compass.update(delta);
       this.#wasAnimatingCompass = true;
+      this.forceReRender = true;
     } else {
       if (this.#wasAnimatingCompass) {
         // just finished animating
@@ -289,9 +300,14 @@ export class CanvasService {
       this.#wasAnimatingCompass = false;
     }
 
-    this.#renderer.clear();
-    this.#renderer.render(this.#scene, this.#orthoCamera!);
-    this.#compass?.render(this.#renderer);
+    if (this.forceReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {
+      console.count('didRender');
+      this.#renderer.clear();
+      this.#renderer.render(this.#scene, this.#orthoCamera!);
+      this.#compass?.render(this.#renderer);
+
+      this.forceReRender = false;
+    }
 
     return true;
   }
@@ -419,7 +435,7 @@ export class CanvasService {
         if (!ele || !this.#orthoControls || !this.#renderer?.domElement) {
           return undefined;
         }
-        const compass = new ViewHelper(this.#orthoControls.object, this.#renderer.domElement);
+        const compass = new ControlViewHelper(this.#orthoControls.object, this.#renderer.domElement);
         ele.addEventListener('pointerup', e => compass.handleClick(e));
         this.#compass = compass;
         return compass;
