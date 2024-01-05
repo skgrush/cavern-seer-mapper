@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Subject, distinctUntilChanged, map, of, take, takeUntil, tap } from 'rxjs';
 import { Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
+import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
 import { MeasureDistanceAnnotation } from '../../models/annotations/measure-distance.annotation';
 import { IMapperUserData } from '../../models/user-data';
 import { ignoreNullish } from '../../operators/ignore-nullish';
@@ -146,7 +147,8 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
         const targetCoords = new Vector2(e.offsetX, e.offsetY);
         const dimensions = this.#canvasService.getRendererDimensions()!;
 
-        const mouseWorldPos = this.normalizeCanvasCoords(targetCoords, dimensions);
+        // const mouseWorldPos = this.normalizeCanvasCoords(targetCoords, dimensions);
+        const mouseWorldPos = normalizeCanvasCoords(targetCoords, dimensions);
 
         this.#handleNewMeasurementLocation(mouseWorldPos);
       })

@@ -17,6 +17,7 @@ import {
   WebGLRenderer
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
 
 /**
  * Copy of Three.JS's
@@ -201,18 +202,30 @@ export class ControlViewHelper extends Object3D {
 
   };
 
+  /**
+   * Handle a click into the box representing the control view helper.
+   */
   handleClick(event: MouseEvent) {
 
     if (this.#animating === true) return false;
 
-    const domElement = this.#domElement;
-    const mouse = new Vector2();
+    // const rect = domElement.getBoundingClientRect();
+    // const offset = new Vector2(rect.left, rect.top)
+    //   .add(new Vector2(domElement.offsetWidth, domElement.offsetHeight))
+    //   .subScalar(this.#dim);
 
-    const rect = domElement.getBoundingClientRect();
-    const offsetX = rect.left + (domElement.offsetWidth - this.#dim);
-    const offsetY = rect.top + (domElement.offsetHeight - this.#dim);
-    mouse.x = ((event.clientX - offsetX) / (rect.right - offsetX)) * 2 - 1;
-    mouse.y = - ((event.clientY - offsetY) / (rect.bottom - offsetY)) * 2 + 1;
+    // const mouse = new Vector2(event.clientX, event.clientY)
+    //   .sub(offset)
+    //   .divide(new Vector2(rect.right, rect.bottom).sub(offset))
+    //   .multiply(new Vector2(2, -2))
+    //   .add(new Vector2(-1, 1));
+
+    const myDim = new Vector2(this.#dim, this.#dim);
+
+    const mouse = normalizeCanvasCoords(
+      new Vector2(event.offsetX, event.offsetY),
+      myDim,
+    );
 
     this.#raycaster.setFromCamera(mouse, this.#orthoCamera);
 
@@ -374,3 +387,4 @@ export class ControlViewHelper extends Object3D {
   }
 
 }
+
