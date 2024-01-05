@@ -16,7 +16,7 @@ import {
   Vector4,
   WebGLRenderer
 } from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
 
 /**
@@ -25,8 +25,8 @@ import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
  *
  * but not reliant on auto updated matrices.
  */
-export class ControlViewHelper extends Object3D {
-  #worldControls: OrbitControls;
+export class ControlViewHelper<TControls extends OrbitControls> extends Object3D {
+  #worldControls: TControls;
   readonly #domElement: HTMLElement;
 
   readonly isViewHelper = true;
@@ -69,7 +69,7 @@ export class ControlViewHelper extends Object3D {
   readonly #q2 = new Quaternion();
   #radius = 0;
 
-  constructor(controls: OrbitControls, domElement: HTMLElement) {
+  constructor(controls: TControls, domElement: HTMLElement) {
     super();
 
     this.#worldControls = controls;
@@ -134,7 +134,7 @@ export class ControlViewHelper extends Object3D {
     this.traverse(c => c.updateMatrix());
   }
 
-  changeControls(controls: OrbitControls) {
+  changeControls(controls: TControls) {
     this.#worldControls = controls;
   }
 

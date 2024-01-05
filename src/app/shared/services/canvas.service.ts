@@ -37,7 +37,7 @@ export class CanvasService {
   #orthoControls?: OrthographicMapControls;
 
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
-  #compass?: ControlViewHelper;
+  #compass?: ControlViewHelper<OrthographicMapControls>;
 
   readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
   #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
