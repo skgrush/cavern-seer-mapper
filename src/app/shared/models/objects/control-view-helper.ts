@@ -1,6 +1,6 @@
 import {
   BoxGeometry,
-  Camera,
+  type Camera,
   CanvasTexture,
   Color,
   Euler,
@@ -15,8 +15,14 @@ import {
   Vector2,
   Vector3,
   Vector4,
-  WebGLRenderer
+  type WebGLRenderer
 } from 'three';
+import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
+
+export interface ICameraControl<TCamera extends Camera = Camera> {
+  readonly camera: TCamera;
+  readonly target: Vector3;
+}
 
 /**
  * Copy of Three.JS's
@@ -24,8 +30,8 @@ import {
  *
  * but not reliant on auto updated matrices.
  */
-export class ControlViewHelper extends Object3D {
-  readonly #camera: Camera;
+export class ControlViewHelper<TControls extends ICameraControl> extends Object3D {
+  #worldControls: TControls;
   readonly #domElement: HTMLElement;
 
   readonly isViewHelper = true;
@@ -42,7 +48,6 @@ export class ControlViewHelper extends Object3D {
 
   readonly #interactiveObjects: Sprite[] = [];
   readonly #raycaster = new Raycaster();
-  readonly #mouse = new Vector2();
   readonly #dummy = new Object3D();
 
   readonly #posXAxisHelper: Sprite;
@@ -69,10 +74,10 @@ export class ControlViewHelper extends Object3D {
   readonly #q2 = new Quaternion();
   #radius = 0;
 
-  constructor(camera: Camera, domElement: HTMLElement) {
+  constructor(controls: TControls, domElement: HTMLElement) {
     super();
 
-    this.#camera = camera;
+    this.#worldControls = controls;
     this.#domElement = domElement;
 
     const color1 = new Color('#ff3653');
@@ -80,8 +85,8 @@ export class ControlViewHelper extends Object3D {
     const color3 = new Color('#2c8fff');
 
     this.#orthoCamera.position.set(0, 0, 2);
-    this.#orthoCamera.updateMatrix(); // Not in original implementation
-    this.#orthoCamera.updateMatrixWorld(true); // Not in original implementation
+    this.#orthoCamera.updateMatrix();
+    this.#orthoCamera.updateMatrixWorld(true);
 
     this.#xAxis = new Mesh(this.#geometry, this.#getAxisMaterial(color1));
     this.#yAxis = new Mesh(this.#geometry, this.#getAxisMaterial(color2));
@@ -134,18 +139,22 @@ export class ControlViewHelper extends Object3D {
     this.traverse(c => c.updateMatrix());
   }
 
+  changeControls(controls: TControls) {
+    this.#worldControls = controls;
+  }
+
   render(renderer: WebGLRenderer) {
 
     const point = this.#point;
     const dim = this.#dim;
     const viewport = this.#viewport;
 
-    this.quaternion.copy(this.#camera.quaternion).invert();
+    this.quaternion.copy(this.#worldControls.camera.quaternion).invert();
     this.updateMatrix();
     this.updateMatrixWorld(true);
 
     point.set(0, 0, 1);
-    point.applyQuaternion(this.#camera.quaternion);
+    point.applyQuaternion(this.#worldControls.camera.quaternion);
 
     if (point.x >= 0) {
 
@@ -198,18 +207,34 @@ export class ControlViewHelper extends Object3D {
 
   };
 
-  handleClick(event: MouseEvent) {
+  /**
+   * Handle a click into the box representing the control view helper.
+   */
+  handleClick(event: MouseEvent, clickWasOnGlobalCanvas = false) {
 
     if (this.#animating === true) return false;
 
-    const domElement = this.#domElement;
-    const mouse = this.#mouse;
+    let mouse: Vector2;
 
-    const rect = domElement.getBoundingClientRect();
-    const offsetX = rect.left + (domElement.offsetWidth - this.#dim);
-    const offsetY = rect.top + (domElement.offsetHeight - this.#dim);
-    mouse.x = ((event.clientX - offsetX) / (rect.right - offsetX)) * 2 - 1;
-    mouse.y = - ((event.clientY - offsetY) / (rect.bottom - offsetY)) * 2 + 1;
+    const myDim = new Vector2(this.#dim, this.#dim);
+    if (!clickWasOnGlobalCanvas) {
+      mouse = normalizeCanvasCoords(
+        new Vector2(event.offsetX, event.offsetY),
+        myDim,
+      );
+    } else {
+      const domElement = this.#domElement;
+      const domDim = new Vector2(domElement.offsetWidth, domElement.offsetHeight);
+      const myDim = new Vector2(this.#dim, this.#dim);
+      const myOffset = domDim.clone().sub(myDim);
+
+      mouse = normalizeCanvasCoords(
+        new Vector2(event.offsetX, event.offsetY),
+        domDim,
+        myDim,
+        myOffset,
+      );
+    }
 
     this.#raycaster.setFromCamera(mouse, this.#orthoCamera);
 
@@ -220,7 +245,7 @@ export class ControlViewHelper extends Object3D {
       const intersection = intersects[0];
       const object = intersection.object;
 
-      this.#prepareAnimationData(object, this.center);
+      this.#prepareAnimationData(object, this.#worldControls.target);
 
       this.#animating = true;
 
@@ -236,18 +261,19 @@ export class ControlViewHelper extends Object3D {
 
     const q1 = this.#q1;
     const q2 = this.#q2;
+    const camera = this.#worldControls.camera;
 
     const step = delta * this.#turnRate;
 
     // animate position by doing a slerp and then scaling the position on the unit sphere
 
     q1.rotateTowards(q2, step);
-    this.#camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.center);
-    this.#camera.updateMatrixWorld(true);
+    camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.#worldControls.target);
+    camera.updateMatrixWorld(true);
 
     // animate orientation
 
-    this.#camera.quaternion.rotateTowards(this.#targetQuaternion, step);
+    camera.quaternion.rotateTowards(this.#targetQuaternion, step);
 
     if (q1.angleTo(q2) === 0) {
 
@@ -322,12 +348,12 @@ export class ControlViewHelper extends Object3D {
 
     //
 
-    this.#radius = this.#camera.position.distanceTo(focusPoint);
+    this.#radius = this.#worldControls.camera.position.distanceTo(focusPoint);
     this.#targetPosition.multiplyScalar(this.#radius).add(focusPoint);
 
     this.#dummy.position.copy(focusPoint);
 
-    this.#dummy.lookAt(this.#camera.position);
+    this.#dummy.lookAt(this.#worldControls.camera.position);
     this.#q1.copy(this.#dummy.quaternion);
 
     this.#dummy.lookAt(this.#targetPosition);
@@ -370,3 +396,4 @@ export class ControlViewHelper extends Object3D {
   }
 
 }
+

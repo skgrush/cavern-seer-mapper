@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Subject, distinctUntilChanged, filter, merge, switchMap, takeUntil, tap } from 'rxjs';
 import { BufferGeometry, GridHelper, Intersection, Line, LineBasicMaterial, Vector2, Vector3 } from 'three';
+import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
 import { CrossSectionAnnotation } from '../../models/annotations/cross-section.annotation';
 import { TemporaryAnnotation } from '../../models/annotations/temporary.annotation';
 import { GroupRenderModel } from '../../models/render/group.render-model';
@@ -260,7 +261,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
     const targetCoords = new Vector2(e.offsetX, e.offsetY);
     const dimensions = this.#canvasService.getRendererDimensions()!;
 
-    const mouseWorldPos = this.normalizeCanvasCoords(targetCoords, dimensions);
+    const mouseWorldPos = normalizeCanvasCoords(targetCoords, dimensions);
 
     const casts = this.#canvasService.raycastFromCamera(mouseWorldPos);
 

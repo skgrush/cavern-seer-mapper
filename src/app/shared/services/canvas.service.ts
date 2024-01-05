@@ -2,10 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
 import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { traverseSome } from '../functions/traverse-some';
 import { ModelChangeType } from '../models/model-change-type.enum';
 import { ControlViewHelper } from '../models/objects/control-view-helper';
+import { OrthographicMapControls } from '../models/objects/orthographic-map-controls';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
@@ -23,9 +23,9 @@ export class CanvasService {
   readonly #scene = new Scene();
   readonly #raycaster = new Raycaster();
 
-  readonly rendererSymbol = Symbol('main-renderer');
+  readonly #mainRendererSymbol = Symbol('main-renderer');
 
-  #renderer?: WebGLRenderer;
+  #mainRenderer?: WebGLRenderer;
   /** Emits any time the renderer is created or destroyed. */
   readonly #rendererChangedSubject = new Subject<void>();
 
@@ -34,11 +34,10 @@ export class CanvasService {
    */
   readonly #rendererMap = new Map<symbol, WeakRef<WebGLRenderer>>();
 
-  #orthoCamera?: OrthographicCamera;
-  #orthoControls?: MapControls;
+  #orthoControls?: OrthographicMapControls;
 
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
-  #compass?: ControlViewHelper;
+  #compass?: ControlViewHelper<OrthographicMapControls>;
 
   readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
   #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
@@ -104,11 +103,11 @@ export class CanvasService {
     }
 
     const cameraToOldPointVector = new Vector3();
-    cameraToOldPointVector.subVectors(this.#orthoControls.object.position, this.#orthoControls.target);
+    cameraToOldPointVector.subVectors(this.#orthoControls.camera.position, this.#orthoControls.target);
 
     const newCameraLoc = point.clone().add(cameraToOldPointVector);
 
-    this.#orthoControls.object.position.copy(newCameraLoc);
+    this.#orthoControls.camera.position.copy(newCameraLoc);
     this.#orthoControls.target.copy(point);
     this.#orthoControls.update();
   }
@@ -140,7 +139,7 @@ export class CanvasService {
    */
   async exportToImage(
     type: `image/${string}`,
-    sym = this.rendererSymbol,
+    sym = this.#mainRendererSymbol,
     cam?: Camera,
     sizeMultiplier = 1,
     quality?: number,
@@ -159,7 +158,7 @@ export class CanvasService {
     const { x: width, y: height } = dimensions.multiplyScalar(sizeMultiplier);
 
     const sceneCopy = this.#scene.clone(true);
-    const camera = cam ?? this.#orthoCamera;
+    const camera = cam ?? this.#orthoControls?.camera;
 
     if (!camera) {
       throw new Error('Could not find camera in sceneCopy');
@@ -192,16 +191,17 @@ export class CanvasService {
   }
 
   cleanupRenderer() {
-    if (!this.#renderer) {
+    if (!this.#mainRenderer) {
       return;
     }
 
     this.#rendererChangedSubject.next();
-    this.#renderer.dispose();
-    this.#renderer = undefined;
+    this.#mainRenderer.dispose();
+    this.#mainRenderer.forceContextLoss();
+    this.#mainRenderer = undefined;
   }
 
-  getRendererDimensions(sym = this.rendererSymbol) {
+  getRendererDimensions(sym = this.#mainRendererSymbol) {
     const ele = this.#rendererMap.get(sym)?.deref()?.domElement;
     if (!ele) {
       return null;
@@ -218,7 +218,7 @@ export class CanvasService {
   eventOnRenderer<K extends keyof HTMLElementEventMap>(
     eventKey: K,
   ) {
-    const ele = this.#renderer?.domElement
+    const ele = this.#mainRenderer?.domElement
     if (!ele) {
       return null;
     }
@@ -228,7 +228,7 @@ export class CanvasService {
   }
 
   raycastFromCamera(coords: Vector2) {
-    this.#raycaster.setFromCamera(coords, this.#orthoCamera!);
+    this.#raycaster.setFromCamera(coords, this.#orthoControls!.camera);
 
     return this.#raycaster.intersectObjects(this.#scene.children, true);
   }
@@ -246,19 +246,27 @@ export class CanvasService {
     this.#orthoControls.enabled = enable;
   }
 
-  resize({ width, height }: DOMRectReadOnly) {
-    if (!this.#renderer) {
+  /**
+   * Resize the renderer and camera when the view changes.
+   *
+   * Does not change zoom or anything, is only for canvas resizing.
+   *
+   * If `updateStyle` is false, will not set the domElement's style width and height
+   * (behavior inherited from {@link WebGLRenderer.setSize()}).
+   */
+  resize({ width, height }: { width: number, height: number }, updateStyle?: boolean) {
+    if (!this.#mainRenderer || !this.#orthoControls) {
       throw new Error('Attempt to resize() with no renderer');
     }
 
-    const cam = this.#orthoCamera!;
+    const cam = this.#orthoControls.camera;
     cam.left = - width / 2;
     cam.right = width / 2;
     cam.top = height / 2;
     cam.bottom = - height / 2;
     cam.updateProjectionMatrix();
 
-    this.#renderer.setSize(width, height);
+    this.#mainRenderer.setSize(width, height, updateStyle);
     this.forceReRender = true;
   }
 
@@ -271,7 +279,6 @@ export class CanvasService {
     );
   }
 
-  #wasAnimatingCompass = false;
   forceReRender = false;
 
   /**
@@ -281,30 +288,20 @@ export class CanvasService {
    * (First internally checks if the compass needs to render too).
    */
   render() {
-    if (!this.#renderer) { return false; }
+    if (!this.#mainRenderer || !this.#orthoControls || !this.#compass) { return false; }
 
     const delta = this.#renderClock.getDelta();
 
-    if (this.#compass?.animating) {
+    if (this.#compass.animating) {
       this.#compass.update(delta);
-      this.#wasAnimatingCompass = true;
       this.forceReRender = true;
-    } else {
-      if (this.#wasAnimatingCompass) {
-        // just finished animating
-        // I CANNOT figure out why I can't just update controls, but I seem to need to rebuild
-        this.#orthoControls?.dispose();
-        this.#orthoControls = new MapControls(this.#orthoCamera!, this.#renderer.domElement);
-      }
-
-      this.#wasAnimatingCompass = false;
     }
 
     if (this.forceReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {
       console.count('didRender');
-      this.#renderer.clear();
-      this.#renderer.render(this.#scene, this.#orthoCamera!);
-      this.#compass?.render(this.#renderer);
+      this.#mainRenderer.clear();
+      this.#mainRenderer.render(this.#scene, this.#orthoControls.camera);
+      this.#compass.render(this.#mainRenderer);
 
       this.forceReRender = false;
     }
@@ -313,11 +310,11 @@ export class CanvasService {
   }
 
   setBgColor(bgColor: string) {
-    if (!this.#renderer) {
+    if (!this.#mainRenderer) {
       throw new Error('Attempt to setBgColor() with no renderer');
     }
 
-    this.#renderer.setClearColor(bgColor);
+    this.#mainRenderer.setClearColor(bgColor);
   }
 
   #refocusCamera(bounds: Box3) {
@@ -327,7 +324,7 @@ export class CanvasService {
       return;
     }
 
-    controls.object.position.set(
+    controls.camera.position.set(
       0,
       bounds.max.y + 5,
       0.0000001 // sliiightly offset the Z so we (should) always look from Z when reseting controls
@@ -350,7 +347,6 @@ export class CanvasService {
     const sizeZ = sizeBox.z;
     const size = Math.max(sizeX, sizeZ);
 
-    this.#scene.remove(this.#bottomGrid);
     const gridHelper = this.#bottomGrid = new GridHelper(size, this.#localize.metersToLocalLength(size));
 
     let xDelta = sizeX / 2;
@@ -374,6 +370,8 @@ export class CanvasService {
   /**
    * Initialize a sub-renderer which will animate as long as you are subscribed
    * and will be cleaned up when you unsubscribe.
+   *
+   * This is in the same scene as the main renderer.
    */
   initializeSubRenderer$(
     sym: symbol,
@@ -382,6 +380,13 @@ export class CanvasService {
     camera: Camera,
   ) {
     return defer(() => {
+      if (sym === this.#mainRendererSymbol) {
+        throw new Error('Cannot initialize subrenderer with main renderer symbol');
+      }
+      if (this.#rendererMap.has(sym)) {
+        console.warn('Attempt to re-render', sym, 'before previous was disposed');
+      }
+
       const renderer = new WebGLRenderer({
         canvas,
       });
@@ -396,7 +401,12 @@ export class CanvasService {
       return animationFrames().pipe(
         tap({
           next: subRender,
-          unsubscribe: () => renderer.dispose(),
+          unsubscribe: () => {
+            renderer.dispose();
+            // stop (Chrome?) browsers from creating too many contexts
+            renderer.forceContextLoss();
+            this.#rendererMap.delete(sym);
+          },
         }),
         map(() => renderer),
         distinctUntilChanged(), // don't emit on each animation frame!
@@ -411,19 +421,20 @@ export class CanvasService {
   ) {
     this.cleanupRenderer();
 
-    this.#renderer = new WebGLRenderer({
+    this.#mainRenderer = new WebGLRenderer({
       canvas,
     });
-    this.#rendererMap.set(this.rendererSymbol, new WeakRef(this.#renderer));
-    this.#renderer.autoClear = false;
-    this.#renderer.setSize(width, height);
+    this.#rendererMap.set(this.#mainRendererSymbol, new WeakRef(this.#mainRenderer));
+    this.#mainRenderer.autoClear = false;
+
+    const cam = new OrthographicCamera();
+    this.#scene.add(cam);
+    this.#orthoControls = new OrthographicMapControls(cam, canvas);
+    this.resize({ width, height });
+
     // #TODO: #10: https://github.com/skgrush/cavern-seer-mapper/issues/10
     // // setting pixel ratio screws with raycasting??
     // this.#renderer.setPixelRatio(pixelRatio);
-
-    this.#orthoCamera = this.#buildNewCamera(width, height);
-    this.#orthoControls = new MapControls(this.#orthoCamera, canvas);
-    this.#scene.add(this.#orthoCamera);
 
     this.#scene.add(new AmbientLight(0xFF2222, 2));
 
@@ -432,10 +443,10 @@ export class CanvasService {
     this.#compassDivSubject.pipe(
       takeUntil(this.#rendererChangedSubject),
       map(ele => {
-        if (!ele || !this.#orthoControls || !this.#renderer?.domElement) {
+        if (!ele || !this.#orthoControls || !this.#mainRenderer?.domElement) {
           return undefined;
         }
-        const compass = new ControlViewHelper(this.#orthoControls.object, this.#renderer.domElement);
+        const compass = new ControlViewHelper(this.#orthoControls, this.#mainRenderer.domElement);
         ele.addEventListener('pointerup', e => compass.handleClick(e));
         this.#compass = compass;
         return compass;
