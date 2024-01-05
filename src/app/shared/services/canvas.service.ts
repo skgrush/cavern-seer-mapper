@@ -23,9 +23,9 @@ export class CanvasService {
   readonly #scene = new Scene();
   readonly #raycaster = new Raycaster();
 
-  readonly rendererSymbol = Symbol('main-renderer');
+  readonly #mainRendererSymbol = Symbol('main-renderer');
 
-  #renderer?: WebGLRenderer;
+  #mainRenderer?: WebGLRenderer;
   /** Emits any time the renderer is created or destroyed. */
   readonly #rendererChangedSubject = new Subject<void>();
 
@@ -139,7 +139,7 @@ export class CanvasService {
    */
   async exportToImage(
     type: `image/${string}`,
-    sym = this.rendererSymbol,
+    sym = this.#mainRendererSymbol,
     cam?: Camera,
     sizeMultiplier = 1,
     quality?: number,
@@ -191,16 +191,17 @@ export class CanvasService {
   }
 
   cleanupRenderer() {
-    if (!this.#renderer) {
+    if (!this.#mainRenderer) {
       return;
     }
 
     this.#rendererChangedSubject.next();
-    this.#renderer.dispose();
-    this.#renderer = undefined;
+    this.#mainRenderer.dispose();
+    this.#mainRenderer.forceContextLoss();
+    this.#mainRenderer = undefined;
   }
 
-  getRendererDimensions(sym = this.rendererSymbol) {
+  getRendererDimensions(sym = this.#mainRendererSymbol) {
     const ele = this.#rendererMap.get(sym)?.deref()?.domElement;
     if (!ele) {
       return null;
@@ -217,7 +218,7 @@ export class CanvasService {
   eventOnRenderer<K extends keyof HTMLElementEventMap>(
     eventKey: K,
   ) {
-    const ele = this.#renderer?.domElement
+    const ele = this.#mainRenderer?.domElement
     if (!ele) {
       return null;
     }
@@ -254,7 +255,7 @@ export class CanvasService {
    * (behavior inherited from {@link WebGLRenderer.setSize()}).
    */
   resize({ width, height }: { width: number, height: number }, updateStyle?: boolean) {
-    if (!this.#renderer || !this.#orthoControls) {
+    if (!this.#mainRenderer || !this.#orthoControls) {
       throw new Error('Attempt to resize() with no renderer');
     }
 
@@ -265,7 +266,7 @@ export class CanvasService {
     cam.bottom = - height / 2;
     cam.updateProjectionMatrix();
 
-    this.#renderer.setSize(width, height, updateStyle);
+    this.#mainRenderer.setSize(width, height, updateStyle);
     this.forceReRender = true;
   }
 
@@ -287,7 +288,7 @@ export class CanvasService {
    * (First internally checks if the compass needs to render too).
    */
   render() {
-    if (!this.#renderer || !this.#orthoControls || !this.#compass) { return false; }
+    if (!this.#mainRenderer || !this.#orthoControls || !this.#compass) { return false; }
 
     const delta = this.#renderClock.getDelta();
 
@@ -298,9 +299,9 @@ export class CanvasService {
 
     if (this.forceReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {
       console.count('didRender');
-      this.#renderer.clear();
-      this.#renderer.render(this.#scene, this.#orthoControls.object);
-      this.#compass.render(this.#renderer);
+      this.#mainRenderer.clear();
+      this.#mainRenderer.render(this.#scene, this.#orthoControls.object);
+      this.#compass.render(this.#mainRenderer);
 
       this.forceReRender = false;
     }
@@ -309,11 +310,11 @@ export class CanvasService {
   }
 
   setBgColor(bgColor: string) {
-    if (!this.#renderer) {
+    if (!this.#mainRenderer) {
       throw new Error('Attempt to setBgColor() with no renderer');
     }
 
-    this.#renderer.setClearColor(bgColor);
+    this.#mainRenderer.setClearColor(bgColor);
   }
 
   #refocusCamera(bounds: Box3) {
@@ -379,6 +380,9 @@ export class CanvasService {
     camera: Camera,
   ) {
     return defer(() => {
+      if (sym === this.#mainRendererSymbol) {
+        throw new Error('Cannot initialize subrenderer with main renderer symbol');
+      }
       if (this.#rendererMap.has(sym)) {
         console.warn('Attempt to re-render', sym, 'before previous was disposed');
       }
@@ -417,11 +421,11 @@ export class CanvasService {
   ) {
     this.cleanupRenderer();
 
-    this.#renderer = new WebGLRenderer({
+    this.#mainRenderer = new WebGLRenderer({
       canvas,
     });
-    this.#rendererMap.set(this.rendererSymbol, new WeakRef(this.#renderer));
-    this.#renderer.autoClear = false;
+    this.#rendererMap.set(this.#mainRendererSymbol, new WeakRef(this.#mainRenderer));
+    this.#mainRenderer.autoClear = false;
 
     const cam = new OrthographicCamera();
     this.#scene.add(cam);
@@ -439,10 +443,10 @@ export class CanvasService {
     this.#compassDivSubject.pipe(
       takeUntil(this.#rendererChangedSubject),
       map(ele => {
-        if (!ele || !this.#orthoControls || !this.#renderer?.domElement) {
+        if (!ele || !this.#orthoControls || !this.#mainRenderer?.domElement) {
           return undefined;
         }
-        const compass = new ControlViewHelper(this.#orthoControls, this.#renderer.domElement);
+        const compass = new ControlViewHelper(this.#orthoControls, this.#mainRenderer.domElement);
         ele.addEventListener('pointerup', e => compass.handleClick(e));
         this.#compass = compass;
         return compass;
