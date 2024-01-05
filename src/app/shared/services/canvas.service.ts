@@ -103,11 +103,11 @@ export class CanvasService {
     }
 
     const cameraToOldPointVector = new Vector3();
-    cameraToOldPointVector.subVectors(this.#orthoControls.object.position, this.#orthoControls.target);
+    cameraToOldPointVector.subVectors(this.#orthoControls.camera.position, this.#orthoControls.target);
 
     const newCameraLoc = point.clone().add(cameraToOldPointVector);
 
-    this.#orthoControls.object.position.copy(newCameraLoc);
+    this.#orthoControls.camera.position.copy(newCameraLoc);
     this.#orthoControls.target.copy(point);
     this.#orthoControls.update();
   }
@@ -158,7 +158,7 @@ export class CanvasService {
     const { x: width, y: height } = dimensions.multiplyScalar(sizeMultiplier);
 
     const sceneCopy = this.#scene.clone(true);
-    const camera = cam ?? this.#orthoControls?.object;
+    const camera = cam ?? this.#orthoControls?.camera;
 
     if (!camera) {
       throw new Error('Could not find camera in sceneCopy');
@@ -228,7 +228,7 @@ export class CanvasService {
   }
 
   raycastFromCamera(coords: Vector2) {
-    this.#raycaster.setFromCamera(coords, this.#orthoControls!.object);
+    this.#raycaster.setFromCamera(coords, this.#orthoControls!.camera);
 
     return this.#raycaster.intersectObjects(this.#scene.children, true);
   }
@@ -300,7 +300,7 @@ export class CanvasService {
     if (this.forceReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {
       console.count('didRender');
       this.#mainRenderer.clear();
-      this.#mainRenderer.render(this.#scene, this.#orthoControls.object);
+      this.#mainRenderer.render(this.#scene, this.#orthoControls.camera);
       this.#compass.render(this.#mainRenderer);
 
       this.forceReRender = false;
@@ -324,7 +324,7 @@ export class CanvasService {
       return;
     }
 
-    controls.object.position.set(
+    controls.camera.position.set(
       0,
       bounds.max.y + 5,
       0.0000001 // sliiightly offset the Z so we (should) always look from Z when reseting controls
