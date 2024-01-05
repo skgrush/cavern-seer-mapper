@@ -12,6 +12,7 @@ import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
+import { OrthographicMapControls } from '../models/objects/orthographic-map-controls';
 
 @Injectable()
 export class CanvasService {
@@ -34,8 +35,7 @@ export class CanvasService {
    */
   readonly #rendererMap = new Map<symbol, WeakRef<WebGLRenderer>>();
 
-  #orthoCamera?: OrthographicCamera;
-  #orthoControls?: MapControls;
+  #orthoControls?: OrthographicMapControls;
 
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
   #compass?: ControlViewHelper;
@@ -159,7 +159,7 @@ export class CanvasService {
     const { x: width, y: height } = dimensions.multiplyScalar(sizeMultiplier);
 
     const sceneCopy = this.#scene.clone(true);
-    const camera = cam ?? this.#orthoCamera;
+    const camera = cam ?? this.#orthoControls?.object;
 
     if (!camera) {
       throw new Error('Could not find camera in sceneCopy');
@@ -228,7 +228,7 @@ export class CanvasService {
   }
 
   raycastFromCamera(coords: Vector2) {
-    this.#raycaster.setFromCamera(coords, this.#orthoCamera!);
+    this.#raycaster.setFromCamera(coords, this.#orthoControls!.object);
 
     return this.#raycaster.intersectObjects(this.#scene.children, true);
   }
@@ -246,19 +246,27 @@ export class CanvasService {
     this.#orthoControls.enabled = enable;
   }
 
-  resize({ width, height }: DOMRectReadOnly) {
-    if (!this.#renderer) {
+  /**
+   * Resize the renderer and camera when the view changes.
+   *
+   * Does not change zoom or anything, is only for canvas resizing.
+   *
+   * If `updateStyle` is false, will not set the domElement's style width and height
+   * (behavior inherited from {@link WebGLRenderer.setSize()}).
+   */
+  resize({ width, height }: { width: number, height: number }, updateStyle?: boolean) {
+    if (!this.#renderer || !this.#orthoControls) {
       throw new Error('Attempt to resize() with no renderer');
     }
 
-    const cam = this.#orthoCamera!;
+    const cam = this.#orthoControls.object;
     cam.left = - width / 2;
     cam.right = width / 2;
     cam.top = height / 2;
     cam.bottom = - height / 2;
     cam.updateProjectionMatrix();
 
-    this.#renderer.setSize(width, height);
+    this.#renderer.setSize(width, height, updateStyle);
     this.forceReRender = true;
   }
 
@@ -281,7 +289,7 @@ export class CanvasService {
    * (First internally checks if the compass needs to render too).
    */
   render() {
-    if (!this.#renderer) { return false; }
+    if (!this.#renderer || !this.#orthoControls) { return false; }
 
     const delta = this.#renderClock.getDelta();
 
@@ -293,8 +301,9 @@ export class CanvasService {
       if (this.#wasAnimatingCompass) {
         // just finished animating
         // I CANNOT figure out why I can't just update controls, but I seem to need to rebuild
-        this.#orthoControls?.dispose();
-        this.#orthoControls = new MapControls(this.#orthoCamera!, this.#renderer.domElement);
+        const cam = this.#orthoControls.object;
+        this.#orthoControls.dispose();
+        this.#orthoControls = new OrthographicMapControls(cam, this.#renderer.domElement);
       }
 
       this.#wasAnimatingCompass = false;
@@ -303,7 +312,7 @@ export class CanvasService {
     if (this.forceReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {
       console.count('didRender');
       this.#renderer.clear();
-      this.#renderer.render(this.#scene, this.#orthoCamera!);
+      this.#renderer.render(this.#scene, this.#orthoControls.object);
       this.#compass?.render(this.#renderer);
 
       this.forceReRender = false;
@@ -350,7 +359,6 @@ export class CanvasService {
     const sizeZ = sizeBox.z;
     const size = Math.max(sizeX, sizeZ);
 
-    this.#scene.remove(this.#bottomGrid);
     const gridHelper = this.#bottomGrid = new GridHelper(size, this.#localize.metersToLocalLength(size));
 
     let xDelta = sizeX / 2;
@@ -416,14 +424,15 @@ export class CanvasService {
     });
     this.#rendererMap.set(this.rendererSymbol, new WeakRef(this.#renderer));
     this.#renderer.autoClear = false;
-    this.#renderer.setSize(width, height);
+
+    const cam = new OrthographicCamera();
+    this.#scene.add(cam);
+    this.#orthoControls = new OrthographicMapControls(cam, canvas);
+    this.resize({ width, height });
+
     // #TODO: #10: https://github.com/skgrush/cavern-seer-mapper/issues/10
     // // setting pixel ratio screws with raycasting??
     // this.#renderer.setPixelRatio(pixelRatio);
-
-    this.#orthoCamera = this.#buildNewCamera(width, height);
-    this.#orthoControls = new MapControls(this.#orthoCamera, canvas);
-    this.#scene.add(this.#orthoCamera);
 
     this.#scene.add(new AmbientLight(0xFF2222, 2));
 
