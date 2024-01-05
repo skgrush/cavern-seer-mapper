@@ -1,16 +1,16 @@
-import { NgIf, AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AsyncPipe, NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Injector, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ExportService } from '../../shared/services/export.service';
-import { CanvasService } from '../../shared/services/canvas.service';
 import { BehaviorSubject, tap } from 'rxjs';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 import type { Camera } from 'three';
+import { BytesPipe } from "../../shared/pipes/bytes.pipe";
+import { CanvasService } from '../../shared/services/canvas.service';
+import { ExportService } from '../../shared/services/export.service';
 
 export type IExportImageDialogData = {
   readonly titleText: string;
@@ -64,12 +64,14 @@ export class ExportImageDialogComponent {
 
   static open(
     dialog: MatDialog,
+    injector: Injector,
     data: IExportImageDialogData,
   ) {
     return dialog.open<ExportImageDialogComponent, IExportImageDialogData>(
       ExportImageDialogComponent,
       {
         data,
+        injector,
       },
     );
   }

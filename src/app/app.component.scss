@@ -3,32 +3,7 @@
   width: 100%;
   height: 100%;
 
-  .drop-overlay {
-    display: none;
-  }
 
-  &.file-is-dragging-over .drop-overlay {
-    display: grid;
-    align-items: stretch;
-    justify-items: stretch;
-
-    user-select: none;
-
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-
-    background: rgba(255, 255, 255, 0.5);
-
-    .drop-overlay-inner {
-      display: grid;
-      align-items: center;
-      justify-content: center;
-      margin: 1em;
-      border: 1em dashed;
-    }
-  }
 
   mat-sidenav-container {
     width: 100%;
@@ -36,48 +11,23 @@
 
     mat-sidenav-content {
       display: grid;
-      grid-template-areas: 'main';
+      grid-template-areas: 'app-main';
       overflow: hidden;
 
       &>#open-leftmenu-btn {
-        grid-area: main;
+        grid-area: app-main;
         margin: 1em;
       }
 
       &>#open-righttabnav-btn {
-        grid-area: main;
+        grid-area: app-main;
         justify-self: end;
         align-self: start;
         margin: 1em;
       }
 
-      &>mapper-tools-bar {
-        grid-area: main;
-        justify-self: center;
-        align-self: end;
-        margin-bottom: 1em;
-        z-index: 2;
-      }
-
-      &>mapper-canvas {
-        grid-area: main;
-        justify-self: stretch;
-        align-self: stretch;
-        overflow: hidden;
-      }
-
-      &>mapper-compass {
-        grid-area: main;
-        justify-self: end;
-        align-self: end;
-        z-index: 1;
-      }
-
-      &>mapper-file-url-loader {
-        grid-area: main;
-        justify-self: center;
-        align-self: center;
-        z-index: 1;
+      &>router-outlet {
+        display: none;
       }
     }
   }

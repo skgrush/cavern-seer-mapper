@@ -1,10 +1,8 @@
-<div class="drop-overlay">
-  <div class="drop-overlay-inner">Drop files here</div>
-</div>
-
 <mat-sidenav-container>
   <mat-sidenav #leftMenu id="left-sidenav">
-    <mapper-sidenav (buttonClicked)="leftMenu.close()" />
+    <!-- <mapper-sidenav (buttonClicked)="leftMenu.close()" /> -->
+    <!-- TODO: re-add buttonClick logic -->
+    <router-outlet name="left-side-nav" />
   </mat-sidenav>
 
   <mat-sidenav-content>
@@ -17,13 +15,12 @@
         {{ rightTabNav.opened ? 'chevron_right' : 'chevron_left' }}
       </mat-icon>
     </button>
-    <mapper-tools-bar />
-    <mapper-compass />
-    <mapper-canvas />
-    <mapper-file-url-loader />
+
+    <router-outlet name="main" />
   </mat-sidenav-content>
 
   <mat-sidenav #rightTabNav mode="side" position="end" id="right-sidenav">
-    <mapper-right-tab-nav />
+    <router-outlet name="right-tab-nav" />
+    <!-- <mapper-right-tab-nav /> -->
   </mat-sidenav>
 </mat-sidenav-container>

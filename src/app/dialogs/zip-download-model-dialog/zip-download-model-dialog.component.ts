@@ -1,5 +1,5 @@
 import { AsyncPipe, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -59,12 +59,14 @@ export class ZipDownloadModelDialogComponent {
 
   static open(
     dialog: MatDialog,
+    injector: Injector,
     data: IZipDownloadModelDialogData,
   ) {
     return dialog.open<ZipDownloadModelDialogComponent, IZipDownloadModelDialogData, boolean>(
       ZipDownloadModelDialogComponent,
       {
         data,
+        injector,
       },
     );
   }

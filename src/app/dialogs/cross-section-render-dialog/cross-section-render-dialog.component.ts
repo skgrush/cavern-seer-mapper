@@ -1,5 +1,5 @@
 import { AsyncPipe, NgIf } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -32,6 +32,8 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
   canvasElement!: ElementRef<HTMLCanvasElement>;
 
   readonly #destroyRef = inject(DestroyRef);
+  readonly #injector = inject(Injector);
+
   readonly #canvasService = inject(CanvasService);
   readonly #dialog = inject(MatDialog);
   readonly #errorService = inject(ErrorService);
@@ -40,12 +42,14 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
 
   static open(
     dialog: MatDialog,
+    injector: Injector,
     data: ICrossSectionRenderDialogData,
   ) {
     return dialog.open<CrossSectionRenderDialogComponent, ICrossSectionRenderDialogData>(
       CrossSectionRenderDialogComponent,
       {
         data,
+        injector,
       },
     );
   }
@@ -126,6 +130,7 @@ export class CrossSectionRenderDialogComponent implements AfterViewInit {
       switchMap(({ ExportImageDialogComponent }) => {
         return ExportImageDialogComponent.open(
           this.#dialog,
+          this.#injector,
           {
             titleText: `Export cross-section ${this.crossSection.identifier}`,
             camera,
