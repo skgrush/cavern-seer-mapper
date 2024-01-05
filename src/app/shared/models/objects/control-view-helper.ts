@@ -205,27 +205,31 @@ export class ControlViewHelper extends Object3D {
   /**
    * Handle a click into the box representing the control view helper.
    */
-  handleClick(event: MouseEvent) {
+  handleClick(event: MouseEvent, clickWasOnGlobalCanvas = false) {
 
     if (this.#animating === true) return false;
 
-    // const rect = domElement.getBoundingClientRect();
-    // const offset = new Vector2(rect.left, rect.top)
-    //   .add(new Vector2(domElement.offsetWidth, domElement.offsetHeight))
-    //   .subScalar(this.#dim);
-
-    // const mouse = new Vector2(event.clientX, event.clientY)
-    //   .sub(offset)
-    //   .divide(new Vector2(rect.right, rect.bottom).sub(offset))
-    //   .multiply(new Vector2(2, -2))
-    //   .add(new Vector2(-1, 1));
+    let mouse: Vector2;
 
     const myDim = new Vector2(this.#dim, this.#dim);
+    if (!clickWasOnGlobalCanvas) {
+      mouse = normalizeCanvasCoords(
+        new Vector2(event.offsetX, event.offsetY),
+        myDim,
+      );
+    } else {
+      const domElement = this.#domElement;
+      const domDim = new Vector2(domElement.offsetWidth, domElement.offsetHeight);
+      const myDim = new Vector2(this.#dim, this.#dim);
+      const myOffset = domDim.clone().sub(myDim);
 
-    const mouse = normalizeCanvasCoords(
-      new Vector2(event.offsetX, event.offsetY),
-      myDim,
-    );
+      mouse = normalizeCanvasCoords(
+        new Vector2(event.offsetX, event.offsetY),
+        domDim,
+        myDim,
+        myOffset,
+      );
+    }
 
     this.#raycaster.setFromCamera(mouse, this.#orthoCamera);
 
