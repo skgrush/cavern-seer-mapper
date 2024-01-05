@@ -259,7 +259,7 @@ export class CanvasService {
       throw new Error('Attempt to resize() with no renderer');
     }
 
-    const cam = this.#orthoControls.object;
+    const cam = this.#orthoControls.camera;
     cam.left = - width / 2;
     cam.right = width / 2;
     cam.top = height / 2;
