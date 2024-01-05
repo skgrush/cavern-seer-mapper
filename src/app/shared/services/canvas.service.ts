@@ -369,6 +369,8 @@ export class CanvasService {
   /**
    * Initialize a sub-renderer which will animate as long as you are subscribed
    * and will be cleaned up when you unsubscribe.
+   *
+   * This is in the same scene as the main renderer.
    */
   initializeSubRenderer$(
     sym: symbol,
@@ -377,6 +379,10 @@ export class CanvasService {
     camera: Camera,
   ) {
     return defer(() => {
+      if (this.#rendererMap.has(sym)) {
+        console.warn('Attempt to re-render', sym, 'before previous was disposed');
+      }
+
       const renderer = new WebGLRenderer({
         canvas,
       });
@@ -391,7 +397,12 @@ export class CanvasService {
       return animationFrames().pipe(
         tap({
           next: subRender,
-          unsubscribe: () => renderer.dispose(),
+          unsubscribe: () => {
+            renderer.dispose();
+            // stop (Chrome?) browsers from creating too many contexts
+            renderer.forceContextLoss();
+            this.#rendererMap.delete(sym);
+          },
         }),
         map(() => renderer),
         distinctUntilChanged(), // don't emit on each animation frame!
