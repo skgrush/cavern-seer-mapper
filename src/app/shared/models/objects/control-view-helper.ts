@@ -85,8 +85,8 @@ export class ControlViewHelper<TControls extends ICameraControl> extends Object3
     const color3 = new Color('#2c8fff');
 
     this.#orthoCamera.position.set(0, 0, 2);
-    this.#orthoCamera.updateMatrix(); // Not in original implementation
-    this.#orthoCamera.updateMatrixWorld(true); // Not in original implementation
+    this.#orthoCamera.updateMatrix();
+    this.#orthoCamera.updateMatrixWorld(true);
 
     this.#xAxis = new Mesh(this.#geometry, this.#getAxisMaterial(color1));
     this.#yAxis = new Mesh(this.#geometry, this.#getAxisMaterial(color2));
@@ -245,7 +245,7 @@ export class ControlViewHelper<TControls extends ICameraControl> extends Object3
       const intersection = intersects[0];
       const object = intersection.object;
 
-      this.#prepareAnimationData(object, this.#worldControls.target);// this.center);
+      this.#prepareAnimationData(object, this.#worldControls.target);
 
       this.#animating = true;
 
@@ -268,7 +268,7 @@ export class ControlViewHelper<TControls extends ICameraControl> extends Object3
     // animate position by doing a slerp and then scaling the position on the unit sphere
 
     q1.rotateTowards(q2, step);
-    camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.#worldControls.target); //this.center);
+    camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.#worldControls.target);
     camera.updateMatrixWorld(true);
 
     // animate orientation
