@@ -1,5 +1,6 @@
 import {
   BoxGeometry,
+  type Camera,
   CanvasTexture,
   Color,
   Euler,
@@ -14,10 +15,14 @@ import {
   Vector2,
   Vector3,
   Vector4,
-  WebGLRenderer
+  type WebGLRenderer
 } from 'three';
-import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
+
+export interface ICameraControl<TCamera extends Camera = Camera> {
+  readonly camera: TCamera;
+  readonly target: Vector3;
+}
 
 /**
  * Copy of Three.JS's
@@ -25,7 +30,7 @@ import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
  *
  * but not reliant on auto updated matrices.
  */
-export class ControlViewHelper<TControls extends OrbitControls> extends Object3D {
+export class ControlViewHelper<TControls extends ICameraControl> extends Object3D {
   #worldControls: TControls;
   readonly #domElement: HTMLElement;
 
@@ -144,12 +149,12 @@ export class ControlViewHelper<TControls extends OrbitControls> extends Object3D
     const dim = this.#dim;
     const viewport = this.#viewport;
 
-    this.quaternion.copy(this.#worldControls.object.quaternion).invert();
+    this.quaternion.copy(this.#worldControls.camera.quaternion).invert();
     this.updateMatrix();
     this.updateMatrixWorld(true);
 
     point.set(0, 0, 1);
-    point.applyQuaternion(this.#worldControls.object.quaternion);
+    point.applyQuaternion(this.#worldControls.camera.quaternion);
 
     if (point.x >= 0) {
 
@@ -256,7 +261,7 @@ export class ControlViewHelper<TControls extends OrbitControls> extends Object3D
 
     const q1 = this.#q1;
     const q2 = this.#q2;
-    const camera = this.#worldControls.object;
+    const camera = this.#worldControls.camera;
 
     const step = delta * this.#turnRate;
 
@@ -343,12 +348,12 @@ export class ControlViewHelper<TControls extends OrbitControls> extends Object3D
 
     //
 
-    this.#radius = this.#worldControls.object.position.distanceTo(focusPoint);
+    this.#radius = this.#worldControls.camera.position.distanceTo(focusPoint);
     this.#targetPosition.multiplyScalar(this.#radius).add(focusPoint);
 
     this.#dummy.position.copy(focusPoint);
 
-    this.#dummy.lookAt(this.#worldControls.object.position);
+    this.#dummy.lookAt(this.#worldControls.camera.position);
     this.#q1.copy(this.#dummy.quaternion);
 
     this.#dummy.lookAt(this.#targetPosition);
