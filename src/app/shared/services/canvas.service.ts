@@ -2,17 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
 import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { traverseSome } from '../functions/traverse-some';
 import { ModelChangeType } from '../models/model-change-type.enum';
 import { ControlViewHelper } from '../models/objects/control-view-helper';
+import { OrthographicMapControls } from '../models/objects/orthographic-map-controls';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
-import { OrthographicMapControls } from '../models/objects/orthographic-map-controls';
 
 @Injectable()
 export class CanvasService {
@@ -279,7 +278,6 @@ export class CanvasService {
     );
   }
 
-  #wasAnimatingCompass = false;
   forceReRender = false;
 
   /**
@@ -295,19 +293,7 @@ export class CanvasService {
 
     if (this.#compass.animating) {
       this.#compass.update(delta);
-      this.#wasAnimatingCompass = true;
       this.forceReRender = true;
-    } else {
-      if (this.#wasAnimatingCompass) {
-        // just finished animating
-        // I CANNOT figure out why I can't just update controls, but I seem to need to rebuild
-        const cam = this.#orthoControls.object;
-        this.#orthoControls.dispose();
-        this.#orthoControls = new OrthographicMapControls(cam, this.#renderer.domElement);
-        this.#compass.changeControls(this.#orthoControls);
-      }
-
-      this.#wasAnimatingCompass = false;
     }
 
     if (this.forceReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {

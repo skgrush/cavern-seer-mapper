@@ -1,6 +1,5 @@
 import {
   BoxGeometry,
-  Camera,
   CanvasTexture,
   Color,
   Euler,
@@ -17,7 +16,6 @@ import {
   Vector4,
   WebGLRenderer
 } from 'three';
-import { OrthographicMapControls } from './orthographic-map-controls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 /**
@@ -44,7 +42,6 @@ export class ControlViewHelper extends Object3D {
 
   readonly #interactiveObjects: Sprite[] = [];
   readonly #raycaster = new Raycaster();
-  readonly #mouse = new Vector2();
   readonly #dummy = new Object3D();
 
   readonly #posXAxisHelper: Sprite;
@@ -209,7 +206,7 @@ export class ControlViewHelper extends Object3D {
     if (this.#animating === true) return false;
 
     const domElement = this.#domElement;
-    const mouse = this.#mouse;
+    const mouse = new Vector2();
 
     const rect = domElement.getBoundingClientRect();
     const offsetX = rect.left + (domElement.offsetWidth - this.#dim);
@@ -226,7 +223,7 @@ export class ControlViewHelper extends Object3D {
       const intersection = intersects[0];
       const object = intersection.object;
 
-      this.#prepareAnimationData(object, this.center);
+      this.#prepareAnimationData(object, this.#worldControls.target);// this.center);
 
       this.#animating = true;
 
@@ -249,7 +246,7 @@ export class ControlViewHelper extends Object3D {
     // animate position by doing a slerp and then scaling the position on the unit sphere
 
     q1.rotateTowards(q2, step);
-    camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.center);
+    camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.#worldControls.target); //this.center);
     camera.updateMatrixWorld(true);
 
     // animate orientation
