@@ -27,7 +27,17 @@
       "resources": {
         "files": [
           "/assets/**",
+          "!/assets/files",
           "/media/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
+        ]
+      }
+    },
+    {
+      "name": "third-party",
+      "installMode": "prefetch",
+      "resources": {
+        "urls": [
+          "https://fonts.googleapis.com"
         ]
       }
     }
