@@ -1,11 +1,12 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BehaviorSubject, forkJoin } from 'rxjs';
 import { FileIconComponent } from '../../shared/components/file-icon/file-icon.component';
+import { AggregateError2 } from '../../shared/errors/aggregate.error';
 import { BaseRenderModel } from '../../shared/models/render/base.render-model';
 import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
 import { UploadFileModel } from '../../shared/models/upload-file-model';
@@ -14,7 +15,6 @@ import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 import { ErrorService } from '../../shared/services/error.service';
 import { FileTypeService } from '../../shared/services/file-type.service';
 import { ModelLoadService } from '../../shared/services/model-load.service';
-import { AggregateError2 } from '../../shared/errors/aggregate.error';
 
 export type IOpenDialogData = {
   readonly titleText: string;
@@ -53,12 +53,14 @@ export class OpenDialogComponent implements OnInit {
 
   static open(
     dialog: MatDialog,
-    data: IOpenDialogData
+    injector: Injector,
+    data: IOpenDialogData,
   ) {
     return dialog.open<OpenDialogComponent, IOpenDialogData, BaseRenderModel<any>[]>(
       OpenDialogComponent,
       {
         data,
+        injector,
       }
     );
   }

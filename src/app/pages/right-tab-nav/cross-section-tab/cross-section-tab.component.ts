@@ -16,6 +16,7 @@ import { CrossSectionAnnotation } from '../../../shared/models/annotations/cross
 import { ISimpleVector3, vector3FromSimpleVector3 } from '../../../shared/models/simple-types';
 import { ignoreNullish } from '../../../shared/operators/ignore-nullish';
 import { VectorPipe } from '../../../shared/pipes/vector.pipe';
+import { DialogOpenerService } from '../../../shared/services/dialog-opener.service';
 import { LocalizeService } from '../../../shared/services/localize.service';
 import { CrossSectionToolService } from '../../../shared/services/tools/cross-section-tool.service';
 
@@ -31,6 +32,7 @@ export class CrossSectionTabComponent {
   readonly #dialog = inject(MatDialog);
   readonly crossSectionTool = inject(CrossSectionToolService);
   readonly #localize = inject(LocalizeService);
+  readonly #dialogOpener = inject(DialogOpenerService);
 
   readonly dialogOpen$ = new BehaviorSubject(false);
 
@@ -176,15 +178,10 @@ export class CrossSectionTabComponent {
 
     this.dialogOpen$.next(true);
 
-    const { CrossSectionRenderDialogComponent } = await import('../../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component');
-
-    CrossSectionRenderDialogComponent.open(
-      this.#dialog,
-      {
-        crossSection: selected,
-        formGroup: this.formGroup.controls.details,
-      },
-    ).afterClosed().subscribe(() => {
+    this.#dialogOpener.exportCrossSection({
+      crossSection: selected,
+      formGroup: this.formGroup.controls.details,
+    }).subscribe(() => {
       this.dialogOpen$.next(false);
     });
   }

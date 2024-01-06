@@ -1,6 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ModelManagerService } from './model-manager.service';
+import { ICrossSectionRenderDialogData } from '../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component';
+import { defer, switchMap } from 'rxjs';
 
 /**
  * Service solely responsible for opening dialogs
@@ -10,11 +12,12 @@ export class DialogOpenerService {
 
   readonly #modelManager = inject(ModelManagerService);
   readonly #dialog = inject(MatDialog);
+  readonly #injector = inject(Injector);
 
   open() {
     import('../../dialogs/open-dialog/open-dialog.component')
       .then(({ OpenDialogComponent }) => {
-        OpenDialogComponent.open(this.#dialog, {
+        OpenDialogComponent.open(this.#dialog, this.#injector, {
           submitText: 'Open',
           titleText: 'Open a file',
           multiple: false,
@@ -24,13 +27,20 @@ export class DialogOpenerService {
           }
         });
       });
+  }
 
+  exportCrossSection(data: ICrossSectionRenderDialogData) {
+    return defer(() => import('../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component')).pipe(
+      switchMap(({ CrossSectionRenderDialogComponent }) => {
+        return CrossSectionRenderDialogComponent.open(this.#dialog, this.#injector, data).afterClosed();
+      })
+    )
   }
 
   import(initialFiles?: FileList) {
     import('../../dialogs/open-dialog/open-dialog.component')
       .then(({ OpenDialogComponent }) => {
-        OpenDialogComponent.open(this.#dialog, {
+        OpenDialogComponent.open(this.#dialog, this.#injector, {
           submitText: 'Import',
           titleText: 'Import one or more files',
           multiple: true,
@@ -46,7 +56,7 @@ export class DialogOpenerService {
   save() {
     import('../../dialogs/zip-download-model-dialog/zip-download-model-dialog.component')
       .then(({ ZipDownloadModelDialogComponent }) => {
-        ZipDownloadModelDialogComponent.open(this.#dialog, {
+        ZipDownloadModelDialogComponent.open(this.#dialog, this.#injector, {
           titleText: 'Zip and download group',
         });
       });
@@ -55,7 +65,7 @@ export class DialogOpenerService {
   settings() {
     import('../../dialogs/settings-dialog/settings-dialog.component')
       .then(({ SettingsDialogComponent }) => {
-        SettingsDialogComponent.open(this.#dialog);
+        SettingsDialogComponent.open(this.#dialog, this.#injector);
       });
   }
 
@@ -64,6 +74,7 @@ export class DialogOpenerService {
       .then(({ ExportImageDialogComponent }) => {
         ExportImageDialogComponent.open(
           this.#dialog,
+          this.#injector,
           {
             titleText: 'Export image',
           },

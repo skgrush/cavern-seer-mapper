@@ -1,5 +1,5 @@
 import { AsyncPipe, DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Injector, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -34,8 +34,8 @@ export class SettingsDialogComponent implements OnInit {
     byteFormat: new FormControl(undefined as ByteFormatType | undefined, { validators: [Validators.required], nonNullable: true }),
   });
 
-  static open(dialog: MatDialog) {
-    return dialog.open(SettingsDialogComponent);
+  static open(dialog: MatDialog, injector: Injector) {
+    return dialog.open(SettingsDialogComponent, { injector });
   }
 
   ngOnInit(): void {
