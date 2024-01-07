@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RaycastTabComponent } from './raycast-tab.component';
+import { CeilingTabComponent } from './ceiling-tab.component';
 
 describe('RaycastTabComponent', () => {
-  let component: RaycastTabComponent;
-  let fixture: ComponentFixture<RaycastTabComponent>;
+  let component: CeilingTabComponent;
+  let fixture: ComponentFixture<CeilingTabComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RaycastTabComponent]
+      imports: [CeilingTabComponent]
     })
-    .compileComponents();
-    
-    fixture = TestBed.createComponent(RaycastTabComponent);
+      .compileComponents();
+
+    fixture = TestBed.createComponent(CeilingTabComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

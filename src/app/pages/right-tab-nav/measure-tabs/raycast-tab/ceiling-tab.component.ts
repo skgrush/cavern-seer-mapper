@@ -13,14 +13,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
-  selector: 'mapper-raycast-tab',
+  selector: 'mapper-ceiling-tab',
   standalone: true,
-  templateUrl: './raycast-tab.component.html',
-  styleUrl: './raycast-tab.component.scss',
+  templateUrl: './ceiling-tab.component.html',
+  styleUrl: './ceiling-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIconModule, MatListModule, MatMenuModule, FormsModule, ReactiveFormsModule, CommonModule, MatButtonToggleModule, MatButtonModule, LengthPipe, VectorPipe]
 })
-export class RaycastTabComponent {
+export class CeilingTabComponent {
   protected readonly raycastDistanceTool = inject(RaycastDistanceToolService);
   readonly #dialog = inject(MatDialog);
 
