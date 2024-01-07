@@ -213,8 +213,8 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
         group.addAnnotation(crossSection);
 
         this.#crossSectionsSubject.next(Object.freeze([
-          ...this.#crossSectionsSubject.value,
           crossSection,
+          ...this.#crossSectionsSubject.value,
         ]));
 
         // clean up

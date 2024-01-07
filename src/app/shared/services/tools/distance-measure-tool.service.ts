@@ -204,8 +204,8 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
         [],
       );
       this.#measuresSubject.next(Object.freeze([
-        ...this.#measuresSubject.value,
         newSelectedMeasure,
+        ...this.#measuresSubject.value,
       ]));
 
       this.#modelManager.addAnnotationToGroup(newSelectedMeasure, firstParentGroup);

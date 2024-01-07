@@ -182,8 +182,8 @@ export class RaycastDistanceToolService extends BaseExclusiveToolService {
     this.#modelManager.addAnnotationToGroup(anno, firstParentGroup);
 
     const newList = Object.freeze([
-      ...this.#ceilingDistancesSubject.value,
       anno,
+      ...this.#ceilingDistancesSubject.value,
     ]);
 
     this.#ceilingDistancesSubject.next(newList);
