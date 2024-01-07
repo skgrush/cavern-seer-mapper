@@ -23,8 +23,8 @@ export class RaycastDistanceToolService extends BaseExclusiveToolService {
   readonly ceilingDistances$ = this.#ceilingDistancesSubject.asObservable();
   readonly showCeilingHeights$ = this.#showCeilingHeightsSubject.asObservable();
 
-  override readonly id = 'raycast-distance';
-  override readonly label = 'Raycast distance';
+  override readonly id = 'ceiling-height';
+  override readonly label = 'Ceiling height';
   override readonly icon = 'biotech';
   override readonly cursor$ = of('crosshair');
 
