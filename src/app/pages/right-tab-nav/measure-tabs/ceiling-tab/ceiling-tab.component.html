@@ -8,7 +8,17 @@
   Both the click and ceiling surface are only checked if visible!
 </p>
 
+<!-- <mat-button-toggle-group [ngModel]="raycastDistanceTool.mode$ | async"
+  (ngModelChange)="raycastDistanceTool.changeMode($event)">
+  @for (entry of modes; track entry[0]) {
+  <mat-button-toggle [value]="entry[0]">
+    {{ entry[1] }}
+  </mat-button-toggle>
+  }
+</mat-button-toggle-group> -->
 
+<!-- <ng-container [ngSwitch]="raycastDistanceTool.mode$ | async"> -->
+<!-- <ng-container *ngSwitchCase="RaycastDistanceMode.ceiling"> -->
 <div mat-subheader>
   Ceiling
 
@@ -49,3 +59,25 @@
   </mat-list-option>
   }
 </mat-selection-list>
+<!-- </ng-container> -->
+
+<!-- <ng-container *ngSwitchCase="RaycastDistanceMode.fromCamera">
+    <div>fromCamera mode finds all intersecting <b>front</b> faces between the camera and the grid.</div>
+    <mat-list>
+      @for (measure of (raycastDistanceTool.cameraDistances$ | async); track measure) {
+      <mat-list-item>
+        <ng-container *ngIf="measure.type === 'Mesh'">
+          <h3 matListItemTitle>{{ measure.gridDistance | length }} from grid</h3>
+          <p matListItemLine *ngIf="measure.firstParentGroup as parent">
+            {{ parent.name }}
+          </p>
+        </ng-container>
+        <ng-container *ngIf="measure.type === 'GridHelper'">
+          <h3 matListItemTitle>Grid</h3>
+          <p matListItemLine>{{ measure.absPoint | vector }}</p>
+        </ng-container>
+      </mat-list-item>
+      }
+    </mat-list>
+  </ng-container> -->
+<!-- </ng-container> -->
