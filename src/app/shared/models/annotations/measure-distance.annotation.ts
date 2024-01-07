@@ -1,4 +1,5 @@
 import { BufferGeometry, Group, Line, LineBasicMaterial, Vector3 } from "three";
+import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
 import { AnnotationType } from "../annotation-type.enum";
 import { IMetadataMeasureDistanceV0 } from "../manifest/types.v0";
 import { RenderingOrder } from "../rendering-layers";
@@ -103,7 +104,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
 
   /**
    * Delete these points from the measure.
-   * Cannot delete the first item.
+   * Cannot delete the anchor (first item).
    * Vectors must be the **same instance** to be deleted.
    */
   deletePoints(points: readonly Vector3[]) {
@@ -112,10 +113,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
       if (idx === -1) {
         continue;
       }
-      if (idx === 0) {
-        console.warn('Attempt to delete anchor point from MeasureDistanceAnnotation');
-        continue;
-      }
+      // It's okay to delete any point in this list, they don't include the anchor
       this.#additionalPoints.splice(idx, 1);
     }
 
@@ -127,6 +125,8 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
       this.anchorPoint,
       ...this.#additionalPoints,
     ]);
+
+    markSceneOfItemForReRender(this.#line);
   }
 
   override rename(newIdentifier: string): void {
@@ -148,6 +148,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
 
   override toggleVisibility(show: boolean): void {
     this.#lineGroup.visible = show;
+    markSceneOfItemForReRender(this.#lineGroup);
   }
 
   override addToGroup(group: Group): void {

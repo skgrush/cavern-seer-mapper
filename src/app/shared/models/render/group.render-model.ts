@@ -1,5 +1,6 @@
 import { Subject, Subscription } from "rxjs";
 import { BoxHelper, Group, Object3DEventMap, Scene } from "three";
+import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { ModelChangeType } from "../model-change-type.enum";
@@ -190,6 +191,8 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   }
 
   override removeAnnotations(annosToDelete: Set<BaseAnnotation>): void {
+    markSceneOfItemForReRender(this.#group);
+
     for (const anno of annosToDelete) {
       if (this.#annotations.has(anno)) {
         anno.removeFromGroup(this.#group);

@@ -1,11 +1,12 @@
 import { Subject, defer, tap } from "rxjs";
 import { BoxGeometry, BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, Object3DEventMap, OrthographicCamera, Vector3 } from "three";
+import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
+import { LocalizeService } from "../../services/localize.service";
 import { AnnotationType } from "../annotation-type.enum";
 import { IMetadataCrossSectionV0 } from "../manifest/types.v0";
 import { simpleVector3FromVector3 } from "../simple-types";
 import { IMapperUserData } from "../user-data";
 import { BaseAnnotation } from "./base.annotation";
-import { LocalizeService } from "../../services/localize.service";
 
 export const degreesPerRadian = 180 / Math.PI;
 
@@ -116,7 +117,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     cam.near = 0;
     cam.far = dims.z;
     cam.updateProjectionMatrix();
-    cam.matrixWorldNeedsUpdate = true;
+    markSceneOfItemForReRender(cam);
   }
 
   #drawLine() {
@@ -151,7 +152,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
     this.#boxMesh.position.setZ(-newDimensions.z / 2);
     this.#boxMesh.geometry = new BoxGeometry(newDimensions.x, newDimensions.y, newDimensions.z);
-    this.#boxMesh.matrixWorldNeedsUpdate = true;
+    markSceneOfItemForReRender(this.#boxMesh);
     this.#dimensions = newDimensions.clone();
     this.#updateCamera();
     this.#updateLine();
@@ -161,7 +162,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#radiansToNorthAroundY = angleDegrees / degreesPerRadian;
 
     this.#group.setRotationFromAxisAngle(new Vector3(0, 1, 0), -this.#radiansToNorthAroundY);
-    this.#group.matrixWorldNeedsUpdate = true;
+    markSceneOfItemForReRender(this.#group);
 
     this.#updateCamera();
     this.#updateLine();
@@ -169,7 +170,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
   changeCenterPoint(pos: Vector3) {
     this.#group.position.copy(pos);
-    this.#group.matrixWorldNeedsUpdate = true;
+    markSceneOfItemForReRender(this.#group);
   }
 
   override rename(newIdentifier: string): void {
@@ -196,6 +197,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   }
   override toggleVisibility(show: boolean): void {
     this.#group.visible = show;
+    markSceneOfItemForReRender(this.#group);
   }
 
   /**
@@ -225,7 +227,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
             this.#removeCamera();
             this.#group.remove(this.#measureLine!);
             this.#measureLine = undefined;
-            this.#group.matrixWorldNeedsUpdate = true;
+            markSceneOfItemForReRender(this.#group);
           },
         })
       ),

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Subject, distinctUntilChanged, filter, merge, switchMap, takeUntil, tap } from 'rxjs';
 import { BufferGeometry, GridHelper, Intersection, Line, LineBasicMaterial, Vector2, Vector3 } from 'three';
+import { markSceneOfItemForReRender } from '../../functions/mark-scene-of-item-for-rerender';
 import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
 import { CrossSectionAnnotation } from '../../models/annotations/cross-section.annotation';
 import { TemporaryAnnotation } from '../../models/annotations/temporary.annotation';
@@ -279,7 +280,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
         this.#preview.origin,
         this.#preview.dest,
       ]);
-      this.#preview.lineAnno.object.matrixWorldNeedsUpdate = true;
+      markSceneOfItemForReRender(this.#preview.lineAnno.object);
 
     } else {
       const group = this.#currentModelRef?.deref();

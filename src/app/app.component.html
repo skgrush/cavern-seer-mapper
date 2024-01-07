@@ -1,7 +1,5 @@
 <mat-sidenav-container>
-  <mat-sidenav #leftMenu id="left-sidenav">
-    <!-- <mapper-sidenav (buttonClicked)="leftMenu.close()" /> -->
-    <!-- TODO: re-add buttonClick logic -->
+  <mat-sidenav #leftMenu id="left-sidenav" (click)="leftMenu.close()">
     <router-outlet name="left-side-nav" />
   </mat-sidenav>
 
@@ -21,6 +19,5 @@
 
   <mat-sidenav #rightTabNav mode="side" position="end" id="right-sidenav">
     <router-outlet name="right-tab-nav" />
-    <!-- <mapper-right-tab-nav /> -->
   </mat-sidenav>
 </mat-sidenav-container>
