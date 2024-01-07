@@ -2,11 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
 import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
+import { markSceneOfItemForReRender } from '../functions/mark-scene-of-item-for-rerender';
 import { traverseSome } from '../functions/traverse-some';
 import { ModelChangeType } from '../models/model-change-type.enum';
 import { ControlViewHelper } from '../models/objects/control-view-helper';
 import { OrthographicMapControls } from '../models/objects/orthographic-map-controls';
 import { GroupRenderModel } from '../models/render/group.render-model';
+import { IMapperUserData } from '../models/user-data';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
@@ -123,7 +125,7 @@ export class CanvasService {
     this.#materialSideSubject.next(
       this.#material.toggleDoubleSide()
     );
-    this.forceReRender = true;
+    markSceneOfItemForReRender(this.#scene);
   }
 
   /**
@@ -267,7 +269,7 @@ export class CanvasService {
     cam.updateProjectionMatrix();
 
     this.#mainRenderer.setSize(width, height, updateStyle);
-    this.forceReRender = true;
+    markSceneOfItemForReRender(this.#scene);
   }
 
   render$() {
@@ -279,10 +281,8 @@ export class CanvasService {
     );
   }
 
-  forceReRender = false;
-
   /**
-   * If {@link forceReRender} is true OR any scene descendant has {@link Object3D#matrixWorldNeedsUpdate}
+   * If {@link markSceneOfItemForReRender} was used OR any scene descendant has {@link Object3D#matrixWorldNeedsUpdate}
    * then we will render the scene.
    *
    * (First internally checks if the compass needs to render too).
@@ -291,19 +291,20 @@ export class CanvasService {
     if (!this.#mainRenderer || !this.#orthoControls || !this.#compass) { return false; }
 
     const delta = this.#renderClock.getDelta();
+    const sceneUserData = (this.#scene.userData as IMapperUserData);
 
     if (this.#compass.animating) {
       this.#compass.update(delta);
-      this.forceReRender = true;
+      sceneUserData.needsReRender = true;
     }
 
-    if (this.forceReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {
+    if (sceneUserData.needsReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {
       console.count('didRender');
       this.#mainRenderer.clear();
       this.#mainRenderer.render(this.#scene, this.#orthoControls.camera);
       this.#compass.render(this.#mainRenderer);
 
-      this.forceReRender = false;
+      sceneUserData.needsReRender = undefined;
     }
 
     return true;

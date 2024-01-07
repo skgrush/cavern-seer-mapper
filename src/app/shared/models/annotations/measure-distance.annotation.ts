@@ -1,4 +1,5 @@
 import { BufferGeometry, Group, Line, LineBasicMaterial, Vector3 } from "three";
+import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
 import { AnnotationType } from "../annotation-type.enum";
 import { IMetadataMeasureDistanceV0 } from "../manifest/types.v0";
 import { RenderingOrder } from "../rendering-layers";
@@ -127,6 +128,8 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
       this.anchorPoint,
       ...this.#additionalPoints,
     ]);
+
+    markSceneOfItemForReRender(this.#line);
   }
 
   override rename(newIdentifier: string): void {
@@ -148,6 +151,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
 
   override toggleVisibility(show: boolean): void {
     this.#lineGroup.visible = show;
+    markSceneOfItemForReRender(this.#lineGroup);
   }
 
   override addToGroup(group: Group): void {
