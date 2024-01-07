@@ -152,7 +152,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
     this.#boxMesh.position.setZ(-newDimensions.z / 2);
     this.#boxMesh.geometry = new BoxGeometry(newDimensions.x, newDimensions.y, newDimensions.z);
-    this.#boxMesh.matrixWorldNeedsUpdate = true;
+    markSceneOfItemForReRender(this.#boxMesh);
     this.#dimensions = newDimensions.clone();
     this.#updateCamera();
     this.#updateLine();
@@ -170,7 +170,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
   changeCenterPoint(pos: Vector3) {
     this.#group.position.copy(pos);
-    this.#group.matrixWorldNeedsUpdate = true;
+    markSceneOfItemForReRender(this.#group);
   }
 
   override rename(newIdentifier: string): void {

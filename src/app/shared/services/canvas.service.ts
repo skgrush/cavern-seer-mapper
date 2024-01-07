@@ -462,15 +462,4 @@ export class CanvasService {
 
 
   }
-
-  #buildNewCamera(width: number, height: number) {
-    return new OrthographicCamera(
-      width / -2,
-      width / 2,
-      height / 2,
-      height / -2,
-      0.1,
-      2000,
-    );
-  }
 }
