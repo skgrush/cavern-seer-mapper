@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RaycastDistanceMode, RaycastDistanceToolService } from '../../../../shared/services/tools/raycast-distance-tool.service';
+import { RaycastDistanceToolService } from '../../../../shared/services/tools/raycast-distance-tool.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -21,15 +21,8 @@ import { MatDialog } from '@angular/material/dialog';
   imports: [MatIconModule, MatListModule, MatMenuModule, FormsModule, ReactiveFormsModule, CommonModule, MatButtonToggleModule, MatButtonModule, LengthPipe, VectorPipe]
 })
 export class RaycastTabComponent {
-  protected readonly RaycastDistanceMode = RaycastDistanceMode;
   protected readonly raycastDistanceTool = inject(RaycastDistanceToolService);
   readonly #dialog = inject(MatDialog);
-
-  readonly modes = new Map(
-    Object.values(RaycastDistanceMode)
-      .filter((val): val is RaycastDistanceMode => typeof val === 'number')
-      .map(mode => [mode, RaycastDistanceMode[mode]]),
-  );
 
   readonly ceilingHeightSelectControl = new FormControl<CeilingHeightAnnotation[]>([], { nonNullable: true });
 
