@@ -9,4 +9,6 @@ export type IMapperUserData = {
   isAnnotationGroup?: true,
   /** This is an annotation mesh and is temporary */
   isTemporaryAnnotation?: true,
+  /** should only be used on Scenes to mark that they need to rerender */
+  needsReRender?: true,
 }
