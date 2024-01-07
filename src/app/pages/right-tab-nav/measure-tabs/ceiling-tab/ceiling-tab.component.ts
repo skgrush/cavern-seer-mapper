@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RaycastDistanceToolService } from '../../../../shared/services/tools/raycast-distance-tool.service';
+import { CeilingHeightToolService } from '../../../../shared/services/tools/ceiling-height-tool.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -21,7 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
   imports: [MatIconModule, MatListModule, MatMenuModule, FormsModule, ReactiveFormsModule, CommonModule, MatButtonToggleModule, MatButtonModule, LengthPipe, VectorPipe]
 })
 export class CeilingTabComponent {
-  protected readonly raycastDistanceTool = inject(RaycastDistanceToolService);
+  protected readonly ceilingHeightTool = inject(CeilingHeightToolService);
   readonly #dialog = inject(MatDialog);
 
   readonly ceilingHeightSelectControl = new FormControl<CeilingHeightAnnotation[]>([], { nonNullable: true });
@@ -32,7 +32,7 @@ export class CeilingTabComponent {
 
   deleteSelectedCeilingHeight() {
     const selection = this.ceilingHeightSelectControl.value;
-    this.raycastDistanceTool.deleteCeilingHeights(selection);
+    this.ceilingHeightTool.deleteCeilingHeights(selection);
   }
 
   rename() {
@@ -47,7 +47,7 @@ export class CeilingTabComponent {
       if (!newName) {
         return null;
       }
-      if (!this.raycastDistanceTool.ceilingHeightRenameIsValid(oldName, newName)) {
+      if (!this.ceilingHeightTool.ceilingHeightRenameIsValid(oldName, newName)) {
         return { [`Identifier ${JSON.stringify(newName)} is already in use`]: true };
       }
       return null;
@@ -69,7 +69,7 @@ export class CeilingTabComponent {
           if (!result) {
             return;
           }
-          this.raycastDistanceTool.renameCeilingHeight(selectedItem, result);
+          this.ceilingHeightTool.renameCeilingHeight(selectedItem, result);
         })
       );
   }

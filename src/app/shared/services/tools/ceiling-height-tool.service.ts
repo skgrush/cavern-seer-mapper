@@ -10,7 +10,7 @@ import { ModelManagerService } from '../model-manager.service';
 import { BaseExclusiveToolService } from './base-tool.service';
 
 @Injectable()
-export class RaycastDistanceToolService extends BaseExclusiveToolService {
+export class CeilingHeightToolService extends BaseExclusiveToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
   readonly #annotationBuilder = inject(AnnotationBuilderService);
@@ -93,7 +93,7 @@ export class RaycastDistanceToolService extends BaseExclusiveToolService {
   override start(): boolean {
     const event$ = this.#canvasService.eventOnRenderer('pointerdown');
     if (!event$) {
-      console.error('Cannot start RaycastDistanceTool as there is no rendererTarget');
+      console.error('Cannot start CeilingHeightTool as there is no rendererTarget');
       return false;
     }
 

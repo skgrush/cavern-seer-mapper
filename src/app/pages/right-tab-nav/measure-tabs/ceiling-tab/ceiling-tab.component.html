@@ -1,5 +1,5 @@
 <p>Results of using
-  <mat-icon>{{ raycastDistanceTool.icon }}</mat-icon> {{ raycastDistanceTool.label }}
+  <mat-icon>{{ ceilingHeightTool.icon }}</mat-icon> {{ ceilingHeightTool.label }}
   tool
 </p>
 
@@ -25,8 +25,8 @@
   </span>
 
   <span class="spanner"></span>
-  <mat-button-toggle-group [ngModel]="raycastDistanceTool.showCeilingHeights$ | async"
-    (ngModelChange)="raycastDistanceTool.toggleCeilingHeights($event)">
+  <mat-button-toggle-group [ngModel]="ceilingHeightTool.showCeilingHeights$ | async"
+    (ngModelChange)="ceilingHeightTool.toggleCeilingHeights($event)">
     <mat-button-toggle [value]="true">Show</mat-button-toggle>
     <mat-button-toggle [value]="false">Hide</mat-button-toggle>
   </mat-button-toggle-group>
@@ -35,8 +35,8 @@
 <mat-selection-list #selectionList multiple [formControl]="ceilingHeightSelectControl">
 
 
-  @for (measure of (raycastDistanceTool.ceilingDistances$ | async); track measure) {
-  <mat-list-option (click)="raycastDistanceTool.lookAt(measure)" [value]="measure">
+  @for (measure of (ceilingHeightTool.ceilingDistances$ | async); track measure) {
+  <mat-list-option (click)="ceilingHeightTool.lookAt(measure)" [value]="measure">
     <h3 matListItemTitle> {{ measure.identifier }} </h3>
     <p matListItemLine class="vector-length-line">
       <span>{{ measure.worldPoint | vector }}</span>
