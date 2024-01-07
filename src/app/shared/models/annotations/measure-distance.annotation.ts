@@ -104,7 +104,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
 
   /**
    * Delete these points from the measure.
-   * Cannot delete the first item.
+   * Cannot delete the anchor (first item).
    * Vectors must be the **same instance** to be deleted.
    */
   deletePoints(points: readonly Vector3[]) {
@@ -113,10 +113,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
       if (idx === -1) {
         continue;
       }
-      if (idx === 0) {
-        console.warn('Attempt to delete anchor point from MeasureDistanceAnnotation');
-        continue;
-      }
+      // It's okay to delete any point in this list, they don't include the anchor
       this.#additionalPoints.splice(idx, 1);
     }
 
