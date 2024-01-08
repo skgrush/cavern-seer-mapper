@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RaycastDistanceMode, RaycastDistanceToolService } from '../../../../shared/services/tools/raycast-distance-tool.service';
+import { CeilingHeightToolService } from '../../../../shared/services/tools/ceiling-height-tool.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -13,23 +13,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
-  selector: 'mapper-raycast-tab',
+  selector: 'mapper-ceiling-tab',
   standalone: true,
-  templateUrl: './raycast-tab.component.html',
-  styleUrl: './raycast-tab.component.scss',
+  templateUrl: './ceiling-tab.component.html',
+  styleUrl: './ceiling-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIconModule, MatListModule, MatMenuModule, FormsModule, ReactiveFormsModule, CommonModule, MatButtonToggleModule, MatButtonModule, LengthPipe, VectorPipe]
 })
-export class RaycastTabComponent {
-  protected readonly RaycastDistanceMode = RaycastDistanceMode;
-  protected readonly raycastDistanceTool = inject(RaycastDistanceToolService);
+export class CeilingTabComponent {
+  protected readonly ceilingHeightTool = inject(CeilingHeightToolService);
   readonly #dialog = inject(MatDialog);
-
-  readonly modes = new Map(
-    Object.values(RaycastDistanceMode)
-      .filter((val): val is RaycastDistanceMode => typeof val === 'number')
-      .map(mode => [mode, RaycastDistanceMode[mode]]),
-  );
 
   readonly ceilingHeightSelectControl = new FormControl<CeilingHeightAnnotation[]>([], { nonNullable: true });
 
@@ -39,7 +32,7 @@ export class RaycastTabComponent {
 
   deleteSelectedCeilingHeight() {
     const selection = this.ceilingHeightSelectControl.value;
-    this.raycastDistanceTool.deleteCeilingHeights(selection);
+    this.ceilingHeightTool.deleteCeilingHeights(selection);
   }
 
   rename() {
@@ -54,7 +47,7 @@ export class RaycastTabComponent {
       if (!newName) {
         return null;
       }
-      if (!this.raycastDistanceTool.ceilingHeightRenameIsValid(oldName, newName)) {
+      if (!this.ceilingHeightTool.ceilingHeightRenameIsValid(oldName, newName)) {
         return { [`Identifier ${JSON.stringify(newName)} is already in use`]: true };
       }
       return null;
@@ -76,7 +69,7 @@ export class RaycastTabComponent {
           if (!result) {
             return;
           }
-          this.raycastDistanceTool.renameCeilingHeight(selectedItem, result);
+          this.ceilingHeightTool.renameCeilingHeight(selectedItem, result);
         })
       );
   }

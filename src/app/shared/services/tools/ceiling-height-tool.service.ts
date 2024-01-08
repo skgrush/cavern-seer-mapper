@@ -9,39 +9,22 @@ import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
 import { BaseExclusiveToolService } from './base-tool.service';
 
-export enum RaycastDistanceMode {
-  fromCamera = 1,
-  ceiling = 2,
-}
-
-// export type IRaycastCameraDistance = {
-//   readonly cameraDistance: number;
-//   readonly gridDistance: number;
-//   readonly absPoint: Readonly<Vector3>;
-//   readonly type: 'Mesh' | 'GridHelper' | null;
-//   readonly firstParentGroup: Group | null;
-// }
-
 @Injectable()
-export class RaycastDistanceToolService extends BaseExclusiveToolService {
+export class CeilingHeightToolService extends BaseExclusiveToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
   readonly #annotationBuilder = inject(AnnotationBuilderService);
 
   readonly #stopSubject = new Subject<void>();
 
-  // readonly #cameraDistancesSubject = new BehaviorSubject<readonly IRaycastCameraDistance[]>([]);
   readonly #ceilingDistancesSubject = new BehaviorSubject<readonly CeilingHeightAnnotation[]>([]);
-  readonly #modeSubject = new BehaviorSubject(RaycastDistanceMode.ceiling);
   readonly #showCeilingHeightsSubject = new BehaviorSubject(true);
 
-  // readonly cameraDistances$ = this.#cameraDistancesSubject.asObservable();
   readonly ceilingDistances$ = this.#ceilingDistancesSubject.asObservable();
-  readonly mode$ = this.#modeSubject.asObservable();
   readonly showCeilingHeights$ = this.#showCeilingHeightsSubject.asObservable();
 
-  override readonly id = 'raycast-distance';
-  override readonly label = 'Raycast distance';
+  override readonly id = 'ceiling-height';
+  override readonly label = 'Ceiling height';
   override readonly icon = 'biotech';
   override readonly cursor$ = of('crosshair');
 
@@ -107,17 +90,10 @@ export class RaycastDistanceToolService extends BaseExclusiveToolService {
     return (set.size === 0);
   }
 
-  changeMode(mode: RaycastDistanceMode) {
-    if (!(mode in RaycastDistanceMode)) {
-      throw new Error(`Invalid mode ${mode}`);
-    }
-    this.#modeSubject.next(mode);
-  }
-
   override start(): boolean {
     const event$ = this.#canvasService.eventOnRenderer('pointerdown');
     if (!event$) {
-      console.error('Cannot start RaycastDistanceTool as there is no rendererTarget');
+      console.error('Cannot start CeilingHeightTool as there is no rendererTarget');
       return false;
     }
 
@@ -145,15 +121,7 @@ export class RaycastDistanceToolService extends BaseExclusiveToolService {
 
         const results = this.#canvasService.raycastFromCamera(mouseWorldPos);
 
-        switch (this.#modeSubject.value) {
-          case RaycastDistanceMode.fromCamera:
-            // this.#handleCameraRaycast(results);
-            console.info('raycast distance mode disabled', results);
-            break;
-          case RaycastDistanceMode.ceiling:
-            this.#handleCeilingRaycast(results);
-            break;
-        }
+        this.#handleCeilingRaycast(results);
       })
     ).subscribe();
     return true;
@@ -166,37 +134,6 @@ export class RaycastDistanceToolService extends BaseExclusiveToolService {
 
     return true;
   }
-
-  // #handleCameraRaycast(results: Intersection<Object3D>[]) {
-  //   const output: IRaycastCameraDistance[] = [];
-
-  //   const firstGridHelper = results.find(r => r.object instanceof GridHelper);
-  //   const girdHelperDistFromCamera = firstGridHelper?.distance ?? Infinity;
-
-  //   for (const result of results) {
-  //     // we only want to add the first GridHelper to the list
-  //     if (result.object instanceof GridHelper && result !== firstGridHelper) {
-  //       continue;
-  //     }
-
-  //     let type: IRaycastCameraDistance['type'] = null;
-  //     if (result.object instanceof GridHelper) {
-  //       type = 'GridHelper';
-  //     } else if (result.object instanceof Mesh) {
-  //       type = 'Mesh';
-  //     }
-
-  //     output.push({
-  //       cameraDistance: result.distance,
-  //       gridDistance: girdHelperDistFromCamera - result.distance,
-  //       absPoint: result.point,
-  //       type,
-  //       firstParentGroup: this.#getFirstParentGroup(result.object),
-  //     });
-  //   }
-
-  //   this.#cameraDistancesSubject.next(output);
-  // }
 
   #handleCeilingRaycast(results: Intersection<Object3D>[]) {
     const firstMeshInter = results.find((r): r is Intersection<Mesh> => r.object instanceof Mesh);
@@ -245,8 +182,8 @@ export class RaycastDistanceToolService extends BaseExclusiveToolService {
     this.#modelManager.addAnnotationToGroup(anno, firstParentGroup);
 
     const newList = Object.freeze([
-      ...this.#ceilingDistancesSubject.value,
       anno,
+      ...this.#ceilingDistancesSubject.value,
     ]);
 
     this.#ceilingDistancesSubject.next(newList);

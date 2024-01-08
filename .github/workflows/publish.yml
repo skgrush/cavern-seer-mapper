@@ -10,9 +10,15 @@ jobs:
     environment: prod
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - run: node ./scripts/cicd/fail-if-version-tag-exists.js --current
+        name: Version must not already be tagged
+        working-directory: .
 
       - run: npm ci
         name: Install
@@ -20,6 +26,7 @@ jobs:
       - run: node ./scripts/cicd/write-version-to-file-and-github-output.js ${{ github.run_number }}
         name: Get version and write to environment
         # outputs: VERSION
+        # outputs: PACKAGE_VERSION
         id: get-version
         working-directory: .
 
@@ -32,3 +39,17 @@ jobs:
           ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
           SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
 
+      - name: Push Git Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.get-version.outputs.VERSION }}
+          PACKAGE_VERSION: ${{ steps.get-version.outputs.PACKAGE_VERSION }}
+        run: |
+          if [ -z $VERSION ]; then { echo "No VERSION"; exit 1; } ; fi
+          if [ -z $PACKAGE_VERSION ]; then { echo "No PACKAGE_VERSION"; exit 2; } ; fi
+          git config user.name "cavern-seer-mapper/publish.yml"
+          git config user.email "cavern-seer-mapper_publish.yml@users.noreply.github.com"
+          $TAG="v$PACKAGE_VERSION"
+          echo "New tag: $TAG"
+          git tag $TAG -m "${{ github.event.head_commit.message }}"
+          git push origin $TAG

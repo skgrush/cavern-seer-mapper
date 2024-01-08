@@ -8,9 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - run: node ./scripts/cicd/fail-if-version-tag-exists.js --current
+        name: Version must not already be tagged
+        working-directory: .
 
       - run: npm ci
         name: Install
