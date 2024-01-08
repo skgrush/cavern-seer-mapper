@@ -25,6 +25,7 @@ function main() {
     version = `v${arg2}`
   }
 
+  console.info('Checking against pattern:', version)
   const matches = versionTagExists(version)
   console.info('matching tags:', matches)
 
