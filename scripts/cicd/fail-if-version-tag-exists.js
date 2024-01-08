@@ -26,6 +26,7 @@ function main() {
   }
 
   console.info('Checking against pattern:', version)
+  console.info('All tags:', versionTagExists(undefined))
   const matches = versionTagExists(version)
   console.info('matching tags:', matches)
 
