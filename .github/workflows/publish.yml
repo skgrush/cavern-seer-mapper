@@ -39,3 +39,17 @@ jobs:
           ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
           SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
 
+      - name: Push Git Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.get-version.outputs.VERSION }}
+          PACKAGE_VERSION: ${{ steps.get-version.outputs.PACKAGE_VERSION }}
+        run: |
+          if [ -z $VERSION ]; then { echo "No VERSION"; exit 1; } ; fi
+          if [ -z $PACKAGE_VERSION ]; then { echo "No PACKAGE_VERSION"; exit 2; } ; fi
+          git config user.name "cavern-seer-mapper/publish.yml"
+          git config user.email "cavern-seer-mapper_publish.yml@users.noreply.github.com"
+          $TAG="v$PACKAGE_VERSION"
+          echo "New tag: $TAG"
+          git tag $TAG
+          git push origin $TAG
