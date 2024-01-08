@@ -10,9 +10,15 @@ jobs:
     environment: prod
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - run: node ./scripts/cicd/fail-if-version-tag-exists.js --current
+        name: Version must not already be tagged
+        working-directory: .
 
       - run: npm ci
         name: Install
@@ -20,6 +26,7 @@ jobs:
       - run: node ./scripts/cicd/write-version-to-file-and-github-output.js ${{ github.run_number }}
         name: Get version and write to environment
         # outputs: VERSION
+        # outputs: PACKAGE_VERSION
         id: get-version
         working-directory: .
 
