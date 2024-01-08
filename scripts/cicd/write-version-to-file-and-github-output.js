@@ -7,6 +7,13 @@ if (require.main === module) {
 }
 
 /**
+ * @typedef {object} VersionObject
+ * @property {string} version
+ * @property {string} packageVersion
+ * @property {string} [buildNumber]
+ */
+
+/**
  * Accept optional CLI arg as the "build number".
  *
  * Output the final build version to GITHUB_OUTPUT.VERSION, and write it to
@@ -22,10 +29,8 @@ async function main() {
   const version = packageVersion + (buildNumber ? `+${buildNumber}` : '')
 
   if (!buildNumber) {
-    console.info('No build number provided')
+    console.info(`'No build number provided, but that's okay'`)
   }
-  console.info('package.json version =', packageVersion)
-  console.info('Final build version =', version)
 
   const versionObject = {
     version,
@@ -33,20 +38,45 @@ async function main() {
     buildNumber,
   }
 
+  console.info('versionObject:', versionObject)
+
+  await Promise.all([
+    outputToGithubOutput(versionObject),
+    writeToVersionJson(versionObject),
+    writeToNgswConfig(versionObject),
+  ])
+}
+
+/**
+ * @param {VersionObject} versionObject
+ */
+async function outputToGithubOutput(versionObject) {
   const githubOutput = process.env.GITHUB_OUTPUT
 
   if (!githubOutput) {
     throw new Error('No env var GITHUB_OUTPUT')
   }
 
-  // write to GITHUB_OUTPUT
-  await appendFile(githubOutput, `VERSION="${version}"\n`)
+  await appendFile(githubOutput, `VERSION="${versionObject.version}"\n`)
+  await appendFile(githubOutput, `PACKAGE_VERSION=${versionObject.packageVersion}\n`)
+}
 
-  // write to version.json (used for MAPPER_VERSION token)
+/**
+ * write to version.json (used for MAPPER_VERSION token)
+ *
+ * @param {VersionObject} versionObject
+ */
+async function writeToVersionJson(versionObject) {
   const versionJsonPath = join(__dirname, '../../src/version.json')
   await writeFile(versionJsonPath, JSON.stringify(versionObject, undefined, 2))
+}
 
-  // write into ngsw-config.json
+/**
+ * write to ngsw-config.json's appData section
+ *
+ * @param {VersionObject} versionObject
+ */
+async function writeToNgswConfig(versionObject) {
   const ngswConfigPath = join(__dirname, '../../ngsw-config.json')
   const ngswConfigJson = JSON.parse(await readFile(ngswConfigPath, { encoding: 'utf8' }))
   ngswConfigJson.appData.version = versionObject
