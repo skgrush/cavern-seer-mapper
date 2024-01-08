@@ -49,7 +49,7 @@ jobs:
           if [ -z $PACKAGE_VERSION ]; then { echo "No PACKAGE_VERSION"; exit 2; } ; fi
           git config user.name "cavern-seer-mapper/publish.yml"
           git config user.email "cavern-seer-mapper_publish.yml@users.noreply.github.com"
-          $TAG="v$PACKAGE_VERSION"
+          TAG="v$PACKAGE_VERSION"
           echo "New tag: $TAG"
           git tag $TAG -m "${{ github.event.head_commit.message }}"
           git push origin $TAG
