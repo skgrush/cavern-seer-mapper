@@ -51,5 +51,5 @@ jobs:
           git config user.email "cavern-seer-mapper_publish.yml@users.noreply.github.com"
           $TAG="v$PACKAGE_VERSION"
           echo "New tag: $TAG"
-          git tag $TAG
-          git push origin $TAG -m "${{ github.event.head_commit.message }}"
+          git tag $TAG -m "${{ github.event.head_commit.message }}"
+          git push origin $TAG
