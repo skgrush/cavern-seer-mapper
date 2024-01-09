@@ -7,5 +7,11 @@
   <button mat-list-item (click)="checkForUpdate()">Check for update</button>
 </mat-list>
 <div class="footer">
-  <p>{{ mapperVersion }}</p>
+  <p>{{ mapperVersion.version }}</p>
+  <p>
+    <a [style.color]="'white'"
+      [href]="'https://github.com/skgrush/cavern-seer-mapper/releases/tag/v' + mapperVersion.version">
+      View on GitHub
+    </a>
+  </p>
 </div>
