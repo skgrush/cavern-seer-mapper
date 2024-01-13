@@ -39,7 +39,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     this.identifier = identifier;
     this.comment = comment;
 
-    (this.#object.userData as IMapperUserData).fromSerializedModel = true;
+    (object.userData as IMapperUserData).fromSerializedModel = true;
     object.traverse(child => {
       (child.userData as IMapperUserData).fromSerializedModel = true;
     })
