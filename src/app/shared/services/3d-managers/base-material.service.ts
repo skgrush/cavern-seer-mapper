@@ -1,10 +1,7 @@
 import { DoubleSide, FrontSide, Material, Side } from 'three';
 
-export class BaseMaterialService<T extends Material> {
-
-  protected constructor(
-    public readonly material: T
-  ) { }
+export abstract class BaseMaterialService<T extends Material> {
+  abstract readonly material: T;
 
   setSide(side: Side) {
     this.material.side = side;
