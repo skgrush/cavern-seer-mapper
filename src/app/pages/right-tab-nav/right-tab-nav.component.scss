@@ -2,6 +2,7 @@
   display: block;
 
   width: 350px;
+  max-width: calc(100vw - 70px);
   height: 100%;
   overflow: hidden;
 }
