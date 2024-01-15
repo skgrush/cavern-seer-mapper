@@ -1,17 +1,18 @@
 import { Subject } from "rxjs";
-import { FileModelType } from "../model-type.enum";
-import { BaseVisibleRenderModel } from "./base.render-model";
 import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Object3DEventMap, SphereGeometry, Vector3 } from "three";
-import type { CSMeshSnapshot, SurveyLine, SurveyStation } from "../../types/cavern-seer-scan";
-import { UploadFileModel } from "../upload-file-model";
-import { ISimpleVector3 } from "../simple-types";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
-import { BaseAnnotation } from "../annotations/base.annotation";
-import { ModelChangeType } from "../model-change-type.enum";
-import { IMapperUserData } from "../user-data";
 import { float4x4ToMatrix4 } from "../../functions/float4x4-to-matrix4";
+import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
+import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
+import type { CSMeshSnapshot, SurveyLine, SurveyStation } from "../../types/cavern-seer-scan";
+import { BaseAnnotation } from "../annotations/base.annotation";
 import { TemporaryAnnotation } from "../annotations/temporary.annotation";
+import { ModelChangeType } from "../model-change-type.enum";
+import { FileModelType } from "../model-type.enum";
 import { RenderingOrder } from "../rendering-layers";
+import { ISimpleVector3 } from "../simple-types";
+import { UploadFileModel } from "../upload-file-model";
+import { IMapperUserData } from "../user-data";
+import { BaseVisibleRenderModel } from "./base.render-model";
 
 export interface IScanFileParsed {
   readonly encodingVersion: bigint;
@@ -28,10 +29,13 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
   override readonly type = FileModelType.cavernseerscan;
   override readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
-  override readonly position: Readonly<Vector3> = new Vector3();
   override readonly identifier: string;
   override comment: string | null;
   override readonly rendered = true;
+
+  override get position() {
+    return this.#group.position;
+  }
 
   readonly #blob: Blob;
   readonly #parsedScanFile: IScanFileParsed;
@@ -86,6 +90,7 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#group.position.set(x, y, z);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
+    markSceneOfItemForReRender(this.#group);
     return true;
 
   }
