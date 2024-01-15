@@ -6,4 +6,6 @@ export enum FileModelType {
   obj = 'obj',
   /** gLTF or GLB file */
   gLTF = 'gltf',
+  /** CavernSeer ScanFile binary */
+  cavernseerscan = 'cavernseerscan',
 }

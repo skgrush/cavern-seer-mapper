@@ -30,6 +30,9 @@ export class FileTypeService {
     if (this.isSupportedGroupArchive(mime, name)) {
       return FileModelType.group;
     }
+    if (this.isCavernSeerScan(mime, name)) {
+      return FileModelType.cavernseerscan;
+    }
     return FileModelType.unknown;
   }
 
@@ -64,5 +67,10 @@ export class FileTypeService {
 
   isSupportedGroupArchive(mime: string, name: string) {
     return this.isZip(mime, name);
+  }
+
+  isCavernSeerScan(mime: string, name: string) {
+    console.info('isCavernSeerScan', mime, name);
+    return this.getFileExtension(name) === '.cavernseerscan';
   }
 }
