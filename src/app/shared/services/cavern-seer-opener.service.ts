@@ -5,7 +5,7 @@ import { UploadFileModel } from '../models/upload-file-model';
 import { KeyedUnarchiver, NSDateCoder, NSArrayCoder, NSUUIDCoder, Float4, Float4x4, $ObjectsMap, IArchivedInstance, IArchivedPList } from '@skgrush/bplist-and-nskeyedunarchiver/NSKeyedUnarchiver';
 import type { TransportProgressHandler } from '../models/transport-progress-handler';
 import type { CSMeshGeometryElement, CSMeshGeometrySource, CSMeshSlice, CSMeshSnapshot, ScanFile, SurveyLine, SurveyStation } from '../types/cavern-seer-scan';
-import { BufferAttribute, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Material, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 
 
 @Injectable({
@@ -42,8 +42,12 @@ export class CavernSeerOpenerService {
     const mesh = new Mesh(geometry, mat);
     mesh.userData['cs:slice'] = true;
     mesh.name = slice.identifier.toString();
-    const transform = slice.transform.flat() as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number];
-    mesh.matrix.set(...transform);
+    // convert normal float4x4 to Matrix4
+    const transform = new Matrix4(...slice.transform.flat() as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number])
+      .transpose();
+    mesh.matrix.copy(transform);
+    mesh.matrixAutoUpdate = false;
+    mesh.matrixWorldNeedsUpdate = true;
 
     return mesh;
   }
