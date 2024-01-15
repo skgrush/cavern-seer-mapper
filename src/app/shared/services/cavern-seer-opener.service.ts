@@ -28,8 +28,9 @@ export class CavernSeerOpenerService {
 
     const group = new Group();
     group.children = meshAnchors;
-    group.userData['cs:encodingVersion'] = scanFile.name;
-    group.userData['encodingVersion'] = scanFile.encodingVersion;
+    group.name = scanFile.name;
+    group.userData['cs:timestamp'] = scanFile.timestamp;
+    group.userData['cs:encodingVersion'] = scanFile.encodingVersion;
 
     return group;
   }
