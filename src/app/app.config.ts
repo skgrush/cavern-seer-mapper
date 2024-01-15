@@ -13,12 +13,14 @@ import { INTL_LOCALE } from './shared/tokens/intl-locale.token';
 import { INTL_UNIT_LIST_FORMAT } from './shared/tokens/intl-unit-list-format.token';
 import { LOCAL_STORAGE } from './shared/tokens/local-storage.token';
 import { MAPPER_VERSION, VersionObject } from './shared/tokens/version.token';
+import { provideHttpClient } from '@angular/common/http';
 
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideAnimations(),
+    provideHttpClient(),
     ErrorService,
     AlertService,
     importProvidersFrom(MatSnackBarModule),
