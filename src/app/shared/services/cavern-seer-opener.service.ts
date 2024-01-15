@@ -280,8 +280,8 @@ class SurveyLineCoder extends KeyedUnarchiver<SurveyLine> {
 
   decode(): SurveyLine {
     return {
-      startIdentifier: this.decodeObjectOf(NSUUIDCoder, 'startId', true),
-      endIdentifier: this.decodeObjectOf(NSUUIDCoder, 'endId', true),
+      startIdentifier: this.decodeObjectOf(NSUUIDCoder, 'startIdentifier', true),
+      endIdentifier: this.decodeObjectOf(NSUUIDCoder, 'endIdentifier', true),
     }
   }
 }
@@ -297,7 +297,7 @@ class SurveyStationCoder extends KeyedUnarchiver<SurveyStation> {
   }
 
   static initForReadingDataFrom($objects: $ObjectsMap, data: IArchivedInstance) {
-    return new SurveyLineCoder($objects, data);
+    return new SurveyStationCoder($objects, data);
   }
 
   decode(): SurveyStation {
