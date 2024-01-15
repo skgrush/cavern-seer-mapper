@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 
+import { $ObjectsMap, Float4, Float4x4, IArchivedInstance, IArchivedPList, KeyedUnarchiver, NSArrayCoder, NSDateCoder, NSUUIDCoder } from '@skgrush/bplist-and-nskeyedunarchiver/NSKeyedUnarchiver';
 import { Reader, deStructWithIter } from '@skgrush/bplist-and-nskeyedunarchiver/bplist';
-import { UploadFileModel } from '../models/upload-file-model';
-import { KeyedUnarchiver, NSDateCoder, NSArrayCoder, NSUUIDCoder, Float4, Float4x4, $ObjectsMap, IArchivedInstance, IArchivedPList } from '@skgrush/bplist-and-nskeyedunarchiver/NSKeyedUnarchiver';
-import type { TransportProgressHandler } from '../models/transport-progress-handler';
-import type { CSMeshGeometryElement, CSMeshGeometrySource, CSMeshSlice, CSMeshSnapshot, ScanFile, SurveyLine, SurveyStation } from '../types/cavern-seer-scan';
-import { BufferAttribute, BufferGeometry, Group, Material, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial } from 'three';
 import { float4x4ToMatrix4 } from '../functions/float4x4-to-matrix4';
+import type { TransportProgressHandler } from '../models/transport-progress-handler';
+import { UploadFileModel } from '../models/upload-file-model';
+import type { CSMeshGeometryElement, CSMeshGeometrySource, CSMeshSlice, CSMeshSnapshot, ScanFile, SurveyLine, SurveyStation } from '../types/cavern-seer-scan';
 
 export enum MTLVertexFormat {
   float3 = 30,
@@ -28,10 +28,11 @@ export class CavernSeerOpenerService {
     const meshAnchors = scanFile.meshAnchors.map(slice => this.#meshSliceToGroup(slice, material));
 
     const group = new Group();
-    group.children = meshAnchors;
+    group.add(...meshAnchors);
     group.name = scanFile.name;
     group.userData['cs:timestamp'] = scanFile.timestamp;
     group.userData['cs:encodingVersion'] = scanFile.encodingVersion;
+    group.matrixWorldNeedsUpdate = true;
 
     return group;
   }
@@ -47,8 +48,7 @@ export class CavernSeerOpenerService {
     mesh.userData['cs:slice'] = true;
     mesh.name = slice.identifier.toString();
     const transform = float4x4ToMatrix4(slice.transform);
-    mesh.matrix.copy(transform);
-    mesh.matrixAutoUpdate = false;
+    mesh.applyMatrix4(transform)
     mesh.matrixWorldNeedsUpdate = true;
 
     return mesh;
