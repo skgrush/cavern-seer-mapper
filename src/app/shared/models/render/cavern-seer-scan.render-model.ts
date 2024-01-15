@@ -51,6 +51,11 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
     this.#group = parsedScanFile.group;
 
     debugger;
+
+    (this.#group.userData as IMapperUserData).fromSerializedModel = true;
+    this.#group.traverse(child => {
+      (child.userData as IMapperUserData).fromSerializedModel = true;
+    })
   }
 
   static fromUploadModelAndParsedScanFile(uploadModel: UploadFileModel, parsedScan: IScanFileParsed) {

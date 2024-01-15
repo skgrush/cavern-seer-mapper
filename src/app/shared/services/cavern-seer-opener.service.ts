@@ -7,6 +7,9 @@ import type { TransportProgressHandler } from '../models/transport-progress-hand
 import type { CSMeshGeometryElement, CSMeshGeometrySource, CSMeshSlice, CSMeshSnapshot, ScanFile, SurveyLine, SurveyStation } from '../types/cavern-seer-scan';
 import { BufferAttribute, BufferGeometry, Group, Material, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 
+export enum MTLVertexFormat {
+  float3 = 30,
+}
 
 @Injectable({
   // necessary to be providedIn:root for dynamic injection
@@ -34,10 +37,9 @@ export class CavernSeerOpenerService {
   #meshSliceToGroup(slice: CSMeshSlice, mat: Material) {
     const geometry = new BufferGeometry();
 
-    slice.faces;
-
-    geometry.setIndex(this.#meshGeometryElementToFaces(slice.faces));
-    geometry.setAttribute('position', this.#meshGeometrySourceToVertices(slice.vertices));
+    geometry.setIndex([...this.#meshGeometryElementToComponents(slice.faces)]);
+    geometry.setAttribute('normal', this.#meshGeometrySourceToFloatBufferAttribute(slice.normals));
+    geometry.setAttribute('position', this.#meshGeometrySourceToFloatBufferAttribute(slice.vertices));
 
     const mesh = new Mesh(geometry, mat);
     mesh.userData['cs:slice'] = true;
@@ -52,10 +54,9 @@ export class CavernSeerOpenerService {
     return mesh;
   }
 
-  #meshGeometrySourceToVertices(src: CSMeshGeometrySource) {
+  #meshGeometrySourceToFloatBufferAttribute(src: CSMeshGeometrySource) {
     const bitsPerComponent = 8 * Number(src.bytesPerComponent);
-    const count = Number(src.count);
-    if (src.format !== 30n) {
+    if (Number(src.format) !== MTLVertexFormat.float3) {
       throw new Error(`CSMeshGeometrySource for vertices has incorrect format: MTLVertexFormat[${src.format}]`);
     }
     if (src.componentsPerVector !== 3n) {
@@ -68,31 +69,27 @@ export class CavernSeerOpenerService {
     return new BufferAttribute(this.#readDataToFloatArray(bitsPerComponent, src.data, src), 3);
   }
 
-  #meshGeometryElementToFaces(src: CSMeshGeometryElement) {
+  #meshGeometryElementToComponents(src: CSMeshGeometryElement) {
     const bytesPerComponent = Number(src.bytesPerIndex);
-    const bitsPerComponent = 8 * bytesPerComponent;
-    const indexCount = Number(src.count * src.indexCountPerPrimitive);
+    const componentCount = Number(src.count * src.indexCountPerPrimitive);
 
     if (src.primitiveType !== 0n || src.indexCountPerPrimitive !== 3n) {
       throw new Error(`CSMeshGeometryElement primitiveType should be 0 for triangles, got ${src.primitiveType}`);
     }
-    if (bitsPerComponent !== 32/* && bitsPerComponent !== 64*/) {
-      throw new Error(`bad bits: ${bitsPerComponent}`);
+    if (bytesPerComponent !== 4/* && bytesPerComponent !== 8*/) {
+      throw new Error(`bad bits: ${bytesPerComponent}`);
     }
 
     const view = new DataView(src.data);
-    let i = 0;
 
     const fn = (view: DataView, byteOffset: number) => ({ value: view.getInt32(byteOffset, true), bytesRead: bytesPerComponent });
     function* elementIndexIter() {
-      for (; i < indexCount; ++i) {
+      for (let i = 0; i < componentCount; ++i) {
         yield fn;
       }
     }
 
-    const rawElementIter = [...deStructWithIter(elementIndexIter(), new DataView(src.data))];
-
-    return rawElementIter;
+    return deStructWithIter(elementIndexIter(), new DataView(src.data));
   }
 
   #readDataToFloatArray(bitsPerComponent: 32 | 64, data: ArrayBuffer, src: CSMeshGeometrySource) {
