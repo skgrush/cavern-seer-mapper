@@ -5,6 +5,7 @@ import { BaseModelManifest, ModelManifestV0, modelManifestParse } from '../model
 import { FileModelType } from '../models/model-type.enum';
 import { AnyRenderModel } from '../models/render/any-render-model';
 import { BaseRenderModel } from '../models/render/base.render-model';
+import { CavernSeerScanRenderModel, IScanFileParsed } from '../models/render/cavern-seer-scan.render-model';
 import { GltfRenderModel } from '../models/render/gltf.render-model';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { ObjRenderModel } from '../models/render/obj.render-model';
@@ -49,6 +50,13 @@ export class ModelLoadService {
     shareReplay(1),
   );
 
+  readonly #cavernSeerOpenerService$ = defer(() =>
+    import('./cavern-seer-opener.service')
+  ).pipe(
+    map(({ CavernSeerOpenerService }) => this.#injector.get(CavernSeerOpenerService)),
+    shareReplay(1),
+  );
+
   exportModelForSerializing(model: BaseRenderModel<any>): Observable<null | Blob> {
     return of(model.serialize());
   }
@@ -68,6 +76,9 @@ export class ModelLoadService {
 
         case FileModelType.group:
           return this.loadGroup(file, progress);
+
+        case FileModelType.cavernseerscan:
+          return this.loadCavernSeerFile(file, progress);
 
         default:
           return of({
@@ -135,6 +146,36 @@ export class ModelLoadService {
       switchMap(loader => loader.parseAsync(arrayBuffer, '')),
     );
   }
+
+  loadCavernSeerFile(
+    file: UploadFileModel,
+    progress?: TransportProgressHandler,
+  ): Observable<IModelLoadResult<CavernSeerScanRenderModel>> {
+    if (!this.#fileTypeService.isCavernSeerScan(file.mime, file.identifier)) {
+      return throwError(() => new Error(`loadCavernSeerFile doesn't support file ${file.type} of ${file.identifier}`));
+    }
+
+    return this.#cavernSeerOpenerService$.pipe(
+      switchMap(opener => {
+        return defer(() => opener.decode(file, progress)).pipe(
+          map((scanFile): IScanFileParsed => ({
+            encodingVersion: scanFile.encodingVersion,
+            timestamp: scanFile.timestamp,
+            name: scanFile.name,
+            startSnapshot: scanFile.startSnapshot,
+            endSnapshot: scanFile.endSnapshot,
+            group: opener.generateGroup(scanFile),
+            stations: scanFile.stations,
+            lines: scanFile.lines,
+
+          })),
+          map(scanFileParsed => CavernSeerScanRenderModel.fromUploadModelAndParsedScanFile(file, scanFileParsed)),
+          map(model => ({
+            errors: [],
+            result: model,
+          })),
+        );
+      }),
     );
   }
 
