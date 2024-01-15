@@ -1,7 +1,7 @@
 import { Subject } from "rxjs";
 import { FileModelType } from "../model-type.enum";
 import { BaseVisibleRenderModel } from "./base.render-model";
-import { Group, Mesh, Object3DEventMap, Vector3 } from "three";
+import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Object3DEventMap, SphereGeometry, Vector3 } from "three";
 import type { CSMeshSnapshot, SurveyLine, SurveyStation } from "../../types/cavern-seer-scan";
 import { UploadFileModel } from "../upload-file-model";
 import { ISimpleVector3 } from "../simple-types";
@@ -9,6 +9,9 @@ import { BaseMaterialService } from "../../services/3d-managers/base-material.se
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { ModelChangeType } from "../model-change-type.enum";
 import { IMapperUserData } from "../user-data";
+import { float4x4ToMatrix4 } from "../../functions/float4x4-to-matrix4";
+import { TemporaryAnnotation } from "../annotations/temporary.annotation";
+import { RenderingOrder } from "../rendering-layers";
 
 export interface IScanFileParsed {
   readonly encodingVersion: bigint;
@@ -55,7 +58,12 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
     (this.#group.userData as IMapperUserData).fromSerializedModel = true;
     this.#group.traverse(child => {
       (child.userData as IMapperUserData).fromSerializedModel = true;
-    })
+    });
+
+    const surveyLineAnnotation = this.#createSurveyLineAnnotation(parsedScanFile);
+    if (surveyLineAnnotation) {
+      this.addAnnotation(surveyLineAnnotation);
+    }
   }
 
   static fromUploadModelAndParsedScanFile(uploadModel: UploadFileModel, parsedScan: IScanFileParsed) {
@@ -130,5 +138,75 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
     }
   }
 
+  #createSurveyLineAnnotation(parsedScanFile: IScanFileParsed) {
+    if (!parsedScanFile.lines.length) {
+      return null;
+    }
 
+    const identifierPointMap = new Map(
+      parsedScanFile.stations.map(station => {
+        const transform = float4x4ToMatrix4(station.transform);
+        const point = new Vector3().setFromMatrixPosition(transform);
+        return [station.identifier.value, point];
+      }),
+    );
+
+    const startEndMap = new Map(
+      parsedScanFile.lines.map(({ startIdentifier, endIdentifier }) => {
+        return [startIdentifier.value, endIdentifier.value];
+      }),
+    );
+    const ends = new Set(startEndMap.values());
+
+    const first = [...startEndMap.keys()].find(key => !ends.has(key));
+
+    if (first === undefined) {
+      console.error('no first element in survey lines?');
+      return null;
+    }
+
+    const points: Vector3[] = [];
+
+    let currentStationId: bigint | undefined = first;
+    while (currentStationId) {
+      const point = identifierPointMap.get(currentStationId);
+      if (point === undefined) {
+        console.error('Failed to find SurveyStation', currentStationId);
+        return null;
+      }
+      points.push(point);
+      currentStationId = startEndMap.get(currentStationId);
+    }
+
+    const stationMaterial = new MeshBasicMaterial({ color: 0x777777 });
+    stationMaterial.depthTest = false;
+    const stationObjects = [...identifierPointMap.entries()].map(([ident, position]) => {
+      const geo = new SphereGeometry(0.1, 16, 16);
+      const sphere = new Mesh(geo, stationMaterial);
+      sphere.position.copy(position);
+      sphere.userData['cs:surveyStation'] = true;
+      sphere.renderOrder = RenderingOrder.Annotation;
+      return sphere;
+    })
+
+    const group = new Group();
+    (group.userData as IMapperUserData).isAnnotationGroup = true;
+
+    const material = new LineBasicMaterial({ color: 0x00FF00 });
+    const geometry = new BufferGeometry().setFromPoints(points);
+    const line = new Line(geometry, material);
+
+    material.depthTest = false;
+    line.renderOrder = RenderingOrder.Annotation;
+    line.userData['cs:surveyLine'] = true;
+
+    group.add(line);
+    group.add(...stationObjects);
+
+    return new TemporaryAnnotation(
+      `SurveyLine for ${parsedScanFile.name}`,
+      group,
+      l => points[0],
+    );
+  }
 }

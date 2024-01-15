@@ -1,6 +1,7 @@
 import { ignoreNullishArray } from "../operators/ignore-nullish";
 import { AnnotationBuilderService } from "../services/annotation-builder.service";
 import { BaseAnnotation } from "./annotations/base.annotation";
+import { TemporaryAnnotation } from "./annotations/temporary.annotation";
 import { IMetadataBaseAnnotationV0, IMetadataEntryV0 } from "./manifest/types.v0";
 import { BaseRenderModel, BaseVisibleRenderModel } from "./render/base.render-model";
 import { GroupRenderModel } from "./render/group.render-model";
@@ -97,6 +98,7 @@ export class ModelManifestV0 extends BaseModelManifest {
   static #buildAnnotations(model: BaseRenderModel<any>): IMetadataBaseAnnotationV0[] | null {
     if (model instanceof BaseVisibleRenderModel) {
       const serializedAnnos = model.getAnnotations()
+        .filter(anno => !(anno instanceof TemporaryAnnotation))
         .map(anno => anno.serializeToManifest(0))
         .filter(ignoreNullishArray);
 

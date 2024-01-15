@@ -6,6 +6,7 @@ import { KeyedUnarchiver, NSDateCoder, NSArrayCoder, NSUUIDCoder, Float4, Float4
 import type { TransportProgressHandler } from '../models/transport-progress-handler';
 import type { CSMeshGeometryElement, CSMeshGeometrySource, CSMeshSlice, CSMeshSnapshot, ScanFile, SurveyLine, SurveyStation } from '../types/cavern-seer-scan';
 import { BufferAttribute, BufferGeometry, Group, Material, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
+import { float4x4ToMatrix4 } from '../functions/float4x4-to-matrix4';
 
 export enum MTLVertexFormat {
   float3 = 30,
@@ -45,9 +46,7 @@ export class CavernSeerOpenerService {
     const mesh = new Mesh(geometry, mat);
     mesh.userData['cs:slice'] = true;
     mesh.name = slice.identifier.toString();
-    // convert normal float4x4 to Matrix4
-    const transform = new Matrix4(...slice.transform.flat() as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number])
-      .transpose();
+    const transform = float4x4ToMatrix4(slice.transform);
     mesh.matrix.copy(transform);
     mesh.matrixAutoUpdate = false;
     mesh.matrixWorldNeedsUpdate = true;
