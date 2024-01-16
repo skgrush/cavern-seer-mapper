@@ -167,12 +167,12 @@ class ScanFileCoder extends KeyedUnarchiver<ScanFile> {
   decode(): ScanFile {
     const version = this.containsValue('version')
       ? this.decodeInt32('version')
-      : 1;
+      : 1n;
 
-    if (version === 1) {
-      throw new Error('Unfortunately cavernseerscan version 1 files are unsupported :(. Upgrade your file in CavernSeer to version 2 first.');
+    if (version === 1n) {
+      throw new Error('Unfortunately cavernseerscan version 1 files are unsupported 😔. Upgrade your file in CavernSeer to version 2 first.');
     }
-    if (version > 2) {
+    if (version > 2n) {
       throw new Error(`Unknown cavernseerscan version ${version}`);
     }
 
