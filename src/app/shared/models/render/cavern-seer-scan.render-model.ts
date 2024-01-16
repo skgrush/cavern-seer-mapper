@@ -1,7 +1,8 @@
 import { Subject } from "rxjs";
-import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Object3DEventMap, SphereGeometry, Vector3 } from "three";
+import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Object3DEventMap, PlaneGeometry, SphereGeometry, Texture, Vector3 } from "three";
 import { float4x4ToMatrix4 } from "../../functions/float4x4-to-matrix4";
 import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
+import { ignoreNullishArray } from "../../operators/ignore-nullish";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import type { CSMeshSnapshot, SurveyLine, SurveyStation } from "../../types/cavern-seer-scan";
 import { BaseAnnotation } from "../annotations/base.annotation";
@@ -67,6 +68,10 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
     const surveyLineAnnotation = this.#createSurveyLineAnnotation(parsedScanFile);
     if (surveyLineAnnotation) {
       this.addAnnotation(surveyLineAnnotation);
+    }
+
+    for (const anno of this.#createImageAnchors(parsedScanFile)) {
+      this.addAnnotation(anno);
     }
   }
 
@@ -213,5 +218,113 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
       group,
       l => points[0],
     );
+  }
+
+  #createImageAnchors({ startSnapshot, endSnapshot }: IScanFileParsed) {
+    return [startSnapshot, endSnapshot]
+      .map(snapshot => this.#createImageAnchor(snapshot))
+      .filter(ignoreNullishArray);
+  }
+
+  #createImageAnchor(snapshot: CSMeshSnapshot | null) {
+    if (!snapshot) {
+      return;
+    }
+
+    let dimensions: readonly [width: number, height: number] | undefined;
+    try {
+      dimensions = this.#jankilyGetSizeOfJpeg(snapshot.imageData);
+    } catch (e) {
+      console.warn('Unexpected error while parking JPEG data', e);
+      return;
+    }
+    if (!dimensions) {
+      return;
+    }
+
+    const [width, height] = dimensions;
+
+    return this.#imageToTexture(snapshot, width, height);
+  }
+
+  #imageToTexture(snapshot: CSMeshSnapshot, width: number, height: number) {
+    const img = new Image(width, height);
+    img.src = URL.createObjectURL(new Blob([snapshot.imageData], { type: 'image/jpeg' }));
+
+    const texture = new Texture(img);
+    texture.needsUpdate = true;
+    const material = new MeshBasicMaterial({
+      map: texture,
+    });
+
+    const mesh = new Mesh(new PlaneGeometry(width / height, 1), material);
+
+    mesh.userData['cs:snapshot'] = true;
+    mesh.userData['cs:identifier'] = snapshot.identifier;
+    mesh.userData['cs:name'] = snapshot.name;
+
+    // pre-rotate because exif nonsense
+    mesh.rotateZ(Math.PI / 2);
+
+    mesh.applyMatrix4(float4x4ToMatrix4(snapshot.transform));
+
+    console.info('img', snapshot, mesh);
+
+    return new TemporaryAnnotation(
+      `Snapshot ${snapshot.name ?? snapshot.identifier}`,
+      mesh,
+      l => mesh.position,
+    );
+  }
+
+  /**
+   * @see https://yasoob.me/posts/understanding-and-writing-jpeg-decoder-in-python/
+   */
+  #jankilyGetSizeOfJpeg(buffer: ArrayBuffer): undefined | readonly [width: number, height: number] {
+    const view = new DataView(buffer);
+
+    if (view.getUint16(0, false) !== 0xFF_D8) {
+      console.warn('File format is not JPEG; ignoring');
+      return;
+    }
+
+    debugger;
+
+    let byteOffset = 2;
+
+    while (true) {
+      const segmentMarker = view.getUint16(byteOffset, false);
+      byteOffset += 2;
+
+      if (segmentMarker === 0xFFD8) { // empty segments
+        continue;
+      }
+      if (segmentMarker === 0xFFD9 || segmentMarker === 0xFFDA) {
+        console.warn('Failed to find start-of-frame');
+        return;
+      }
+      if ((segmentMarker >> 8) !== 0xFF) {
+        console.warn('Failed to read JPEG data');
+        return;
+      }
+
+      const segmentByteLength = view.getUint16(byteOffset, false);
+      byteOffset += 2;
+
+      switch (segmentMarker) {
+        case 0xFFC0: {
+          // start-of-frame
+          const precision = view.getUint8(byteOffset);
+          ++byteOffset;
+          const height = view.getUint16(byteOffset);
+          byteOffset += 2;
+          const width = view.getUint16(byteOffset);
+          return [width, height];
+        }
+
+        default:
+          byteOffset += segmentByteLength - 2;
+      }
+    }
   }
 }
