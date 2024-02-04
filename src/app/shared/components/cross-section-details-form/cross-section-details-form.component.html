@@ -8,15 +8,15 @@
     </div>
     <mat-form-field>
       <mat-label>X</mat-label>
-      <input matInput type="number" [formControl]="formGroup.controls.position.controls.x">
+      <input matInput type="number" step="0.1" [formControl]="formGroup.controls.position.controls.x">
     </mat-form-field>
     <mat-form-field>
       <mat-label>Y</mat-label>
-      <input matInput type="number" [formControl]="formGroup.controls.position.controls.y">
+      <input matInput type="number" step="0.1" [formControl]="formGroup.controls.position.controls.y">
     </mat-form-field>
     <mat-form-field>
       <mat-label>Z</mat-label>
-      <input matInput type="number" [formControl]="formGroup.controls.position.controls.z">
+      <input matInput type="number" step="0.1" [formControl]="formGroup.controls.position.controls.z">
     </mat-form-field>
   </section>
   <section class="label-and-form-trio">
@@ -24,15 +24,15 @@
     <div></div>
     <mat-form-field>
       <mat-label>Width</mat-label>
-      <input matInput type="number" [formControl]="formGroup.controls.dimensions.controls.x">
+      <input matInput type="number" step="0.1" [formControl]="formGroup.controls.dimensions.controls.x">
     </mat-form-field>
     <mat-form-field>
       <mat-label>Height</mat-label>
-      <input matInput type="number" [formControl]="formGroup.controls.dimensions.controls.y">
+      <input matInput type="number" step="0.1" [formControl]="formGroup.controls.dimensions.controls.y">
     </mat-form-field>
     <mat-form-field>
       <mat-label>Depth</mat-label>
-      <input matInput type="number" [formControl]="formGroup.controls.dimensions.controls.z">
+      <input matInput type="number" step="0.1" [formControl]="formGroup.controls.dimensions.controls.z">
     </mat-form-field>
   </section>
   <mat-form-field>
