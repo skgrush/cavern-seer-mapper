@@ -58,8 +58,6 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
     this.#parsedScanFile = parsedScanFile;
     this.#group = parsedScanFile.group;
 
-    debugger;
-
     (this.#group.userData as IMapperUserData).fromSerializedModel = true;
     this.#group.traverse(child => {
       (child.userData as IMapperUserData).fromSerializedModel = true;
@@ -287,8 +285,6 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
       console.warn('File format is not JPEG; ignoring');
       return;
     }
-
-    debugger;
 
     let byteOffset = 2;
 

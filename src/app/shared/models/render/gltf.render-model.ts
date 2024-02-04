@@ -44,8 +44,6 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
     this.#gltf = gltf;
     this.comment = comment;
 
-    debugger;
-
     const object = gltf.scene;
     this.#boxHelper = new BoxHelper(object);
     (object.userData as IMapperUserData).fromSerializedModel = true;

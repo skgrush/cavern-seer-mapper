@@ -27,6 +27,11 @@ export class CavernSeerOpenerService {
 
     const meshAnchors = scanFile.meshAnchors.map(slice => this.#meshSliceToGroup(slice, material));
 
+    if (!meshAnchors.length) {
+      debugger;
+      console.warn('ScanFile', scanFile.name, ' contains no meshes; this is probably from a corrupted scan');
+    }
+
     const group = new Group();
     group.add(...meshAnchors);
     group.name = scanFile.name;
