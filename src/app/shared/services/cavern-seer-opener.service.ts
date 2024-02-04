@@ -148,7 +148,11 @@ export class CavernSeerOpenerService {
   }
 }
 
-
+/**
+ * Port of coder for CavernSeer's ScanFile.
+ *
+ * @link https://github.com/skgrush/CavernSeer/blob/e966eb/CavernSeer/Models/Serializations/ScanFile.swift
+ */
 class ScanFileCoder extends KeyedUnarchiver<ScanFile> {
 
   static readonly $classname = 'CavernSeer.ScanFile';
@@ -212,6 +216,11 @@ class ScanFileCoder extends KeyedUnarchiver<ScanFile> {
   }
 }
 
+/**
+ * Port of coder for CavernSeer's CSMeshSlice.
+ *
+ * @link https://github.com/skgrush/CavernSeer/blob/e966eb/CavernSeer/Models/Serializations/CSMeshSlice.swift
+ */
 class CSMeshSliceCoder extends KeyedUnarchiver<CSMeshSlice> {
 
   static readonly $classname = 'CavernSeer.CSMeshSlice';
@@ -238,6 +247,11 @@ class CSMeshSliceCoder extends KeyedUnarchiver<CSMeshSlice> {
   }
 }
 
+/**
+ * Port of coder for CavernSeer's CSMeshSnapshot.
+ *
+ * @link https://github.com/skgrush/CavernSeer/blob/e966eb/CavernSeer/Models/Serializations/CSMeshSnapshot.swift
+ */
 class CSMeshSnapshotCoder extends KeyedUnarchiver<CSMeshSnapshot> {
 
   static readonly $classname = 'CavernSeer.CSMeshSnapshot';
@@ -263,6 +277,11 @@ class CSMeshSnapshotCoder extends KeyedUnarchiver<CSMeshSnapshot> {
   }
 }
 
+/**
+ * Port of coder for CavernSeer's SurveyLine.
+ *
+ * @link https://github.com/skgrush/CavernSeer/blob/e966eb/CavernSeer/Models/Serializations/SurveyLine.swift
+ */
 class SurveyLineCoder extends KeyedUnarchiver<SurveyLine> {
 
   static readonly $classname = 'CavernSeer.SurveyLine';
@@ -285,6 +304,12 @@ class SurveyLineCoder extends KeyedUnarchiver<SurveyLine> {
     }
   }
 }
+
+/**
+ * Port of coder for CavernSeer's SurveyStation.
+ *
+ * @link https://github.com/skgrush/CavernSeer/blob/e966eb/CavernSeer/Models/Serializations/SurveyStation.swift
+ */
 class SurveyStationCoder extends KeyedUnarchiver<SurveyStation> {
 
   static readonly $classname = 'CavernSeer.SurveyStation';
@@ -308,6 +333,12 @@ class SurveyStationCoder extends KeyedUnarchiver<SurveyStation> {
     }
   }
 }
+
+/**
+ * Port of coder for CavernSeer's CSMeshGeometrySource.
+ *
+ * @link https://github.com/skgrush/CavernSeer/blob/e966eb/CavernSeer/Models/Serializations/CSMeshSlice.swift#L73
+ */
 class CSMeshGeometrySourceCoder extends KeyedUnarchiver<CSMeshGeometrySource> {
 
   static readonly $classname = 'CavernSeer.CSMeshGeometrySource';
@@ -336,6 +367,12 @@ class CSMeshGeometrySourceCoder extends KeyedUnarchiver<CSMeshGeometrySource> {
     };
   }
 }
+
+/**
+ * Port of coder for CavernSeer's CSMeshGeometryElement.
+ *
+ * @link https://github.com/skgrush/CavernSeer/blob/e966eb/CavernSeer/Models/Serializations/CSMeshSlice.swift#L171
+ */
 class CSMeshGeometryElementCoder extends KeyedUnarchiver<CSMeshGeometryElement> {
 
   static readonly $classname = 'CavernSeer.CSMeshGeometryElement';
@@ -362,6 +399,13 @@ class CSMeshGeometryElementCoder extends KeyedUnarchiver<CSMeshGeometryElement> 
   }
 }
 
+/**
+ * Mirror of CavernSeer's `NSCoder+simd.swift` implementation.
+ *
+ * Janky coder extensions I implemented before I knew that there were official simd coders.
+ *
+ * @link https://github.com/skgrush/CavernSeer/blob/e966eb/CavernSeer/extensions/NSCoder%2Bsimd.swift
+ */
 abstract class CavernSeerCustomDecoders {
   static decodeFloat3(coder: KeyedUnarchiver<any>, prefix: string) {
     const x = coder.decodeFloat(`${prefix}_x`);
