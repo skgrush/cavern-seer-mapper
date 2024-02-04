@@ -71,6 +71,6 @@ export class FileTypeService {
 
   isCavernSeerScan(mime: string, name: string) {
     console.info('isCavernSeerScan', mime, name);
-    return this.getFileExtension(name) === '.cavernseerscan';
+    return mime === 'application/vnd.org.grush.cavernseer.scan' || this.getFileExtension(name) === '.cavernseerscan';
   }
 }
