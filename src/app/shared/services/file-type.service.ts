@@ -70,7 +70,6 @@ export class FileTypeService {
   }
 
   isCavernSeerScan(mime: string, name: string) {
-    console.info('isCavernSeerScan', mime, name);
     return mime === 'application/vnd.org.grush.cavernseer.scan' || this.getFileExtension(name) === '.cavernseerscan';
   }
 }

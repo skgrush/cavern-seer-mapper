@@ -137,9 +137,6 @@ export class CavernSeerOpenerService {
     if (!result || typeof result !== 'object' || !('$archiver' in result)) {
       throw new Error('Invalid cavernseerscan file');
     }
-    // if (result['encodingVersion'] !== 2) {
-    //   throw new Error(`Expected cavernseerscan file encodingVersion 2 but got ${result['encodingVersion']}`);
-    // }
 
     return result as IArchivedPList;
   }

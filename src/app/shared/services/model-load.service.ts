@@ -157,7 +157,9 @@ export class ModelLoadService {
 
     return this.#cavernSeerOpenerService$.pipe(
       switchMap(opener => {
-        return defer(() => opener.decode(file, progress)).pipe(
+        return defer(() =>
+          opener.decode(file, progress)
+        ).pipe(
           map((scanFile): IScanFileParsed => ({
             encodingVersion: scanFile.encodingVersion,
             timestamp: scanFile.timestamp,
