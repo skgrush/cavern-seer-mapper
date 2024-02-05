@@ -1,10 +1,11 @@
-import { Injectable, Injector, Type, inject } from '@angular/core';
-import { MonoTypeOperatorFunction, Observable, catchError, defer, first, firstValueFrom, forkJoin, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
-import { Loader } from 'three';
+import { Injectable, Injector, inject } from '@angular/core';
+import { Observable, catchError, defer, first, firstValueFrom, forkJoin, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { Group } from 'three';
 import { BaseModelManifest, ModelManifestV0, modelManifestParse } from '../models/model-manifest';
 import { FileModelType } from '../models/model-type.enum';
 import { AnyRenderModel } from '../models/render/any-render-model';
 import { BaseRenderModel } from '../models/render/base.render-model';
+import { CavernSeerScanRenderModel, IScanFileParsed } from '../models/render/cavern-seer-scan.render-model';
 import { GltfRenderModel } from '../models/render/gltf.render-model';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { ObjRenderModel } from '../models/render/obj.render-model';
@@ -49,6 +50,13 @@ export class ModelLoadService {
     shareReplay(1),
   );
 
+  readonly #cavernSeerOpenerService$ = defer(() =>
+    import('./cavern-seer-opener.service')
+  ).pipe(
+    map(({ CavernSeerOpenerService }) => this.#injector.get(CavernSeerOpenerService)),
+    shareReplay(1),
+  );
+
   exportModelForSerializing(model: BaseRenderModel<any>): Observable<null | Blob> {
     return of(model.serialize());
   }
@@ -69,6 +77,9 @@ export class ModelLoadService {
         case FileModelType.group:
           return this.loadGroup(file, progress);
 
+        case FileModelType.cavernseerscan:
+          return this.loadCavernSeerFile(file, progress);
+
         default:
           return of({
             result: UnknownRenderModel.fromUploadModel(file),
@@ -86,45 +97,87 @@ export class ModelLoadService {
     file: UploadFileModel,
     progress?: TransportProgressHandler,
   ): Observable<IModelLoadResult<ObjRenderModel>> {
-    const url = new URL(URL.createObjectURL(file.blob));
-    return this.#rawLoadObjFromUrl(url, progress).pipe(
-      this.#revokeUrlOnEnd(url),
-      map(({ result, errors }) => ({
-        errors,
-        result: result ? ObjRenderModel.fromUploadModel(file, result) : undefined,
+    return defer(() => file.blob.text()).pipe(
+      tap(() => progress?.addToLoadedCount(file.blob.size)),
+      switchMap(rawJson => this.#rawLoadObj(rawJson)),
+      map(group => ({
+        errors: [],
+        result: ObjRenderModel.fromUploadModel(file, group),
+      })),
+      catchError(err => of({
+        errors: [err],
       })),
     );
   }
 
-  #rawLoadObjFromUrl(
-    url: URL,
+  #rawLoadObj(
+    rawJson: string,
     progress?: TransportProgressHandler,
-  ) {
+  ): Observable<Group> {
     return this.#objLoader$.pipe(
-      switchMap(OBJLoader => this.#load(OBJLoader, url, progress)),
-    );
+      map(cls => new cls()),
+      map(loader => loader.parse(rawJson)),
+    )
   }
 
   loadGltf(
     file: UploadFileModel,
     progress?: TransportProgressHandler,
   ): Observable<IModelLoadResult<GltfRenderModel>> {
-    const url = new URL(URL.createObjectURL(file.blob));
-    return this.#rawLoadGltfFromUrl(url, progress).pipe(
-      this.#revokeUrlOnEnd(url),
-      map(({ result, errors }) => ({
-        errors,
+    return defer(() => file.blob.arrayBuffer()).pipe(
+      tap(() => progress?.addToLoadedCount(file.blob.size)),
+      switchMap(buffer => this.#rawLoadGltf(buffer)),
+      map(result => ({
+        errors: [],
         result: result ? GltfRenderModel.fromUploadModel(file, result) : undefined,
+      })),
+      catchError(err => of({
+        errors: [err],
       })),
     );
   }
 
-  #rawLoadGltfFromUrl(
-    url: URL,
+  #rawLoadGltf(
+    arrayBuffer: ArrayBuffer,
     progress?: TransportProgressHandler,
   ) {
     return this.#gltfLoader$.pipe(
-      switchMap(GLTFLoader => this.#load(GLTFLoader, url, progress))
+      map(cls => new cls()),
+      switchMap(loader => loader.parseAsync(arrayBuffer, '')),
+    );
+  }
+
+  loadCavernSeerFile(
+    file: UploadFileModel,
+    progress?: TransportProgressHandler,
+  ): Observable<IModelLoadResult<CavernSeerScanRenderModel>> {
+    if (!this.#fileTypeService.isCavernSeerScan(file.mime, file.identifier)) {
+      return throwError(() => new Error(`loadCavernSeerFile doesn't support file ${file.type} of ${file.identifier}`));
+    }
+
+    return this.#cavernSeerOpenerService$.pipe(
+      switchMap(opener => {
+        return defer(() =>
+          opener.decode(file, progress)
+        ).pipe(
+          map((scanFile): IScanFileParsed => ({
+            encodingVersion: scanFile.encodingVersion,
+            timestamp: scanFile.timestamp,
+            name: scanFile.name,
+            startSnapshot: scanFile.startSnapshot,
+            endSnapshot: scanFile.endSnapshot,
+            group: opener.generateGroup(scanFile),
+            stations: scanFile.stations,
+            lines: scanFile.lines,
+
+          })),
+          map(scanFileParsed => CavernSeerScanRenderModel.fromUploadModelAndParsedScanFile(file, scanFileParsed)),
+          map(model => ({
+            errors: [],
+            result: model,
+          })),
+        );
+      }),
     );
   }
 
@@ -294,49 +347,5 @@ export class ModelLoadService {
         },
       })),
     )
-  }
-
-  #load<TLoader extends Type<Loader>>(
-    loaderType: TLoader,
-    url: URL,
-    progress?: TransportProgressHandler,
-  ) {
-    type T = TLoader extends Type<Loader<infer TInner>> ? TInner : never;
-
-    return new Observable<{ result?: T, errors: Error[] }>(subscriber => {
-      let loadedSoFar = 0;
-      const loader = new loaderType();
-      loader.load(
-        url.toString(),
-        (data: any) => {
-          subscriber.next({
-            result: data,
-            errors: [],
-          });
-          subscriber.complete();
-        },
-        prog => {
-          const diff = prog.loaded - loadedSoFar;
-          loadedSoFar = prog.loaded;
-          progress?.addToLoadedCount(diff);
-        },
-        (error: any) => {
-          subscriber.next({
-            errors: [error],
-          });
-          subscriber.complete();
-        },
-      );
-    });
-  }
-
-  #revokeUrlOnEnd<T>(url: URL): MonoTypeOperatorFunction<T> {
-    const fn = () => {
-      URL.revokeObjectURL(url.toString())
-    };
-    return tap({
-      complete: fn,
-      error: fn,
-    });
   }
 }

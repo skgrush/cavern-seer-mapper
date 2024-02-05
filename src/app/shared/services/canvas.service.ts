@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
-import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
+import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, SRGBColorSpace, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
 import { markSceneOfItemForReRender } from '../functions/mark-scene-of-item-for-rerender';
 import { traverseSome } from '../functions/traverse-some';
 import { ModelChangeType } from '../models/model-change-type.enum';
@@ -427,6 +427,7 @@ export class CanvasService {
     });
     this.#rendererMap.set(this.#mainRendererSymbol, new WeakRef(this.#mainRenderer));
     this.#mainRenderer.autoClear = false;
+    this.#mainRenderer.outputColorSpace = SRGBColorSpace;
 
     const cam = new OrthographicCamera();
     this.#scene.add(cam);
@@ -435,7 +436,7 @@ export class CanvasService {
 
     // #TODO: #10: https://github.com/skgrush/cavern-seer-mapper/issues/10
     // // setting pixel ratio screws with raycasting??
-    // this.#renderer.setPixelRatio(pixelRatio);
+    // this.#mainRenderer.setPixelRatio(pixelRatio);
 
     this.#scene.add(new AmbientLight(0xFF2222, 2));
 

@@ -21,6 +21,7 @@ export class FileIconComponent {
     group: 'folder_zip',
     gltf: 'svg:glTF_White',
     obj: 'shape_line',
+    cavernseerscan: 'svg:CavernSeer',
   } satisfies Record<FileModelType, string>);
 
 

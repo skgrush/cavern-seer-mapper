@@ -1,3 +1,4 @@
+import { CavernSeerScanRenderModel } from "./cavern-seer-scan.render-model";
 import type { GltfRenderModel } from "./gltf.render-model";
 import type { GroupRenderModel } from "./group.render-model";
 import type { ObjRenderModel } from "./obj.render-model";
@@ -7,4 +8,5 @@ export type AnyRenderModel =
   | GltfRenderModel
   | GroupRenderModel
   | ObjRenderModel
+  | CavernSeerScanRenderModel
   | UnknownRenderModel;

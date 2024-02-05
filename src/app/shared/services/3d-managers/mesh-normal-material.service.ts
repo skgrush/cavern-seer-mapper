@@ -4,8 +4,11 @@ import { BaseMaterialService } from './base-material.service';
 
 @Injectable()
 export class MeshNormalMaterialService extends BaseMaterialService<MeshNormalMaterial> {
+  override material: MeshNormalMaterial;
+
 
   constructor() {
-    super(new MeshNormalMaterial());
+    super();
+    this.material = new MeshNormalMaterial();
   }
 }

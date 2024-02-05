@@ -19,5 +19,10 @@ export class FileIconModule {
       'glTF_White',
       sanitizer.bypassSecurityTrustResourceUrl('/assets/icons/svg/glTF_White_June16.svg'),
     );
+    registry.addSvgIconInNamespace(
+      'svg',
+      'CavernSeer',
+      sanitizer.bypassSecurityTrustResourceUrl('/assets/icons/fav/iconflat.svg'),
+    );
   }
 }

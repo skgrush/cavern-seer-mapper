@@ -1,6 +1,6 @@
 {
   "name": "cavern-seer-mapper",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "homepage": "https://github.com/skgrush/cavern-seer-mapper#readme",
   "license": "MIT",
   "author": {
@@ -37,6 +37,7 @@
     "@angular/service-worker": "^17.0.0",
     "@angular/ssr": "^17.0.0",
     "@ngrx/store": "^17.0.1",
+    "@skgrush/bplist-and-nskeyedunarchiver": "0.0.1-rc.1",
     "express": "^4.18.2",
     "jszip": "^3.10.1",
     "rxjs": "~7.8.0",
