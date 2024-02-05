@@ -116,13 +116,18 @@ export class CeilingHeightAnnotation extends BaseAnnotation {
 
     const circleSize = centerOffset * 1.1;
     const circleGeometry = new CircleGeometry(circleSize, 24);
-    const circleMesh = new Mesh(circleGeometry, new MeshBasicMaterial({ color: 0xFFFFFF }));
+    const circleMaterial = new MeshBasicMaterial({ color: 0xFFFFFF })
+    const circleMesh = new Mesh(circleGeometry, circleMaterial);
     circleMesh.position.set(0, this.distance, 0);
     circleMesh.rotation.set(-Math.PI / 2, 0, 0);
 
-    const textMesh = new Mesh(textGeometry, new MeshBasicMaterial({ color: 0x00 }));
+    const textMaterial = new MeshBasicMaterial({ color: 0x00 });
+    const textMesh = new Mesh(textGeometry, textMaterial);
     textMesh.position.set(centerOffset, this.distance + size / 5, size / 2);
     textMesh.rotation.set(-Math.PI / 2, 0, 0);
+
+    [textMaterial, circleMaterial].forEach(mat => mat.depthTest = false);
+    [circleMesh, textMesh].forEach(mesh => mesh.renderOrder = RenderingOrder.Annotation);
 
     return {
       circleMesh,
