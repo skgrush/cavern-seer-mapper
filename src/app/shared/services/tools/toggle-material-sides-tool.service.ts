@@ -1,8 +1,8 @@
 import { Injectable, inject } from "@angular/core";
-import { map } from "rxjs";
+import {map, Observable} from "rxjs";
 import { FrontSide } from "three";
 import { CanvasService } from "../canvas.service";
-import { BaseClickToolService } from "./base-tool.service";
+import {BaseClickToolService, Icon$Type} from "./base-tool.service";
 
 @Injectable()
 export class ToggleMaterialSidesToolService extends BaseClickToolService {
@@ -10,18 +10,13 @@ export class ToggleMaterialSidesToolService extends BaseClickToolService {
 
   override readonly id = 'toggle-material-sides';
   override readonly label = 'Toggle double-sided';
-  override readonly icon = 'layers';
 
-  override readonly fontSet$ =
+  override readonly icon$ =
     this.#canvasService.materialSide$.pipe(
-      map(side => {
-        switch (side) {
-          case FrontSide:
-            return 'material-icons-outlined';
-          default:
-            return 'material-icons';
-        }
-      }),
+      map((side) => ({
+          icon: 'layers',
+          fontSet: side === FrontSide ? 'material-icons-outlined' : 'material-icons',
+        } as const)),
     );
 
   override click() {
