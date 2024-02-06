@@ -11,6 +11,7 @@ import { ModelDetailFormComponent } from "../model-detail-form/model-detail-form
 import { FileModelType } from '../../models/model-type.enum';
 import { FileIconComponent } from '../file-icon/file-icon.component';
 import { MatRippleModule } from '@angular/material/core';
+import {MatDividerModule} from "@angular/material/divider";
 
 interface INode {
   identifier: string;
@@ -36,7 +37,7 @@ function transformToNode(model: BaseRenderModel<any>): INode {
   templateUrl: './model-nav-list.component.html',
   styleUrl: './model-nav-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatTreeModule, NgIf, AsyncPipe, ModelDetailFormComponent, FileIconComponent, MatRippleModule]
+  imports: [MatTreeModule, NgIf, AsyncPipe, ModelDetailFormComponent, FileIconComponent, MatRippleModule, MatDividerModule]
 })
 export class ModelNavListComponent {
 

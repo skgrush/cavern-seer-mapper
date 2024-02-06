@@ -21,6 +21,11 @@
     &.selected-node {
       background-color: var(--mat-ripple-color);
     }
+    &.hidden-node {
+      mapper-file-icon {
+        opacity: 0.5;
+      }
+    }
   }
 }
 

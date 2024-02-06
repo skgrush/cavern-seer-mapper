@@ -5,3 +5,9 @@
 form {
   display: grid;
 }
+
+mat-checkbox {
+  mat-icon {
+    vertical-align: bottom;
+  }
+}
