@@ -47,6 +47,9 @@ export class CanvasService {
   readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
   readonly materialSide$ = this.#materialSideSubject.asObservable();
 
+  readonly #gridVisibleSubject = new BehaviorSubject(true);
+  readonly gridVisible$ = this.#gridVisibleSubject.asObservable();
+
   #bottomGrid = new GridHelper();
 
   #currentGroupInScene?: GroupRenderModel;
@@ -94,6 +97,13 @@ export class CanvasService {
       const bounds = cog.getBoundingBox();
       this.#rebuildBottomGrid(bounds);
     });
+
+    this.gridVisible$.pipe(
+      takeUntilDestroyed()
+    ).subscribe(visible => {
+      this.#bottomGrid.visible = visible;
+      markSceneOfItemForReRender(this.#bottomGrid);
+    })
   }
 
   /**
@@ -126,6 +136,12 @@ export class CanvasService {
       this.#material.toggleDoubleSide()
     );
     markSceneOfItemForReRender(this.#scene);
+  }
+
+  toggleGridVisible() {
+    this.#gridVisibleSubject.next(
+      !this.#gridVisibleSubject.value,
+    );
   }
 
   /**
@@ -360,6 +376,7 @@ export class CanvasService {
       zDelta = this.#localize.localLengthToMeters(Math.round(this.#localize.metersToLocalLength(zDelta)));
     }
 
+    gridHelper.visible = this.#gridVisibleSubject.value;
     gridHelper.position.set(
       boundsMin.x + xDelta,
       boundsMin.y,

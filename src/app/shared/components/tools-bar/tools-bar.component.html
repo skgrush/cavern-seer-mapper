@@ -7,10 +7,22 @@
 </mat-button-toggle-group>
 
 <div class="standalone-buttons">
-  @for (tool of nonExclusiveTools; track tool) {
-  <button mat-flat-button (click)="tool.click()" [matTooltip]="tool.label">
-    <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>
-  </button>
-  }
+<!--  @for (tool of nonExclusiveTools; track tool) {-->
+<!--  <button mat-flat-button (click)="tool.click()" [matTooltip]="tool.label">-->
+<!--    <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>-->
+<!--  </button>-->
+<!--  }-->
 
+  <button mat-flat-button [matMenuTriggerFor]="standaloneMenu" [matTooltip]="'Additional tools'">
+    <mat-icon>expand_less</mat-icon>
+  </button>
+
+  <mat-menu #standaloneMenu="matMenu">
+    @for (tool of nonExclusiveTools; track tool) {
+    <button mat-menu-item (click)="tool.click()" [matTooltip]="tool.label">
+      <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>
+      <span>{{ tool.label }}</span>
+    </button>
+    }
+  </mat-menu>
 </div>
