@@ -8,6 +8,7 @@ import { UploadFileModel } from "../upload-file-model";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { IMapperUserData } from "../user-data";
 import { ModelChangeType } from "../model-change-type.enum";
+import {markSceneOfItemForReRender} from "../../functions/mark-scene-of-item-for-rerender";
 
 export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
@@ -18,6 +19,9 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override readonly rendered = true;
   override get position() {
     return this.#object.position;
+  }
+  override get visible() {
+    return this.#object.visible;
   }
 
   readonly #object: Group;
@@ -77,6 +81,11 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
         child.material = material.material;
       }
     });
+  }
+
+  override setVisibility(visible: boolean) {
+    this.#object.visible = visible;
+    markSceneOfItemForReRender(this.#object);
   }
 
   override addToGroup(group: Group): void {

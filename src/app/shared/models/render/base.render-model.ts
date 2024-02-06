@@ -32,6 +32,8 @@ export abstract class BaseRenderModel<T extends FileModelType> {
 }
 
 export abstract class BaseVisibleRenderModel<T extends FileModelType> extends BaseRenderModel<T> {
+  abstract readonly visible: boolean;
+
   abstract getAnnotations(): readonly BaseAnnotation[];
 
   /**
@@ -47,6 +49,7 @@ export abstract class BaseVisibleRenderModel<T extends FileModelType> extends Ba
   abstract setMaterial(material: BaseMaterialService<any>): void;
 
   abstract setPosition(pos: ISimpleVector3): boolean;
+  abstract setVisibility(visible: boolean): void;
 
   override setFromManifest(manifest: BaseModelManifest, path: string, annoBuilder: AnnotationBuilderService): Error[] {
     const pos = manifest.getPosition(path);
