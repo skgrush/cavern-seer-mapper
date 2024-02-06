@@ -1,6 +1,21 @@
 import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, Observable, Subject, animationFrames, defer, distinctUntilChanged, filter, fromEvent, map, scan, switchMap, takeUntil, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  Subject,
+  animationFrames,
+  defer,
+  distinctUntilChanged,
+  filter,
+  fromEvent,
+  map,
+  scan,
+  switchMap,
+  takeUntil,
+  tap,
+  combineLatest
+} from 'rxjs';
 import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, SRGBColorSpace, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
 import { markSceneOfItemForReRender } from '../functions/mark-scene-of-item-for-rerender';
 import { traverseSome } from '../functions/traverse-some';
@@ -14,12 +29,14 @@ import { BaseMaterialService } from './3d-managers/base-material.service';
 import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
+import {SettingsService} from "./settings/settings.service";
 
 @Injectable()
 export class CanvasService {
 
   readonly #modelManager = inject(ModelManagerService);
   readonly #localize = inject(LocalizeService);
+  readonly #settings = inject(SettingsService);
 
   readonly #renderClock = new Clock();
   readonly #scene = new Scene();
@@ -50,6 +67,8 @@ export class CanvasService {
   readonly #gridVisibleSubject = new BehaviorSubject(true);
   readonly gridVisible$ = this.#gridVisibleSubject.asObservable();
 
+  readonly #boundingBoxForBottomGrid$ = new BehaviorSubject<Box3>(new Box3(new Vector3(), new Vector3(1, 1, 1)));
+
   #bottomGrid = new GridHelper();
 
   #currentGroupInScene?: GroupRenderModel;
@@ -71,7 +90,7 @@ export class CanvasService {
 
         const bounds = group.getBoundingBox();
 
-        this.#rebuildBottomGrid(bounds);
+        this.#boundingBoxForBottomGrid$.next(bounds);
         this.#refocusCamera(bounds);
       }
 
@@ -94,8 +113,7 @@ export class CanvasService {
         ),
       ),
     ).subscribe(cog => {
-      const bounds = cog.getBoundingBox();
-      this.#rebuildBottomGrid(bounds);
+      this.#boundingBoxForBottomGrid$.next(cog.getBoundingBox());
     });
 
     this.gridVisible$.pipe(
@@ -103,7 +121,17 @@ export class CanvasService {
     ).subscribe(visible => {
       this.#bottomGrid.visible = visible;
       markSceneOfItemForReRender(this.#bottomGrid);
+    });
+
+    combineLatest({
+      bounds: this.#boundingBoxForBottomGrid$,
+      gridScale: this.#settings.gridScale$,
     })
+    .pipe(
+      takeUntilDestroyed(),
+    ).subscribe(({ bounds, gridScale }) => {
+      this.#rebuildBottomGrid(bounds, gridScale);
+    });
   }
 
   /**
@@ -351,20 +379,21 @@ export class CanvasService {
     controls.update();
   }
 
-  #rebuildBottomGrid(bounds: Box3) {
+  #rebuildBottomGrid(bounds: Box3, gridScale: number) {
+    console.info('rebuilding bounding box');
     this.#scene.remove(this.#bottomGrid);
     this.#bottomGrid.dispose();
 
     const sizeBox = new Vector3();
     bounds.getSize(sizeBox);
-    const { max: boundsMax, min: boundsMin } = bounds;
+    const { min: boundsMin } = bounds;
 
     // create a grid
     const sizeX = sizeBox.x;
     const sizeZ = sizeBox.z;
     const size = Math.max(sizeX, sizeZ);
 
-    const gridHelper = this.#bottomGrid = new GridHelper(size, this.#localize.metersToLocalLength(size));
+    const gridHelper = this.#bottomGrid = new GridHelper(size, this.#localize.metersToLocalLength(size) / gridScale);
 
     let xDelta = sizeX / 2;
     let zDelta = sizeZ / 2;

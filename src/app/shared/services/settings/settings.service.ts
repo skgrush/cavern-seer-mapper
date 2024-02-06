@@ -30,6 +30,10 @@ export class SettingsService {
     map(s => s.byteFormat),
     distinctUntilChanged(),
   );
+  readonly gridScale$ = this.state$.pipe(
+    map(s => s.gridScale),
+    distinctUntilChanged(),
+  );
 
   get measurementSystem() {
     return this.#stateSnapshot.measurementSystem;
