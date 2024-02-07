@@ -8,7 +8,8 @@
     [class.hidden-node]="node.model.visible === false"
     (click)="selectModel($event, node)"
   >
-    <mapper-file-icon [type]="node.type" [class.hidden]="node.model.visible === false" /> <span>{{ node.identifier }}</span>
+    <mapper-file-icon [type]="node.type" [class.hidden]="node.model.visible === false" />
+    <span>{{ node.identifier }}</span>
   </mat-tree-node>
 
   <mat-nested-tree-node *matTreeNodeDef="let node; when: canHaveChildren">
@@ -19,7 +20,8 @@
       [class.hidden-node]="node.model.visible === false"
       (click)="selectModel($event, node)"
     >
-      <mapper-file-icon [type]="node.type" /> <span>{{ node.identifier }}</span>
+      <mapper-file-icon [type]="node.type" />
+      <span>{{ node.identifier }}</span>
     </div>
     <div class="children">
       <ng-container matTreeNodeOutlet />

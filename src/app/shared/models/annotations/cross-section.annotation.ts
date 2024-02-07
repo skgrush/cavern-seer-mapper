@@ -146,10 +146,10 @@ export class CrossSectionAnnotation extends BaseAnnotation {
       return;
     }
 
-    for (let i = 0; i < this.#measureLines.length; ++i) {
-      const line = this.#measureLines[i];
+    for (let offset = 0; offset < this.#measureLines.length; ++offset) {
+      const line = this.#measureLines[offset];
       line.geometry.setFromPoints([
-        ...this.#getMeasureLinePoints(i),
+        ...this.#getMeasureLinePoints(offset),
       ]);
       line.computeLineDistances();
       line.position.set(0, -this.dimensions.y / 2 + 0.5, -0.5);
