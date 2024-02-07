@@ -215,6 +215,7 @@ export class CanvasService {
       canvas,
       preserveDrawingBuffer: true,
       antialias: true,
+      alpha: true,
     });
 
     // set the size but without setting styles, as OffscreenCanvas has no style
