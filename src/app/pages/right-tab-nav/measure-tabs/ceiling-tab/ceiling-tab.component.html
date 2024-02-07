@@ -1,5 +1,5 @@
 <p>Results of using
-  <mat-icon>{{ ceilingHeightTool.icon$ | async }}</mat-icon> {{ ceilingHeightTool.label }}
+  <mat-icon>{{ (ceilingHeightTool.icon$ | async)?.icon }}</mat-icon> {{ ceilingHeightTool.label }}
   tool
 </p>
 

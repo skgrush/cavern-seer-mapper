@@ -1,5 +1,5 @@
 <p>Results of using
-  <mat-icon>{{ measureTool.icon$ | async }}</mat-icon> {{ measureTool.label }}
+  <mat-icon>{{ (measureTool.icon$ | async)?.icon }}</mat-icon> {{ measureTool.label }}
   tool
 </p>
 
