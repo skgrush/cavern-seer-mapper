@@ -267,7 +267,7 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
     const mesh = new Mesh(new PlaneGeometry(width / height, 1), material);
 
     mesh.userData['cs:snapshot'] = true;
-    mesh.userData['cs:identifier'] = snapshot.identifier;
+    mesh.userData['cs:identifier'] = snapshot.identifier.toString();
     mesh.userData['cs:name'] = snapshot.name;
 
     // pre-rotate because exif nonsense
