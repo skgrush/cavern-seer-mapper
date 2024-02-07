@@ -36,7 +36,7 @@ export class CavernSeerOpenerService {
     group.add(...meshAnchors);
     group.name = scanFile.name;
     group.userData['cs:timestamp'] = scanFile.timestamp;
-    group.userData['cs:encodingVersion'] = scanFile.encodingVersion;
+    group.userData['cs:encodingVersion'] = Number(scanFile.encodingVersion);
     group.matrixWorldNeedsUpdate = true;
 
     return group;

@@ -1,16 +1,28 @@
 <mat-button-toggle-group [ngModel]="currentTool$ | async" (ngModelChange)="selectTool($event)">
-  @for (entry of toolOptions; track entry) {
-  <mat-button-toggle [value]="entry.id" [aria-label]="entry.label" [matTooltip]="entry.label">
-    <mat-icon>{{ entry.icon }}</mat-icon>
+  @for (tool of toolOptions; track tool) {
+  <mat-button-toggle [value]="tool.id" [aria-label]="tool.label" [matTooltip]="tool.label">
+    <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>
   </mat-button-toggle>
   }
 </mat-button-toggle-group>
 
 <div class="standalone-buttons">
-  @for (tool of nonExclusiveTools; track tool) {
-  <button mat-flat-button (click)="tool.click()" [matTooltip]="tool.label">
-    <mat-icon *ngIf="tool.fontSet$ | async as fontSet" [fontSet]="fontSet">{{ tool.icon }}</mat-icon>
-  </button>
-  }
+<!--  @for (tool of nonExclusiveTools; track tool) {-->
+<!--  <button mat-flat-button (click)="tool.click()" [matTooltip]="tool.label">-->
+<!--    <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>-->
+<!--  </button>-->
+<!--  }-->
 
+  <button mat-flat-button [matMenuTriggerFor]="standaloneMenu" [matTooltip]="'Additional tools'">
+    <mat-icon>expand_less</mat-icon>
+  </button>
+
+  <mat-menu #standaloneMenu="matMenu">
+    @for (tool of nonExclusiveTools; track tool) {
+    <button mat-menu-item (click)="tool.click()" [matTooltip]="tool.label">
+      <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>
+      <span>{{ tool.label }}</span>
+    </button>
+    }
+  </mat-menu>
 </div>

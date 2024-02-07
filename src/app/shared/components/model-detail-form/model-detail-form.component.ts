@@ -10,12 +10,14 @@ import { simpleVector3Equality } from '../../functions/vector-equality';
 import { BaseRenderModel, BaseVisibleRenderModel } from '../../models/render/base.render-model';
 import { ISimpleVector3 } from '../../models/simple-types';
 import { LocalizeService } from '../../services/localize.service';
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatIconModule} from "@angular/material/icon";
 
 
 @Component({
   selector: 'mapper-model-detail-form',
   standalone: true,
-  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf],
+  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, MatCheckboxModule, MatIconModule],
   templateUrl: './model-detail-form.component.html',
   styleUrl: './model-detail-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -40,6 +42,7 @@ export class ModelDetailFormComponent implements OnInit {
       y: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
       z: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
     }),
+    visible: new FormControl<boolean | null>(null),
   });
 
   ngOnInit(): void {
@@ -51,6 +54,7 @@ export class ModelDetailFormComponent implements OnInit {
         const model = this.model;
         this.formGroup.reset({
           position: this.#localize.vectorMetersToLocalLength(model.position),
+          visible: model instanceof BaseVisibleRenderModel ? model.visible : null,
         }, {
           emitEvent: false,
         });
@@ -70,5 +74,17 @@ export class ModelDetailFormComponent implements OnInit {
         this.model.setPosition(this.#localize.vectorLocalLengthToMeters(positionVector));
       })
     ).subscribe();
+
+    this.formGroup.controls.visible.valueChanges.pipe(
+      takeUntilDestroyed(this.#destroyRef),
+      debounceTime(20),
+      distinctUntilChanged(),
+    ).subscribe(visible => {
+      if (!(typeof visible === 'boolean' && this.model instanceof BaseVisibleRenderModel)) {
+        return;
+      }
+
+      this.model.setVisibility(visible);
+    });
   }
 }

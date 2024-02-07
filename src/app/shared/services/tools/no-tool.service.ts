@@ -7,7 +7,7 @@ export class NoToolService extends BaseExclusiveToolService {
 
   override readonly id = 'no-tool';
   override readonly label = 'No tool';
-  override readonly icon = 'open_with';
+  override readonly icon$ = of({ icon: 'open_with' });
   override readonly cursor$ = of('grab');
 
   override start() {

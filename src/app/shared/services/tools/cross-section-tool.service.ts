@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, Subject, distinctUntilChanged, filter, merge, switchMap, takeUntil, tap } from 'rxjs';
+import {BehaviorSubject, Subject, distinctUntilChanged, filter, merge, switchMap, takeUntil, tap, of} from 'rxjs';
 import { BufferGeometry, GridHelper, Intersection, Line, LineBasicMaterial, Vector2, Vector3 } from 'three';
 import { markSceneOfItemForReRender } from '../../functions/mark-scene-of-item-for-rerender';
 import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
@@ -36,7 +36,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
 
   override readonly id = 'cross-section';
   override readonly label = 'Cross section';
-  override readonly icon = 'looks';
+  override readonly icon$ = of({ icon: 'looks' });
   override readonly cursor$ = this.#cursor.pipe(distinctUntilChanged());
 
   #currentModelRef?: WeakRef<GroupRenderModel>;

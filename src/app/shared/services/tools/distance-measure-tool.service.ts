@@ -28,7 +28,7 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
 
   override readonly id = 'distance';
   override readonly label = 'Distance measure';
-  override readonly icon = 'square_foot';
+  override readonly icon$ = of({ icon: 'square_foot' });
   override readonly cursor$ = of('crosshair');
 
   constructor() {

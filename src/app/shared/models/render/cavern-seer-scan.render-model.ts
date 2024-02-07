@@ -37,6 +37,9 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
   override get position() {
     return this.#group.position;
   }
+  override get visible() {
+    return this.#group.visible;
+  }
 
   readonly #blob: Blob;
   readonly #parsedScanFile: IScanFileParsed;
@@ -104,6 +107,12 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
       }
     });
   }
+
+  override setVisibility(visible: boolean) {
+    this.#group.visible = visible;
+    markSceneOfItemForReRender(this.#group);
+  }
+
   override addToGroup(group: Group<Object3DEventMap>): void {
     if (this.#group.parent !== null) {
       throw new Error('attempt to add CavernSeerScanRenderModel to group while model already has a parent');
@@ -258,7 +267,7 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
     const mesh = new Mesh(new PlaneGeometry(width / height, 1), material);
 
     mesh.userData['cs:snapshot'] = true;
-    mesh.userData['cs:identifier'] = snapshot.identifier;
+    mesh.userData['cs:identifier'] = snapshot.identifier.toString();
     mesh.userData['cs:name'] = snapshot.name;
 
     // pre-rotate because exif nonsense

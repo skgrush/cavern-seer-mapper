@@ -19,6 +19,9 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   override get position() {
     return this.#group.position;
   }
+  override get visible() {
+    return this.#group.visible;
+  }
 
   readonly #group = new Group();
   readonly #annotations = new Set<BaseAnnotation>();
@@ -138,6 +141,12 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
       }
     }
   }
+
+  override setVisibility(visible: boolean) {
+    this.#group.visible = visible;
+    markSceneOfItemForReRender(this.#group);
+  }
+
   override addToGroup(group: Group<Object3DEventMap>): void {
     if (this.#group.parent !== null) {
       throw new Error('attempted to add GroupRenderModel to group while model already has parent');

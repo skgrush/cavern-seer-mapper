@@ -1,4 +1,10 @@
 <form *ngIf="model.rendered">
+  <div>
+    <mat-checkbox [formControl]="formGroup.controls.visible">
+      <mat-icon>{{ formGroup.controls.visible.value ? 'visibility': 'visibility_off' }}</mat-icon>
+      Visible
+    </mat-checkbox>
+  </div>
   <mat-form-field>
     <mat-label>X</mat-label>
     <input matInput type="number" step="0.1" [formControl]="formGroup.controls.position.controls.x">

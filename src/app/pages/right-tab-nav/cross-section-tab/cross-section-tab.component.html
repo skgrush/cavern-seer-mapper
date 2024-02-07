@@ -1,6 +1,6 @@
 <p>
   Results of using
-  <mat-icon>{{ crossSectionTool.icon }}</mat-icon> {{ crossSectionTool.label }}
+  <mat-icon>{{ (crossSectionTool.icon$ | async)?.icon }}</mat-icon> {{ crossSectionTool.label }}
   tool
 </p>
 

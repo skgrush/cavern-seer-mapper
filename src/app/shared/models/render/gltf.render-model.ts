@@ -9,6 +9,7 @@ import { UploadFileModel } from "../upload-file-model";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { ModelChangeType } from "../model-change-type.enum";
 import { IMapperUserData } from "../user-data";
+import {markSceneOfItemForReRender} from "../../functions/mark-scene-of-item-for-rerender";
 
 /**
  * TODO: #11: https://github.com/skgrush/cavern-seer-mapper/issues/11
@@ -24,6 +25,9 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
 
   override get position(): Readonly<Vector3> {
     return this.#gltf.scene.position;
+  }
+  override get visible() {
+    return this.#gltf.scene.visible;
   }
 
   readonly #blob: Blob;
@@ -87,6 +91,11 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
         child.material = material.material;
       }
     });
+  }
+
+  override setVisibility(visible: boolean) {
+    this.#gltf.scene.visible = visible;
+    markSceneOfItemForReRender(this.#gltf.scene);
   }
 
   override addToGroup(group: Group<Object3DEventMap>): void {

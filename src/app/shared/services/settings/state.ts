@@ -6,6 +6,7 @@ export type ISettingsState = {
   readonly initialized: boolean;
   readonly measurementSystem: MeasurementSystem;
   readonly byteFormat: ByteFormatType;
+  readonly gridScale: number,
 };
 export type StateOtherThanInitialize = Omit<ISettingsState, 'initialized'>;
 
@@ -13,6 +14,7 @@ export const initialState = {
   initialized: false,
   measurementSystem: MeasurementSystem.metric,
   byteFormat: ByteFormatType.binary,
+  gridScale: 1,
 } as const satisfies ISettingsState;
 
 export const SettingsActions = createActionGroup({
@@ -21,6 +23,7 @@ export const SettingsActions = createActionGroup({
     'Initialize': props<{ partialState: Partial<StateOtherThanInitialize> }>(),
     'Update measurementSystem': props<{ measurementSystem: MeasurementSystem }>(),
     'Update byteFormat': props<{ byteFormat: ByteFormatType }>(),
+    'Update gridScale': props<{ gridScale: number }>(),
   },
 });
 
@@ -40,6 +43,10 @@ export const SettingsFeture = createFeature({
     on(SettingsActions.updateByteFormat, (state, { byteFormat }) => ({
       ...state,
       byteFormat,
+    })),
+    on(SettingsActions.updateGridScale, (state, { gridScale }) => ({
+      ...state,
+      gridScale,
     })),
   ),
 });

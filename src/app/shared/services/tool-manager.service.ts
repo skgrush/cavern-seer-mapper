@@ -17,8 +17,7 @@ export class ToolManagerService {
   readonly currentToolId$ = this.#currentTool.pipe(map(t => t.id));
   readonly currentToolCursor$ = this.#currentTool.pipe(switchMap(t => t.cursor$));
 
-  readonly exclusiveToolOptions = [...this.#exclusiveTools.values()]
-    .map(({ id, label, icon }) => ({ id, label, icon } as const));
+  readonly exclusiveToolOptions = [...this.#exclusiveTools.values()];
   readonly nonExclusiveTools = Object.freeze([...this.#nonexclusiveTools]);
 
   /**

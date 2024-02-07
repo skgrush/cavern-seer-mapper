@@ -25,7 +25,7 @@ export class CeilingHeightToolService extends BaseExclusiveToolService {
 
   override readonly id = 'ceiling-height';
   override readonly label = 'Ceiling height';
-  override readonly icon = 'biotech';
+  override readonly icon$ = of({ icon: 'biotech' });
   override readonly cursor$ = of('crosshair');
 
   constructor() {

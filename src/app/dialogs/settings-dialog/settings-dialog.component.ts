@@ -32,6 +32,7 @@ export class SettingsDialogComponent implements OnInit {
   readonly formGroup = new FormGroup({
     measurementSystem: new FormControl(undefined as MeasurementSystem | undefined, { validators: [Validators.required], nonNullable: true }),
     byteFormat: new FormControl(undefined as ByteFormatType | undefined, { validators: [Validators.required], nonNullable: true }),
+    gridScale: new FormControl(undefined as number | undefined, { validators: [Validators.required], nonNullable: true }),
   });
 
   static open(dialog: MatDialog, injector: Injector) {

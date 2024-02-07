@@ -15,6 +15,15 @@
         </p>
       </section>
       <section>
+        <h2>Grid scale</h2>
+        <mat-button-toggle-group [formControl]="formGroup.controls.gridScale">
+          @for (scale of [1, 5, 10]; track scale) {
+            <mat-button-toggle [value]="scale">{{ scale }}</mat-button-toggle>
+          }
+        </mat-button-toggle-group>
+        <p>
+      </section>
+      <section>
         <h2>Byte format</h2>
         <mat-button-toggle-group [formControl]="formGroup.controls.byteFormat">
           <mat-button-toggle [value]="ByteFormatType.binary">binary</mat-button-toggle>

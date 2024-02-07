@@ -5,6 +5,7 @@ import { EXCLUSIVE_TOOL_SERVICES, NONEXCLUSIVE_TOOL_SERVICES } from "./base-tool
 import { CeilingHeightToolService } from "./ceiling-height-tool.service";
 import { CrossSectionToolService } from "./cross-section-tool.service";
 import { ToggleMaterialSidesToolService } from "./toggle-material-sides-tool.service";
+import {ToggleGridToolService} from "./toggle-grid-tool.service";
 
 const services = [DistanceMeasureToolService, NoToolService];
 
@@ -15,10 +16,12 @@ export function toolsProviders() {
     CeilingHeightToolService,
     CrossSectionToolService,
     ToggleMaterialSidesToolService,
+    ToggleGridToolService,
     { provide: EXCLUSIVE_TOOL_SERVICES, useExisting: NoToolService, multi: true },
     { provide: EXCLUSIVE_TOOL_SERVICES, useExisting: DistanceMeasureToolService, multi: true },
     { provide: EXCLUSIVE_TOOL_SERVICES, useExisting: CeilingHeightToolService, multi: true },
     { provide: EXCLUSIVE_TOOL_SERVICES, useExisting: CrossSectionToolService, multi: true },
     { provide: NONEXCLUSIVE_TOOL_SERVICES, useExisting: ToggleMaterialSidesToolService, multi: true },
+    { provide: NONEXCLUSIVE_TOOL_SERVICES, useExisting: ToggleGridToolService, multi: true },
   ]);
 }
