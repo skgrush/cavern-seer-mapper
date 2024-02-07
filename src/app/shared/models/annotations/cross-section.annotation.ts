@@ -50,7 +50,10 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   readonly #localize: LocalizeService;
 
   #camera?: OrthographicCamera;
-  #measureLine?: Line<BufferGeometry>;
+  #measureLines?: readonly [
+    white: Line,
+    black: Line,
+  ];
 
   constructor(
     identifier: string,
@@ -121,27 +124,36 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   }
 
   #drawLine() {
-    if (this.#measureLine) {
-      throw new Error('already have a line');
+    if (this.#measureLines) {
+      throw new Error('already have lines');
     }
-    this.#measureLine = new LineSegments(
-      new BufferGeometry(),
-      new LineBasicMaterial({ color: 0xFFFFFF }),
-    );
+    this.#measureLines = [
+      new LineSegments(
+        new BufferGeometry(),
+        new LineBasicMaterial({ color: 0xFFFFFF }),
+      ),
+      new LineSegments(
+        new BufferGeometry(),
+        new LineBasicMaterial({ color: 0x000000 }),
+      ),
+    ];
 
     this.#updateLine();
   }
 
   #updateLine() {
-    if (!this.#measureLine) {
+    if (!this.#measureLines) {
       return;
     }
 
-    this.#measureLine.geometry.setFromPoints([
-      ...this.#getMeasureLinePoints(),
-    ]);
-    this.#measureLine.computeLineDistances();
-    this.#measureLine.position.set(0, -this.dimensions.y / 2 + 0.5, -0.5);
+    for (let i = 0; i < this.#measureLines.length; ++i) {
+      const line = this.#measureLines[i];
+      line.geometry.setFromPoints([
+        ...this.#getMeasureLinePoints(i),
+      ]);
+      line.computeLineDistances();
+      line.position.set(0, -this.dimensions.y / 2 + 0.5, -0.5);
+    }
   }
 
   changeDimensions(newDimensions: Vector3) {
@@ -217,7 +229,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
         this.#boxMesh.visible = false;
 
         this.#drawLine();
-        this.#group.add(this.#measureLine!);
+        this.#group.add(...this.#measureLines!);
 
         return new Subject<void>();
       }).pipe(
@@ -225,8 +237,8 @@ export class CrossSectionAnnotation extends BaseAnnotation {
           unsubscribe: () => {
             this.#boxMesh.visible = this.#group.visible;
             this.#removeCamera();
-            this.#group.remove(this.#measureLine!);
-            this.#measureLine = undefined;
+            this.#group.remove(...this.#measureLines!);
+            this.#measureLines = undefined;
             markSceneOfItemForReRender(this.#group);
           },
         })
@@ -234,7 +246,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     };
   }
 
-  *#getMeasureLinePoints() {
+  *#getMeasureLinePoints(offset: number) {
     const unit = this.#localize.localLengthToMeters(1);
     const xVector = new Vector3(unit, 0, 0);
 
@@ -243,7 +255,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     const totalCount = this.#localize.metersToLocalLength(width + 2);
 
     const leftOrigin = new Vector3()
-      .sub(xVector.clone().multiplyScalar(totalCount / 2 + 1));
+      .sub(xVector.clone().multiplyScalar(totalCount / 2 + 1 + offset));
 
     const currentPoint = leftOrigin.clone();
     for (let i = 0; i < totalCount; ++i) {
