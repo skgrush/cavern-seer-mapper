@@ -1,7 +1,7 @@
 <form *ngIf="model.rendered">
   <div>
     <mat-checkbox [formControl]="formGroup.controls.visible">
-      <mat-icon>{{ formGroup.controls.visible ? 'visibility': 'visibility_off' }}</mat-icon>
+      <mat-icon>{{ formGroup.controls.visible.value ? 'visibility': 'visibility_off' }}</mat-icon>
       Visible
     </mat-checkbox>
   </div>
