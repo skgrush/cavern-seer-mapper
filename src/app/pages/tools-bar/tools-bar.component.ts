@@ -1,12 +1,12 @@
-import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
+import { AsyncPipe, NgIf } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ToolManagerService } from '../../services/tool-manager.service';
-import {MatMenuModule} from "@angular/material/menu";
+import { MatMenuModule } from '@angular/material/menu';
+import { ToolManagerService } from '../../shared/services/tool-manager.service';
 
 @Component({
   selector: 'mapper-tools-bar',
