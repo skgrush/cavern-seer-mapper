@@ -8,4 +8,6 @@ export enum FileModelType {
   gLTF = 'gltf',
   /** CavernSeer ScanFile binary */
   cavernseerscan = 'cavernseerscan',
+  /** Walls */
+  walls = 'walls',
 }

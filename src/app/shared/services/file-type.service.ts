@@ -33,6 +33,9 @@ export class FileTypeService {
     if (this.isCavernSeerScan(mime, name)) {
       return FileModelType.cavernseerscan;
     }
+    if (this.isVrmlFile(mime, name)) {
+      return FileModelType.walls;
+    }
     return FileModelType.unknown;
   }
 
@@ -71,5 +74,9 @@ export class FileTypeService {
 
   isCavernSeerScan(mime: string, name: string) {
     return mime === 'application/vnd.org.grush.cavernseer.scan' || this.getFileExtension(name) === '.cavernseerscan';
+  }
+
+  isVrmlFile(mime: string, name: string) {
+    return mime === 'model/vrml' || this.getFileExtension(name) === '.wrl';
   }
 }

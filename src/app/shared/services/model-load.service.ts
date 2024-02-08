@@ -1,7 +1,20 @@
-import { Injectable, Injector, inject } from '@angular/core';
-import { Observable, catchError, defer, first, firstValueFrom, forkJoin, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { inject, Injectable, Injector } from '@angular/core';
+import {
+  catchError,
+  defer,
+  first,
+  firstValueFrom,
+  forkJoin,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 import { Group } from 'three';
-import { BaseModelManifest, ModelManifestV0, modelManifestParse } from '../models/model-manifest';
+import { BaseModelManifest, modelManifestParse, ModelManifestV0 } from '../models/model-manifest';
 import { FileModelType } from '../models/model-type.enum';
 import { AnyRenderModel } from '../models/render/any-render-model';
 import { BaseRenderModel } from '../models/render/base.render-model';
@@ -16,6 +29,7 @@ import { ignoreNullishArray } from '../operators/ignore-nullish';
 import { AnnotationBuilderService } from './annotation-builder.service';
 import { FileTypeService } from './file-type.service';
 import type { IUnzipDirEntry, IUnzipEntry, IZipEntry } from './zip.service';
+import { WallsRenderModel } from '../models/render/walls.render-model';
 
 type IModelLoadResult<T extends BaseRenderModel<any>> = {
   result?: T;
@@ -57,6 +71,13 @@ export class ModelLoadService {
     shareReplay(1),
   );
 
+  readonly #wallsOpener$ = defer(() =>
+    import('../functions/primitiveWallsFileParse'),
+  ).pipe(
+    map(({ primitiveWallsFileParse }) => primitiveWallsFileParse),
+    shareReplay(1),
+  );
+
   exportModelForSerializing(model: BaseRenderModel<any>): Observable<null | Blob> {
     return of(model.serialize());
   }
@@ -79,6 +100,9 @@ export class ModelLoadService {
 
         case FileModelType.cavernseerscan:
           return this.loadCavernSeerFile(file, progress);
+
+        case FileModelType.walls:
+          return this.loadWallsFile(file, progress);
 
         default:
           return of({
@@ -178,6 +202,31 @@ export class ModelLoadService {
           })),
         );
       }),
+    );
+  }
+
+  loadWallsFile(
+    file: UploadFileModel,
+    progress?: TransportProgressHandler,
+  ): Observable<IModelLoadResult<WallsRenderModel>> {
+    if (!this.#fileTypeService.isVrmlFile(file.mime, file.identifier)) {
+      return throwError(() => new Error(`loadWallsFile doesn't support file ${file.type} of ${file.identifier}`));
+    }
+
+    return defer(() =>
+      file.blob.text(),
+    ).pipe(
+      switchMap(text =>
+        this.#wallsOpener$.pipe(map(opener => opener(text))),
+      ),
+      map(opener => WallsRenderModel.fromUploadModelAndParsedScanFile(file, opener)),
+      map(model => ({
+        result: model,
+        errors: [],
+      })),
+      catchError(err => of({
+        errors: [err],
+      })),
     );
   }
 
