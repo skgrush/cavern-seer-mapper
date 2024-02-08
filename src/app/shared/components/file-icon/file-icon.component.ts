@@ -22,6 +22,7 @@ export class FileIconComponent {
     gltf: 'svg:glTF_White',
     obj: 'shape_line',
     cavernseerscan: 'svg:CavernSeer',
+    walls: 'ssid_chart',
   } satisfies Record<FileModelType, string>);
 
 
