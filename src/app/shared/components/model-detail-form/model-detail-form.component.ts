@@ -12,6 +12,7 @@ import { ISimpleVector3 } from '../../models/simple-types';
 import { LocalizeService } from '../../services/localize.service';
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatIconModule} from "@angular/material/icon";
+import { ignoreNullish } from '../../operators/ignore-nullish';
 
 
 @Component({
@@ -76,11 +77,12 @@ export class ModelDetailFormComponent implements OnInit {
     ).subscribe();
 
     this.formGroup.controls.visible.valueChanges.pipe(
+      ignoreNullish(),
       takeUntilDestroyed(this.#destroyRef),
       debounceTime(20),
-      distinctUntilChanged(),
     ).subscribe(visible => {
-      if (!(typeof visible === 'boolean' && this.model instanceof BaseVisibleRenderModel)) {
+      if (!(this.model instanceof BaseVisibleRenderModel)) {
+        console.debug('bad visibility switch:', { visible, model: this.model });
         return;
       }
 
