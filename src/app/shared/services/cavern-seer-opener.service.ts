@@ -1,12 +1,31 @@
 import { Injectable } from '@angular/core';
 
-import { $ObjectsMap, Float4, Float4x4, IArchivedInstance, IArchivedPList, KeyedUnarchiver, NSArrayCoder, NSDateCoder, NSUUIDCoder } from '@skgrush/bplist-and-nskeyedunarchiver/NSKeyedUnarchiver';
-import { Reader, deStructWithIter } from '@skgrush/bplist-and-nskeyedunarchiver/bplist';
+import {
+  $ObjectsMap,
+  Float4,
+  Float4x4,
+  IArchivedInstance,
+  IArchivedPList,
+  KeyedUnarchiver,
+  NSArrayCoder,
+  NSDateCoder,
+  NSUUIDCoder,
+} from '@skgrush/bplist-and-nskeyedunarchiver/NSKeyedUnarchiver';
+import { deStructWithIter, Reader } from '@skgrush/bplist-and-nskeyedunarchiver/bplist';
 import { BufferAttribute, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial } from 'three';
 import { float4x4ToMatrix4 } from '../functions/float4x4-to-matrix4';
 import type { TransportProgressHandler } from '../models/transport-progress-handler';
 import { UploadFileModel } from '../models/upload-file-model';
-import type { CSMeshGeometryElement, CSMeshGeometrySource, CSMeshSlice, CSMeshSnapshot, ScanFile, SurveyLine, SurveyStation } from '../types/cavern-seer-scan';
+import type {
+  CSMeshGeometryElement,
+  CSMeshGeometrySource,
+  CSMeshSlice,
+  CSMeshSnapshot,
+  ScanFile,
+  SurveyLine,
+  SurveyStation,
+} from '../types/cavern-seer-scan';
+import { buildLeveledLogger, LogLevel } from '@skgrush/bplist-and-nskeyedunarchiver/shared';
 
 export enum MTLVertexFormat {
   float3 = 30,
@@ -146,7 +165,10 @@ export class CavernSeerOpenerService {
     const arrayBuffer = await file.blob.arrayBuffer();
 
     progress?.setLoadPercent(0.20, 'Converting blob into unarchived-bplist...');
-    return new Reader(arrayBuffer);
+    return new Reader(arrayBuffer, buildLeveledLogger({
+      logger: console,
+      level: LogLevel.warn,
+    }));
   }
 }
 
