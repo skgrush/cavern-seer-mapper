@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, HostBinding, HostListener, inject } from '@angular/core';
-import { ToolsBarComponent } from "../../shared/components/tools-bar/tools-bar.component";
 import { CompassComponent } from "../../shared/components/compass/compass.component";
 import { CanvasComponent } from "../canvas/canvas.component";
 import { FileUrlLoaderComponent } from "../file-url-loader/file-url-loader.component";
 import { DialogOpenerService } from '../../shared/services/dialog-opener.service';
+import { ToolsBarComponent } from '../tools-bar/tools-bar.component';
 
 @Component({
   selector: 'mapper-main',

@@ -1,15 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ModelManagerService } from '../../services/model-manager.service';
+import { ModelManagerService } from '../../../shared/services/model-manager.service';
 import { BehaviorSubject, of, startWith, switchMap, take, tap } from 'rxjs';
-import { BaseRenderModel } from '../../models/render/base.render-model';
+import { BaseRenderModel } from '../../../shared/models/render/base.render-model';
 import { MatTreeModule, MatTreeNestedDataSource } from '@angular/material/tree';
 import { NestedTreeControl } from '@angular/cdk/tree';
-import { GroupRenderModel } from '../../models/render/group.render-model';
+import { GroupRenderModel } from '../../../shared/models/render/group.render-model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, NgIf } from '@angular/common';
-import { ModelDetailFormComponent } from "../model-detail-form/model-detail-form.component";
-import { FileModelType } from '../../models/model-type.enum';
-import { FileIconComponent } from '../file-icon/file-icon.component';
+import { ModelDetailFormComponent } from "../../../shared/components/model-detail-form/model-detail-form.component";
+import { FileModelType } from '../../../shared/models/model-type.enum';
+import { FileIconComponent } from '../../../shared/components/file-icon/file-icon.component';
 import { MatRippleModule } from '@angular/material/core';
 import {MatDividerModule} from "@angular/material/divider";
 
