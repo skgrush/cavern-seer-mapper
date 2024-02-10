@@ -15,7 +15,7 @@
           }
         </mat-button-toggle-group>
         <p *ngIf="formGroup.controls.type.value === 'webp'">
-          Web
+          WebP is not supported and all browsers and may fall back to JPG.
         </p>
         <p *ngIf="formGroup.controls.type.value === 'svg'">
           This is not recommended and will generate massive SVG files but go off.
