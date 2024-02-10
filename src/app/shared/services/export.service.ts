@@ -19,6 +19,13 @@ export enum ModelExporterNames {
   USDZ = 'USDZ',
 }
 
+export const modelExporterAsciis = new Set([
+  ModelExporterNames.OBJ,
+  ModelExporterNames.GLTF,
+  ModelExporterNames.PLYAscii,
+  ModelExporterNames.STLAscii,
+] as const);
+
 const modelExporterExtensions = {
   OBJ: ['obj', 'model/obj'],
   GLTF: ['gltf', 'model/gltf+json'],
@@ -80,7 +87,7 @@ export class ExportService {
       map(({ STLExporter }) => new STLExporter().parse(model, { binary: false })),
     ),
     USDZ: (model: Object3D) => defer(() => import('three/examples/jsm/exporters/USDZExporter.js')).pipe(
-      map(({ USDZExporter }) => new USDZExporter().parse(model)),
+      map(({ USDZExporter }) => new USDZExporter().parse(model, { quickLookCompatible: true })),
     ),
   } satisfies Record<ModelExporterNames, any>;
 

@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, Injector } from '@angular/core';
-import { ExportService, ModelExporterNames } from '../../shared/services/export.service';
+import { ExportService, modelExporterAsciis, ModelExporterNames } from '../../shared/services/export.service';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
-  MatDialogActions, MatDialogClose,
+  MatDialogActions,
+  MatDialogClose,
   MatDialogContent,
   MatDialogRef,
   MatDialogTitle,
@@ -13,7 +14,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { BytesPipe } from '../../shared/pipes/bytes.pipe';
 import { MatButton } from '@angular/material/button';
 
@@ -39,6 +40,8 @@ export type IExportModelDialogData = {
     MatButton,
     MatDialogActions,
     MatDialogClose,
+    NgSwitch,
+    NgSwitchCase,
   ],
   templateUrl: './export-model-dialog.component.html',
   styleUrl: './export-model-dialog.component.scss',
@@ -47,6 +50,7 @@ export type IExportModelDialogData = {
 export class ExportModelDialogComponent {
   readonly ModelExporterNames = ModelExporterNames;
   readonly modelExporterNames = Object.values(ModelExporterNames);
+  readonly modelExporterAsciis: Set<ModelExporterNames | null> = modelExporterAsciis;
 
   readonly #exportService = inject(ExportService);
   readonly #dialogRef = inject<MatDialogRef<ExportModelDialogComponent, boolean>>(MatDialogRef);
@@ -64,6 +68,28 @@ export class ExportModelDialogComponent {
     fileName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     type: new FormControl<ModelExporterNames | null>(null, { validators: [Validators.required] }),
   });
+
+  get wikiLink() {
+    const type = this.formGroup.controls.type.value;
+
+    const wikiBase = 'https://en.wikipedia.org/wiki/';
+    switch (type) {
+      case ModelExporterNames.STL:
+      case ModelExporterNames.STLAscii:
+        return `${wikiBase}STL_(file_format)`;
+      case ModelExporterNames.PLY:
+      case ModelExporterNames.PLYAscii:
+        return `${wikiBase}PLY_(file_format)`;
+      case ModelExporterNames.OBJ:
+        return `${wikiBase}Wavefront_.obj_file`;
+      case ModelExporterNames.GLTF:
+      case ModelExporterNames.GLB:
+        return `${wikiBase}GlTF`;
+      case ModelExporterNames.USDZ:
+        return `${wikiBase}Universal_Scene_Description`;
+    }
+    return null;
+  }
 
   static open(
     dialog: MatDialog,
