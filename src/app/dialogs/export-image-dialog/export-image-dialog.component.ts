@@ -110,9 +110,7 @@ export class ExportImageDialogComponent {
         finalize: () => {
           this.formGroup.enable();
           this.#dialogRef.disableClose = false;
-        }
-      }),
-      tap({
+        },
         next: result => this.resultSubject.next(result),
         error: err => this.errorSubject.next(err),
       }),

@@ -8,7 +8,7 @@ import { CanvasService } from './canvas.service';
 import type { Camera, Object3D } from 'three';
 import { ignoreNullish } from '../operators/ignore-nullish';
 
-enum ModelExporterNames {
+export enum ModelExporterNames {
   OBJ = 'OBJ',
   GLTF = 'GLTF',
   GLB = 'GLB',
@@ -18,6 +18,17 @@ enum ModelExporterNames {
   STLAscii = 'STLAscii',
   USDZ = 'USDZ',
 }
+
+const modelExporterExtensions = {
+  OBJ: ['obj', 'model/obj'],
+  GLTF: ['gltf', 'model/gltf+json'],
+  GLB: ['glb', 'model/gltf-binary'],
+  PLY: ['ply', 'text/plain'],
+  PLYAscii: ['ply', 'text/plain'],
+  STL: ['stl', 'model/x.stl-binary'],
+  STLAscii: ['stl', 'model/x.stl-ascii'],
+  USDZ: ['usdz', 'model/vnd.usdz+zip'],
+} as const satisfies Record<ModelExporterNames, readonly [ext: string, mime: string]>;
 
 type ModelExporterReturnMap = {
   OBJ: string,
@@ -178,6 +189,25 @@ export class ExportService {
       ignoreNullish(),
       take(1),
       switchMap(currentGroup => currentGroup.encode(fn)),
+    );
+  }
+
+  downloadModel$<T extends ModelExporterNames>(baseName: string, type: T) {
+    const [ext, mime] = modelExporterExtensions[type];
+
+    const name = this.normalizeName(null, baseName, `.${ext}`);
+
+    return this.exportModel$(type).pipe(
+      switchMap(result => {
+        if (result === null) {
+          throw new Error(`Got null exporting ${baseName} to ${type}`);
+        }
+        const blob = new Blob([result], { type: mime });
+
+        return this.downloadBlob$(name, blob).pipe(
+          map(() => ({ name, size: blob.size })),
+        );
+      }),
     );
   }
 
