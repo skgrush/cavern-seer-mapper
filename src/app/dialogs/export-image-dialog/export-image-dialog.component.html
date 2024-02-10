@@ -14,9 +14,15 @@
           <mat-button-toggle [value]="fileType">{{ fileType }}</mat-button-toggle>
           }
         </mat-button-toggle-group>
+        <p *ngIf="formGroup.controls.type.value === 'webp'">
+          Web
+        </p>
+        <p *ngIf="formGroup.controls.type.value === 'svg'">
+          This is not recommended and will generate massive SVG files but go off.
+        </p>
       </section>
 
-      <section>
+      <section *ngIf="selectedTypeIsScalable">
         <h4>Scale factor</h4>
         <mat-button-toggle-group [formControl]="formGroup.controls.scaleFactor">
           @for(scaleFactor of scaleFactors; track scaleFactors) {

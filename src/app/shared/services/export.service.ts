@@ -57,7 +57,8 @@ export class ExportService {
   }
 
   downloadCanvasImage$(
-    baseName: string, ext: 'png' | 'jpeg' | 'webp',
+    baseName: string,
+    ext: 'png' | 'jpeg' | 'webp',
     rendererSymbol?: symbol,
     camera?: Camera,
     sizeMultiplier?: number,
@@ -77,6 +78,24 @@ export class ExportService {
         );
       }),
     );
+  }
+
+  downloadCanvasSvg$(
+    baseName: string,
+    rendererSymbol?: symbol,
+    camera?: Camera,
+  ) {
+    return defer(() => {
+      const { blob, renderInfo } = this.#canvasService.exportToSvg(rendererSymbol, camera);
+
+      const name = this.normalizeName(null, baseName, '.svg');
+      const size = blob.size;
+      console.info('Download SVG context:', { name, size, renderInfo });
+
+      return this.downloadBlob$(name, blob).pipe(
+        map(() => ({ name, size, renderInfo })),
+      );
+    });
   }
 
   downloadBlob$(filename: string, blob: Blob) {

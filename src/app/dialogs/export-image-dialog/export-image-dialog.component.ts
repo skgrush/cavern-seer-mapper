@@ -44,7 +44,11 @@ export class ExportImageDialogComponent {
     return dimensions.clone().multiplyScalar(scaleFactor);
   }
 
-  readonly fileTypes = ['jpeg', 'png', 'webp'] as const;
+  get selectedTypeIsScalable() {
+    return this.formGroup.controls.type.value !== 'svg';
+  }
+
+  readonly fileTypes = ['jpeg', 'png', 'webp', 'svg'] as const;
   readonly scaleFactors = [1, 2, 4, 8, 16, 32] as const;
 
   readonly resultSubject = new BehaviorSubject<{
@@ -91,13 +95,17 @@ export class ExportImageDialogComponent {
 
     const { fileName, scaleFactor, type } = this.formGroup.getRawValue();
 
-    this.#exportService.downloadCanvasImage$(
-      fileName,
-      type,
-      rendererSymbol,
-      camera,
-      scaleFactor,
-    ).pipe(
+    const obs$ = type === 'svg'
+      ? this.#exportService.downloadCanvasSvg$(fileName, rendererSymbol, camera)
+      : this.#exportService.downloadCanvasImage$(
+          fileName,
+          type,
+          rendererSymbol,
+          camera,
+          scaleFactor,
+        );
+
+    obs$.pipe(
       tap({
         finalize: () => {
           this.formGroup.enable();

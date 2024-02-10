@@ -30,6 +30,7 @@ import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.se
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
 import {SettingsService} from "./settings/settings.service";
+import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer';
 
 @Injectable()
 export class CanvasService {
@@ -235,6 +236,38 @@ export class CanvasService {
     tempRenderer.dispose();
 
     return blob;
+  }
+
+  exportToSvg(
+    sym = this.#mainRendererSymbol,
+    cam?: Camera,
+  ) {
+    const dimensions = this.getRendererDimensions(sym);
+    if (!dimensions) {
+      throw new Error('Renderer or canvas not ready to export');
+    }
+
+    const camera = cam ?? this.#orthoControls?.camera;
+
+    if (!camera) {
+      throw new Error('Could not find camera');
+    }
+
+    const svgRenderer = new SVGRenderer();
+    svgRenderer.setSize(dimensions.x, dimensions.y);
+    svgRenderer.render(this.#scene, camera);
+    const { render } = svgRenderer.info;
+
+    const serializer = new XMLSerializer();
+    return {
+      renderInfo: render,
+      blob: new Blob([
+        '<?xml version="1.0" standalone="no"?>\r\n',
+        serializer.serializeToString(svgRenderer.domElement),
+      ], {
+        type: 'image/svg+xml;charset=utf-8',
+      }),
+    }
   }
 
   cleanupRenderer() {
