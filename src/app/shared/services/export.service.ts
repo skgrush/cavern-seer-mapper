@@ -5,7 +5,7 @@ import { ModelManagerService } from './model-manager.service';
 import { ModelLoadService } from './model-load.service';
 import { TransportProgressHandler } from '../models/transport-progress-handler';
 import { CanvasService } from './canvas.service';
-import type { Camera, Object3D } from 'three';
+import { Camera, Object3D } from 'three';
 import { ignoreNullish } from '../operators/ignore-nullish';
 
 export enum ModelExporterNames {
@@ -184,11 +184,15 @@ export class ExportService {
   }
 
   exportModel$<T extends ModelExporterNames>(type: T) {
+    const meshSub = this.#canvasService.temporarilySwitchMaterial$('standard').subscribe();
     const fn = this.#parsers[type] as (o: Object3D) => Observable<ModelExporterReturnMap[T]>;
     return this.#modelManager.currentOpenGroup$.pipe(
       ignoreNullish(),
       take(1),
       switchMap(currentGroup => currentGroup.encode(fn)),
+      tap({
+        finalize: () => meshSub.unsubscribe(),
+      }),
     );
   }
 

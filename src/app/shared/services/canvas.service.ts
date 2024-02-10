@@ -16,7 +16,24 @@ import {
   tap,
   combineLatest
 } from 'rxjs';
-import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, SRGBColorSpace, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
+import {
+  AmbientLight,
+  Box3,
+  Camera,
+  Clock,
+  FrontSide,
+  GridHelper,
+  Material,
+  OrthographicCamera,
+  Raycaster,
+  SRGBColorSpace,
+  Scene,
+  Side,
+  Vector2,
+  Vector3,
+  WebGLRenderer,
+  DirectionalLight,
+} from 'three';
 import { markSceneOfItemForReRender } from '../functions/mark-scene-of-item-for-rerender';
 import { traverseSome } from '../functions/traverse-some';
 import { ModelChangeType } from '../models/model-change-type.enum';
@@ -31,6 +48,7 @@ import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
 import {SettingsService} from "./settings/settings.service";
 import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
+import { MeshStandardMaterialService } from './3d-managers/mesh-standard-material.service';
 
 @Injectable()
 export class CanvasService {
@@ -59,8 +77,11 @@ export class CanvasService {
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
   #compass?: ControlViewHelper<OrthographicMapControls>;
 
-  readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
-  #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
+  readonly materials = Object.freeze({
+    'normal': inject(MeshNormalMaterialService),
+    'standard': inject(MeshStandardMaterialService),
+  });
+  #material: BaseMaterialService<Material> = this.materials.normal;
 
   readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
   readonly materialSide$ = this.#materialSideSubject.asObservable();
@@ -165,6 +186,30 @@ export class CanvasService {
       this.#material.toggleDoubleSide()
     );
     markSceneOfItemForReRender(this.#scene);
+  }
+
+  changeMaterial(to: keyof CanvasService['materials']) {
+    const newMaterialService = this.materials[to];
+    if (!newMaterialService) {
+      throw new Error(`Unsupported material: ${to}`);
+    }
+
+    this.#changeMaterialService(newMaterialService);
+  }
+
+  #changeMaterialService(materialService: BaseMaterialService<any>) {
+    this.#material = materialService;
+    this.#currentGroupInScene?.setMaterial(this.#material);
+    markSceneOfItemForReRender(this.#scene);
+  }
+
+  temporarilySwitchMaterial$(to: keyof CanvasService['materials']) {
+    return new Observable<void>(subscriber => {
+      const oldMaterialService = this.#material;
+      this.changeMaterial(to);
+
+      return () => this.#changeMaterialService(oldMaterialService);
+    });
   }
 
   toggleGridVisible() {
@@ -507,6 +552,7 @@ export class CanvasService {
     });
     this.#rendererMap.set(this.#mainRendererSymbol, new WeakRef(this.#mainRenderer));
     this.#mainRenderer.autoClear = false;
+
     this.#mainRenderer.outputColorSpace = SRGBColorSpace;
 
     const cam = new OrthographicCamera();
@@ -518,7 +564,8 @@ export class CanvasService {
     // // setting pixel ratio screws with raycasting??
     // this.#mainRenderer.setPixelRatio(pixelRatio);
 
-    this.#scene.add(new AmbientLight(0xFF2222, 2));
+    this.#scene.add(new AmbientLight(0x222222, Math.PI));
+    this.#scene.add(new DirectionalLight(0xFFFFFF, 1));
 
     this.#rendererChangedSubject.next();
 
