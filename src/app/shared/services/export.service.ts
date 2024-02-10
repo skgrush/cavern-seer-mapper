@@ -1,11 +1,34 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, inject } from '@angular/core';
-import { defer, first, map, of, switchMap, tap, timer } from 'rxjs';
+import { Injectable, inject, Type } from '@angular/core';
+import { defer, first, map, Observable, of, switchMap, take, tap, timer } from 'rxjs';
 import { ModelManagerService } from './model-manager.service';
 import { ModelLoadService } from './model-load.service';
 import { TransportProgressHandler } from '../models/transport-progress-handler';
 import { CanvasService } from './canvas.service';
-import type { Camera } from 'three';
+import type { Camera, Object3D } from 'three';
+import { ignoreNullish } from '../operators/ignore-nullish';
+
+enum ModelExporterNames {
+  OBJ = 'OBJ',
+  GLTF = 'GLTF',
+  GLB = 'GLB',
+  PLY = 'PLY',
+  PLYAscii = 'PLYAscii',
+  STL = 'STL',
+  STLAscii = 'STLAscii',
+  USDZ = 'USDZ',
+}
+
+type ModelExporterReturnMap = {
+  OBJ: string,
+  GLTF: string,
+  GLB: ArrayBuffer,
+  PLY: ArrayBuffer | null,
+  PLYAscii: string | null,
+  STL: DataView,
+  STLAscii: string,
+  USDZ: Uint8Array,
+};
 
 @Injectable()
 export class ExportService {
@@ -14,6 +37,41 @@ export class ExportService {
   readonly #modelManager = inject(ModelManagerService);
   readonly #modelLoad = inject(ModelLoadService);
   readonly #canvasService = inject(CanvasService);
+
+  readonly #gltfModule = defer(() => import('three/examples/jsm/exporters/GLTFExporter.js'));
+  readonly #plyModule = defer(() => import('three/examples/jsm/exporters/PLYExporter.js'));
+  readonly #stlModule = defer(() => import('three/examples/jsm/exporters/STLExporter.js'));
+  readonly #parsers = {
+    OBJ: (model: Object3D) => defer(() => import('three/examples/jsm/exporters/OBJExporter.js')).pipe(
+      map(({ OBJExporter }) => new OBJExporter().parse(model)),
+    ),
+    GLTF: (model: Object3D) => this.#gltfModule.pipe(
+      switchMap(({ GLTFExporter }) => new GLTFExporter().parseAsync(model, { binary: false })),
+      map(result => JSON.stringify(result)),
+    ),
+    GLB: (model: Object3D) => this.#gltfModule.pipe(
+      switchMap(({ GLTFExporter }) => new GLTFExporter().parseAsync(model, { binary: true }) as Promise<ArrayBuffer>),
+    ),
+    PLY: (model: Object3D) => this.#plyModule.pipe(
+      map(({ PLYExporter }) =>
+        new PLYExporter().parse(model, () => {}, { binary: true, littleEndian: true }),
+      ),
+    ),
+    PLYAscii: (model: Object3D) => this.#plyModule.pipe(
+      map(({ PLYExporter }) =>
+        new PLYExporter().parse(model, () => {}, { binary: false, littleEndian: true }),
+      ),
+    ),
+    STL: (model: Object3D) => this.#stlModule.pipe(
+      map(({ STLExporter }) => new STLExporter().parse(model, { binary: true })),
+    ),
+    STLAscii: (model: Object3D) => this.#stlModule.pipe(
+      map(({ STLExporter }) => new STLExporter().parse(model, { binary: false })),
+    ),
+    USDZ: (model: Object3D) => defer(() => import('three/examples/jsm/exporters/USDZExporter.js')).pipe(
+      map(({ USDZExporter }) => new USDZExporter().parse(model)),
+    ),
+  } satisfies Record<ModelExporterNames, any>;
 
   /**
    * Trigger a browser download of the currentOpenGroup.
@@ -112,6 +170,15 @@ export class ExportService {
         tap(() => URL.revokeObjectURL(url)),
       )
     });
+  }
+
+  exportModel$<T extends ModelExporterNames>(type: T) {
+    const fn = this.#parsers[type] as (o: Object3D) => Observable<ModelExporterReturnMap[T]>;
+    return this.#modelManager.currentOpenGroup$.pipe(
+      ignoreNullish(),
+      take(1),
+      switchMap(currentGroup => currentGroup.encode(fn)),
+    );
   }
 
   normalizeName(inputName: string | null, groupIdentifier: string, extension: `.${string}`) {

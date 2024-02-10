@@ -30,7 +30,7 @@ import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.se
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
 import {SettingsService} from "./settings/settings.service";
-import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer';
+import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
 
 @Injectable()
 export class CanvasService {
