@@ -1,5 +1,5 @@
 import { Subject, Subscription } from "rxjs";
-import { BoxHelper, Group, Object3DEventMap, Scene } from "three";
+import { BoxHelper, Group, Object3D, Object3DEventMap, Scene } from 'three';
 import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
 import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import { BaseAnnotation } from "../annotations/base.annotation";
@@ -112,6 +112,10 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     const box = boxHelper.geometry.boundingBox!;
     boxHelper.dispose();
     return box;
+  }
+
+  encode<T>(fn: (o: Object3D) => T) {
+    return fn(this.#group);
   }
 
   dispose() {

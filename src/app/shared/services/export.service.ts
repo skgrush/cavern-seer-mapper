@@ -1,11 +1,52 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, inject } from '@angular/core';
-import { defer, first, map, of, switchMap, tap, timer } from 'rxjs';
+import { Injectable, inject, Type } from '@angular/core';
+import { defer, first, map, Observable, of, switchMap, take, tap, timer } from 'rxjs';
 import { ModelManagerService } from './model-manager.service';
 import { ModelLoadService } from './model-load.service';
 import { TransportProgressHandler } from '../models/transport-progress-handler';
 import { CanvasService } from './canvas.service';
-import type { Camera } from 'three';
+import { Camera, Object3D } from 'three';
+import { ignoreNullish } from '../operators/ignore-nullish';
+
+export enum ModelExporterNames {
+  OBJ = 'OBJ',
+  GLTF = 'GLTF',
+  GLB = 'GLB',
+  PLY = 'PLY',
+  PLYAscii = 'PLYAscii',
+  STL = 'STL',
+  STLAscii = 'STLAscii',
+  USDZ = 'USDZ',
+}
+
+export const modelExporterAsciis = new Set([
+  ModelExporterNames.OBJ,
+  ModelExporterNames.GLTF,
+  ModelExporterNames.PLYAscii,
+  ModelExporterNames.STLAscii,
+] as const);
+
+const modelExporterExtensions = {
+  OBJ: ['obj', 'model/obj'],
+  GLTF: ['gltf', 'model/gltf+json'],
+  GLB: ['glb', 'model/gltf-binary'],
+  PLY: ['ply', 'text/plain'],
+  PLYAscii: ['ply', 'text/plain'],
+  STL: ['stl', 'model/x.stl-binary'],
+  STLAscii: ['stl', 'model/x.stl-ascii'],
+  USDZ: ['usdz', 'model/vnd.usdz+zip'],
+} as const satisfies Record<ModelExporterNames, readonly [ext: string, mime: string]>;
+
+type ModelExporterReturnMap = {
+  OBJ: string,
+  GLTF: string,
+  GLB: ArrayBuffer,
+  PLY: ArrayBuffer | null,
+  PLYAscii: string | null,
+  STL: DataView,
+  STLAscii: string,
+  USDZ: Uint8Array,
+};
 
 @Injectable()
 export class ExportService {
@@ -14,6 +55,41 @@ export class ExportService {
   readonly #modelManager = inject(ModelManagerService);
   readonly #modelLoad = inject(ModelLoadService);
   readonly #canvasService = inject(CanvasService);
+
+  readonly #gltfModule = defer(() => import('three/examples/jsm/exporters/GLTFExporter.js'));
+  readonly #plyModule = defer(() => import('three/examples/jsm/exporters/PLYExporter.js'));
+  readonly #stlModule = defer(() => import('three/examples/jsm/exporters/STLExporter.js'));
+  readonly #parsers = {
+    OBJ: (model: Object3D) => defer(() => import('three/examples/jsm/exporters/OBJExporter.js')).pipe(
+      map(({ OBJExporter }) => new OBJExporter().parse(model)),
+    ),
+    GLTF: (model: Object3D) => this.#gltfModule.pipe(
+      switchMap(({ GLTFExporter }) => new GLTFExporter().parseAsync(model, { binary: false })),
+      map(result => JSON.stringify(result)),
+    ),
+    GLB: (model: Object3D) => this.#gltfModule.pipe(
+      switchMap(({ GLTFExporter }) => new GLTFExporter().parseAsync(model, { binary: true }) as Promise<ArrayBuffer>),
+    ),
+    PLY: (model: Object3D) => this.#plyModule.pipe(
+      map(({ PLYExporter }) =>
+        new PLYExporter().parse(model, () => {}, { binary: true, littleEndian: true }),
+      ),
+    ),
+    PLYAscii: (model: Object3D) => this.#plyModule.pipe(
+      map(({ PLYExporter }) =>
+        new PLYExporter().parse(model, () => {}, { binary: false, littleEndian: true }),
+      ),
+    ),
+    STL: (model: Object3D) => this.#stlModule.pipe(
+      map(({ STLExporter }) => new STLExporter().parse(model, { binary: true })),
+    ),
+    STLAscii: (model: Object3D) => this.#stlModule.pipe(
+      map(({ STLExporter }) => new STLExporter().parse(model, { binary: false })),
+    ),
+    USDZ: (model: Object3D) => defer(() => import('three/examples/jsm/exporters/USDZExporter.js')).pipe(
+      map(({ USDZExporter }) => new USDZExporter().parse(model, { quickLookCompatible: true })),
+    ),
+  } satisfies Record<ModelExporterNames, any>;
 
   /**
    * Trigger a browser download of the currentOpenGroup.
@@ -57,7 +133,8 @@ export class ExportService {
   }
 
   downloadCanvasImage$(
-    baseName: string, ext: 'png' | 'jpeg' | 'webp',
+    baseName: string,
+    ext: 'png' | 'jpeg' | 'webp',
     rendererSymbol?: symbol,
     camera?: Camera,
     sizeMultiplier?: number,
@@ -79,6 +156,24 @@ export class ExportService {
     );
   }
 
+  downloadCanvasSvg$(
+    baseName: string,
+    rendererSymbol?: symbol,
+    camera?: Camera,
+  ) {
+    return defer(() => {
+      const { blob, renderInfo } = this.#canvasService.exportToSvg(rendererSymbol, camera);
+
+      const name = this.normalizeName(null, baseName, '.svg');
+      const size = blob.size;
+      console.info('Download SVG context:', { name, size, renderInfo });
+
+      return this.downloadBlob$(name, blob).pipe(
+        map(() => ({ name, size, renderInfo })),
+      );
+    });
+  }
+
   downloadBlob$(filename: string, blob: Blob) {
     return defer(() => {
       const url = URL.createObjectURL(blob);
@@ -93,6 +188,38 @@ export class ExportService {
         tap(() => URL.revokeObjectURL(url)),
       )
     });
+  }
+
+  exportModel$<T extends ModelExporterNames>(type: T) {
+    const meshSub = this.#canvasService.temporarilySwitchMaterial$('standard').subscribe();
+    const fn = this.#parsers[type] as (o: Object3D) => Observable<ModelExporterReturnMap[T]>;
+    return this.#modelManager.currentOpenGroup$.pipe(
+      ignoreNullish(),
+      take(1),
+      switchMap(currentGroup => currentGroup.encode(fn)),
+      tap({
+        finalize: () => meshSub.unsubscribe(),
+      }),
+    );
+  }
+
+  downloadModel$<T extends ModelExporterNames>(baseName: string, type: T) {
+    const [ext, mime] = modelExporterExtensions[type];
+
+    const name = this.normalizeName(null, baseName, `.${ext}`);
+
+    return this.exportModel$(type).pipe(
+      switchMap(result => {
+        if (result === null) {
+          throw new Error(`Got null exporting ${baseName} to ${type}`);
+        }
+        const blob = new Blob([result], { type: mime });
+
+        return this.downloadBlob$(name, blob).pipe(
+          map(() => ({ name, size: blob.size })),
+        );
+      }),
+    );
   }
 
   normalizeName(inputName: string | null, groupIdentifier: string, extension: `.${string}`) {

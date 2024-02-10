@@ -81,4 +81,17 @@ export class DialogOpenerService {
         );
       });
   }
+
+  exportModel() {
+    import('../../dialogs/export-model-dialog/export-model-dialog.component')
+      .then(({ ExportModelDialogComponent }) => {
+        ExportModelDialogComponent.open(
+          this.#dialog,
+          this.#injector,
+          {
+            titleText: 'Export model',
+          },
+        )
+      });
+  }
 }

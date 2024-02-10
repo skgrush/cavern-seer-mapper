@@ -19,6 +19,7 @@ import { provideSettings } from "./shared/services/settings";
 import { ThemeService } from "./shared/services/theme.service";
 import { ToolManagerService } from "./shared/services/tool-manager.service";
 import { toolsProviders } from "./shared/services/tools";
+import { MeshStandardMaterialService } from './shared/services/3d-managers/mesh-standard-material.service';
 
 const deferredRoutes: Routes = [
   {
@@ -52,6 +53,7 @@ const deferredRoutes: Routes = [
       ModelLoadService,
       ModelManagerService,
       MeshNormalMaterialService,
+      MeshStandardMaterialService,
       ToolManagerService,
       AnnotationBuilderService,
       DialogOpenerService,

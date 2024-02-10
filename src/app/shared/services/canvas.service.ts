@@ -16,7 +16,24 @@ import {
   tap,
   combineLatest
 } from 'rxjs';
-import { AmbientLight, Box3, Camera, Clock, FrontSide, GridHelper, Material, OrthographicCamera, Raycaster, SRGBColorSpace, Scene, Side, Vector2, Vector3, WebGLRenderer } from 'three';
+import {
+  AmbientLight,
+  Box3,
+  Camera,
+  Clock,
+  FrontSide,
+  GridHelper,
+  Material,
+  OrthographicCamera,
+  Raycaster,
+  SRGBColorSpace,
+  Scene,
+  Side,
+  Vector2,
+  Vector3,
+  WebGLRenderer,
+  DirectionalLight,
+} from 'three';
 import { markSceneOfItemForReRender } from '../functions/mark-scene-of-item-for-rerender';
 import { traverseSome } from '../functions/traverse-some';
 import { ModelChangeType } from '../models/model-change-type.enum';
@@ -30,6 +47,8 @@ import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.se
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
 import {SettingsService} from "./settings/settings.service";
+import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
+import { MeshStandardMaterialService } from './3d-managers/mesh-standard-material.service';
 
 @Injectable()
 export class CanvasService {
@@ -58,8 +77,11 @@ export class CanvasService {
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
   #compass?: ControlViewHelper<OrthographicMapControls>;
 
-  readonly #meshNormalMaterial = inject(MeshNormalMaterialService);
-  #material: BaseMaterialService<Material> = this.#meshNormalMaterial;
+  readonly materials = Object.freeze({
+    'normal': inject(MeshNormalMaterialService),
+    'standard': inject(MeshStandardMaterialService),
+  });
+  #material: BaseMaterialService<Material> = this.materials.normal;
 
   readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
   readonly materialSide$ = this.#materialSideSubject.asObservable();
@@ -166,6 +188,34 @@ export class CanvasService {
     markSceneOfItemForReRender(this.#scene);
   }
 
+  changeMaterial(to: keyof CanvasService['materials']) {
+    const newMaterialService = this.materials[to];
+    if (!newMaterialService) {
+      throw new Error(`Unsupported material: ${to}`);
+    }
+
+    this.#changeMaterialService(newMaterialService);
+  }
+
+  #changeMaterialService(materialService: BaseMaterialService<any>) {
+    this.#material = materialService;
+    this.#currentGroupInScene?.setMaterial(this.#material);
+    markSceneOfItemForReRender(this.#scene);
+  }
+
+  /**
+   * When observed, switch to the requested material.
+   * When unsubscribed, switch back to the original material.
+   */
+  temporarilySwitchMaterial$(to: keyof CanvasService['materials']) {
+    return new Observable<void>(subscriber => {
+      const oldMaterialService = this.#material;
+      this.changeMaterial(to);
+
+      return () => this.#changeMaterialService(oldMaterialService);
+    });
+  }
+
   toggleGridVisible() {
     this.#gridVisibleSubject.next(
       !this.#gridVisibleSubject.value,
@@ -235,6 +285,38 @@ export class CanvasService {
     tempRenderer.dispose();
 
     return blob;
+  }
+
+  exportToSvg(
+    sym = this.#mainRendererSymbol,
+    cam?: Camera,
+  ) {
+    const dimensions = this.getRendererDimensions(sym);
+    if (!dimensions) {
+      throw new Error('Renderer or canvas not ready to export');
+    }
+
+    const camera = cam ?? this.#orthoControls?.camera;
+
+    if (!camera) {
+      throw new Error('Could not find camera');
+    }
+
+    const svgRenderer = new SVGRenderer();
+    svgRenderer.setSize(dimensions.x, dimensions.y);
+    svgRenderer.render(this.#scene, camera);
+    const { render } = svgRenderer.info;
+
+    const serializer = new XMLSerializer();
+    return {
+      renderInfo: render,
+      blob: new Blob([
+        '<?xml version="1.0" standalone="no"?>\r\n',
+        serializer.serializeToString(svgRenderer.domElement),
+      ], {
+        type: 'image/svg+xml;charset=utf-8',
+      }),
+    }
   }
 
   cleanupRenderer() {
@@ -474,6 +556,7 @@ export class CanvasService {
     });
     this.#rendererMap.set(this.#mainRendererSymbol, new WeakRef(this.#mainRenderer));
     this.#mainRenderer.autoClear = false;
+
     this.#mainRenderer.outputColorSpace = SRGBColorSpace;
 
     const cam = new OrthographicCamera();
@@ -485,7 +568,8 @@ export class CanvasService {
     // // setting pixel ratio screws with raycasting??
     // this.#mainRenderer.setPixelRatio(pixelRatio);
 
-    this.#scene.add(new AmbientLight(0xFF2222, 2));
+    this.#scene.add(new AmbientLight(0x222222, Math.PI));
+    this.#scene.add(new DirectionalLight(0xFFFFFF, 1));
 
     this.#rendererChangedSubject.next();
 
