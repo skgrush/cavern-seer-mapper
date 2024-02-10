@@ -203,6 +203,10 @@ export class CanvasService {
     markSceneOfItemForReRender(this.#scene);
   }
 
+  /**
+   * When observed, switch to the requested material.
+   * When unsubscribed, switch back to the original material.
+   */
   temporarilySwitchMaterial$(to: keyof CanvasService['materials']) {
     return new Observable<void>(subscriber => {
       const oldMaterialService = this.#material;
