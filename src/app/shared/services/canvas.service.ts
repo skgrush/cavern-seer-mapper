@@ -90,10 +90,16 @@ export class CanvasService {
   readonly gridVisible$ = this.#gridVisibleSubject.asObservable();
 
   readonly #boundingBoxForBottomGrid$ = new BehaviorSubject<Box3>(new Box3(new Vector3(), new Vector3(1, 1, 1)));
+  readonly #cameraTargetHeight$ = new BehaviorSubject<number>(0);
 
   #bottomGrid = new GridHelper();
 
   #currentGroupInScene?: GroupRenderModel;
+
+  readonly canvasKeyEvent$ = this.#rendererChangedSubject.pipe(
+    startWith(undefined),
+    switchMap(() => this.eventOnRenderer('keyup') ?? of()),
+  );
 
   constructor() {
     this.#modelManager.currentOpenGroup$.pipe(
@@ -113,7 +119,7 @@ export class CanvasService {
         const bounds = group.getBoundingBox();
 
         this.#boundingBoxForBottomGrid$.next(bounds);
-        this.#refocusCamera(bounds);
+        this.#recenterCamera(bounds);
       }
 
       // regardless, update the renderer
@@ -154,6 +160,31 @@ export class CanvasService {
     ).subscribe(({ bounds, gridScale }) => {
       this.#rebuildBottomGrid(bounds, gridScale);
     });
+
+    this.canvasKeyEvent$.pipe(
+      takeUntilDestroyed(),
+    ).subscribe(e => {
+      console.info('keyup', e.key);
+      switch (e.key) {
+        case 'ArrowUp':
+          return this.#adjustCameraOnY(1);
+        case 'ArrowDown':
+          return this.#adjustCameraOnY(-1);
+      }
+    })
+  }
+
+  #adjustCameraOnY(amount: number) {
+    if (!this.#orthoControls) {
+      throw new Error('adjustCameraOnY with no controls');
+    }
+
+    const { camera, target } = this.#orthoControls;
+    const delta = new Vector3(0, amount, 0);
+    this.changeCameraPosition(
+      camera.position.clone().add(delta),
+      target.clone().add(delta),
+    );
   }
 
   /**
@@ -169,9 +200,18 @@ export class CanvasService {
 
     const newCameraLoc = point.clone().add(cameraToOldPointVector);
 
-    this.#orthoControls.camera.position.copy(newCameraLoc);
-    this.#orthoControls.target.copy(point);
+    this.changeCameraPosition(newCameraLoc, point);
+  }
+
+  changeCameraPosition(camera: Vector3, target: Vector3) {
+    if (!this.#orthoControls) {
+      throw new Error('changeCameraPosition with no controls');
+    }
+
+    this.#orthoControls.camera.position.copy(camera);
+    this.#orthoControls.target.copy(target);
     this.#orthoControls.update();
+    this.#cameraTargetHeight$.next(target.y);
   }
 
   registerCompass(compassEle$: Observable<HTMLElement | undefined>) {
@@ -446,21 +486,13 @@ export class CanvasService {
     this.#mainRenderer.setClearColor(bgColor);
   }
 
-  #refocusCamera(bounds: Box3) {
-    const controls = this.#orthoControls;
-    if (!controls) {
-      console.error('missing controls/camera', this);
-      return;
-    }
-
-    controls.camera.position.set(
-      0,
-      bounds.max.y + 5,
-      0.0000001 // sliiightly offset the Z so we (should) always look from Z when reseting controls
+  #recenterCamera(bounds: Box3) {
+    const y = bounds.max.y + 1;
+    this.changeCameraPosition(
+      // sliiightly offset the Z so we (should) always look from Z when resetting controls
+      new Vector3(0, y, 0.0000001),
+      new Vector3(0, y, 0),
     );
-    controls.target.set(0, 0, 0);
-
-    controls.update();
   }
 
   #rebuildBottomGrid(bounds: Box3, gridScale: number) {
@@ -592,7 +624,5 @@ export class CanvasService {
     ).subscribe();
 
     this.render();
-
-
   }
 }
