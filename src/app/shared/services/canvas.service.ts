@@ -320,14 +320,15 @@ export class CanvasService {
   }
 
   cleanupRenderer() {
-    if (!this.#mainRenderer) {
+    const mainRenderer = this.#mainRenderer;
+    if (!mainRenderer) {
       return;
     }
 
-    this.#rendererChangedSubject.next();
-    this.#mainRenderer.dispose();
-    this.#mainRenderer.forceContextLoss();
     this.#mainRenderer = undefined;
+    this.#rendererChangedSubject.next();
+    mainRenderer.dispose();
+    mainRenderer.forceContextLoss();
   }
 
   getRendererDimensions(sym = this.#mainRendererSymbol) {
