@@ -1,10 +1,26 @@
 :host {
-  display: flex;
+  display: grid;
   gap: 1em;
   align-items: stretch;
+
+  grid-template-columns: min-content min-content;
+  grid-template-rows: min-content min-content;
+}
+
+.above-toolbar {
+  grid-row: 1;
+  grid-column: 1 / 2;
+}
+
+.exclusive-buttons {
+  grid-row: 2;
+  grid-column: 1;
 }
 
 .standalone-buttons {
+  grid-row: 2;
+  grid-column: 2;
+
   &>button {
     height: 100%;
     padding: 0;

@@ -1,4 +1,10 @@
-<mat-button-toggle-group [ngModel]="currentTool$ | async" (ngModelChange)="selectTool($event)">
+<div class="above-toolbar">
+  <p matTooltip="Change camera height with up and down arrow keys while focused on map" [style.margin]="0">
+    Camera height: {{ cameraHeightRelativeToBoundingBox$ | async | length }}
+  </p>
+</div>
+
+<mat-button-toggle-group class="exclusive-buttons" [ngModel]="currentTool$ | async" (ngModelChange)="selectTool($event)">
   @for (tool of toolOptions; track tool) {
   <mat-button-toggle [value]="tool.id" [aria-label]="tool.label" [matTooltip]="tool.label">
     <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>

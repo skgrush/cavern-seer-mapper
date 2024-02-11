@@ -14,7 +14,9 @@ import {
   switchMap,
   takeUntil,
   tap,
-  combineLatest
+  combineLatest,
+  of,
+  startWith,
 } from 'rxjs';
 import {
   AmbientLight,
@@ -99,6 +101,13 @@ export class CanvasService {
   readonly canvasKeyEvent$ = this.#rendererChangedSubject.pipe(
     startWith(undefined),
     switchMap(() => this.eventOnRenderer('keyup') ?? of()),
+  );
+
+  readonly cameraHeightRelativeToBoundingBox$ = combineLatest({
+    grid: this.#boundingBoxForBottomGrid$,
+    camHeight: this.#cameraTargetHeight$,
+  }).pipe(
+    map(({ grid, camHeight }) => camHeight - grid.max.y),
   );
 
   constructor() {
@@ -490,7 +499,7 @@ export class CanvasService {
     const y = bounds.max.y + 1;
     this.changeCameraPosition(
       // sliiightly offset the Z so we (should) always look from Z when resetting controls
-      new Vector3(0, y, 0.0000001),
+      new Vector3(0, y + 1, 0.0000001),
       new Vector3(0, y, 0),
     );
   }
