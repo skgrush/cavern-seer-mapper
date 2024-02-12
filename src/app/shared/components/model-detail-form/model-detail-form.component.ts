@@ -1,5 +1,5 @@
-import { NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { AsyncPipe, NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,15 +10,15 @@ import { simpleVector3Equality } from '../../functions/vector-equality';
 import { BaseRenderModel, BaseVisibleRenderModel } from '../../models/render/base.render-model';
 import { ISimpleVector3 } from '../../models/simple-types';
 import { LocalizeService } from '../../services/localize.service';
-import {MatCheckboxModule} from "@angular/material/checkbox";
-import {MatIconModule} from "@angular/material/icon";
+import { MatIconModule } from '@angular/material/icon';
 import { ignoreNullish } from '../../operators/ignore-nullish';
+import { MatIconButton } from '@angular/material/button';
 
 
 @Component({
   selector: 'mapper-model-detail-form',
   standalone: true,
-  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, MatCheckboxModule, MatIconModule],
+  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, MatIconModule, MatIconButton, AsyncPipe],
   templateUrl: './model-detail-form.component.html',
   styleUrl: './model-detail-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
