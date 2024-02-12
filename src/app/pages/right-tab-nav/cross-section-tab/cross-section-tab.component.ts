@@ -1,16 +1,26 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { BehaviorSubject, debounceTime, filter } from 'rxjs';
-import { CrossSectionDetailsForm, CrossSectionDetailsFormComponent } from "../../../shared/components/cross-section-details-form/cross-section-details-form.component";
+import {
+  CrossSectionDetailsForm,
+  CrossSectionDetailsFormComponent,
+} from '../../../shared/components/cross-section-details-form/cross-section-details-form.component';
 import { zeroVector3 } from '../../../shared/constants/zero-vectors';
 import { CrossSectionAnnotation } from '../../../shared/models/annotations/cross-section.annotation';
 import { ISimpleVector3, vector3FromSimpleVector3 } from '../../../shared/models/simple-types';
@@ -19,6 +29,7 @@ import { VectorPipe } from '../../../shared/pipes/vector.pipe';
 import { DialogOpenerService } from '../../../shared/services/dialog-opener.service';
 import { LocalizeService } from '../../../shared/services/localize.service';
 import { CrossSectionToolService } from '../../../shared/services/tools/cross-section-tool.service';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'mapper-cross-section-tab',
@@ -26,7 +37,7 @@ import { CrossSectionToolService } from '../../../shared/services/tools/cross-se
   templateUrl: './cross-section-tab.component.html',
   styleUrl: './cross-section-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatListModule, CommonModule, MatIconModule, MatButtonModule, MatButtonToggleModule, MatMenuModule, MatSelectModule, FormsModule, ReactiveFormsModule, VectorPipe, AsyncPipe, CrossSectionDetailsFormComponent]
+  imports: [MatListModule, CommonModule, MatIconModule, MatButtonModule, MatMenuModule, MatSelectModule, FormsModule, ReactiveFormsModule, VectorPipe, AsyncPipe, CrossSectionDetailsFormComponent, MatTooltip],
 })
 export class CrossSectionTabComponent {
   readonly #dialog = inject(MatDialog);

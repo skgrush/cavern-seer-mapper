@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CeilingHeightToolService } from '../../../../shared/services/tools/ceiling-height-tool.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { LengthPipe } from "../../../../shared/pipes/length.pipe";
@@ -11,6 +10,7 @@ import { CeilingHeightAnnotation } from '../../../../shared/models/annotations/c
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'mapper-ceiling-tab',
@@ -18,7 +18,7 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './ceiling-tab.component.html',
   styleUrl: './ceiling-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatIconModule, MatListModule, MatMenuModule, FormsModule, ReactiveFormsModule, CommonModule, MatButtonToggleModule, MatButtonModule, LengthPipe, VectorPipe]
+  imports: [MatIconModule, MatListModule, MatMenuModule, FormsModule, ReactiveFormsModule, CommonModule, MatButtonModule, LengthPipe, VectorPipe, MatTooltip],
 })
 export class CeilingTabComponent {
   protected readonly ceilingHeightTool = inject(CeilingHeightToolService);

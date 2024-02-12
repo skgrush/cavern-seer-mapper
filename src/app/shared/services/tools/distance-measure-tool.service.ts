@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, Subject, distinctUntilChanged, map, of, take, takeUntil, tap } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map, of, Subject, take, takeUntil, tap } from 'rxjs';
 import { Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
 import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
 import { MeasureDistanceAnnotation } from '../../models/annotations/measure-distance.annotation';
@@ -10,12 +10,15 @@ import { AnnotationBuilderService } from '../annotation-builder.service';
 import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
 import { BaseExclusiveToolService } from './base-tool.service';
+import { AlertService, AlertType } from '../alert.service';
 
 @Injectable()
 export class DistanceMeasureToolService extends BaseExclusiveToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
   readonly #annotationBuilder = inject(AnnotationBuilderService);
+  readonly #alertService = inject(AlertService);
+
   readonly #stopSubject = new Subject<void>();
 
   readonly #measuresSubject = new BehaviorSubject<readonly MeasureDistanceAnnotation[]>([]);
@@ -25,6 +28,7 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
   readonly selectedMeasure$ = this.#selectedMeasureSubject.asObservable();
 
   readonly #showMeasuresSubject = new BehaviorSubject(true);
+  readonly showMeasures$ = this.#showMeasuresSubject.asObservable();
 
   override readonly id = 'distance';
   override readonly label = 'Distance measure';
@@ -115,10 +119,6 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
     this.#selectedMeasureSubject.next(measure);
   }
 
-  lookAtAnno(anno: MeasureDistanceAnnotation) {
-    this.#canvasService.lookAt(anno.worldPoint);
-  }
-
   lookAt(localPoint: Vector3) {
     this.#selectedMeasureSubject.pipe(
       ignoreNullish(),
@@ -167,6 +167,7 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
     const firstMesh = casts.find((cast): cast is Intersection<Mesh> => cast.object instanceof Mesh);
 
     if (!firstMesh) {
+      this.#alertService.alert(AlertType.warning, 'No mesh found');
       console.info('no mesh intersected by raycast', casts);
       return;
     }
@@ -179,6 +180,7 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
     const firstParentGroup = this.#getFirstParentGroup(object);
 
     if (!firstParentGroup) {
+      this.#alertService.alert(AlertType.warning, 'No layer found');
       console.warn('Could not find a parent group?', object);
       return;
     }

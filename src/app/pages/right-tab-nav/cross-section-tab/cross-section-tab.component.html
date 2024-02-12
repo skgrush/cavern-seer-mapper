@@ -6,22 +6,28 @@
 
 <div mat-subheader>
 
-  <mat-button-toggle-group [ngModel]="crossSectionTool.visibility$ | async"
-    (ngModelChange)="crossSectionTool.toggleVisibility($event)">
-    <mat-button-toggle [value]="true">Show</mat-button-toggle>
-    <mat-button-toggle [value]="false">Hide</mat-button-toggle>
-  </mat-button-toggle-group>
-
   <button id="cross-section-render-btn" mat-stroked-button [disabled]="formGroup.controls.selected.value.length !== 1"
     (click)="render()">
     Render
   </button>
 
-  <span class="spanner"></span>
+  <button
+    mat-icon-button
+    *ngIf="{ visible: crossSectionTool.visibility$ | async } as visibilityState"
+    (click)="crossSectionTool.toggleVisibility(!visibilityState.visible)"
+    matTooltip="Toggle cross-section visibility"
+  >
+    <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+  </button>
+
+  <span [style.flex-grow]="1"></span>
 
   <span>
-    <button mat-icon-button [disabled]="formGroup.controls.selected.value.length !== 1"
-      [matMenuTriggerFor]="optionsMenu">
+    <button
+      mat-icon-button
+      [disabled]="formGroup.controls.selected.value.length !== 1"
+      [matMenuTriggerFor]="optionsMenu"
+    >
       <mat-icon>more_vert</mat-icon>
     </button>
     <mat-menu #optionsMenu="matMenu">
@@ -31,7 +37,7 @@
   </span>
 </div>
 
-<mat-selection-list #selectionList [multiple]="false" [formControl]="formGroup.controls.selected">
+<mat-selection-list [multiple]="false" [formControl]="formGroup.controls.selected">
 
   @for (crossSection of (crossSectionTool.crossSections$ | async); track crossSection) {
   <mat-list-option [value]="crossSection" (click)="crossSectionTool.lookAt(crossSection)">

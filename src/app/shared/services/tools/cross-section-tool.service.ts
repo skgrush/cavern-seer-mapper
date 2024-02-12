@@ -12,12 +12,14 @@ import { AnnotationBuilderService } from '../annotation-builder.service';
 import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
 import { BaseExclusiveToolService } from './base-tool.service';
+import { AlertService, AlertType } from '../alert.service';
 
 @Injectable()
 export class CrossSectionToolService extends BaseExclusiveToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
   readonly #annoBuilder = inject(AnnotationBuilderService);
+  readonly #alertService = inject(AlertService);
 
   readonly normalCursor = 'pointer';
   readonly movingCursor = 'col-resize';
@@ -168,18 +170,21 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
         this.#cursor.next(this.movingCursor);
 
         const coord = this.#pointerEventToGridCoordinate(e);
-        if (coord) {
-          this.#drawLine(coord);
+        if (!coord) {
+          this.#alertService.alert(AlertType.warning, 'No mesh found');
+          return;
         }
+        this.#drawLine(coord);
       }),
     );
 
     const move$ = pointerMove$.pipe(
       tap(moveEvent => {
         const coord = this.#pointerEventToGridCoordinate(moveEvent);
-        if (coord) {
-          this.#drawLine(coord);
+        if (!coord) {
+          return;
         }
+        this.#drawLine(coord);
       }),
     );
     const finish$ = pointerUp$.pipe(

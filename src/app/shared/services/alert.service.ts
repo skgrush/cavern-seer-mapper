@@ -3,7 +3,8 @@ import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 export enum AlertType {
   error = 1,
-  info = 2,
+  warning,
+  info,
 }
 
 @Injectable()
