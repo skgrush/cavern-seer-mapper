@@ -1,6 +1,6 @@
 <div class="above-toolbar">
-  <p matTooltip="Change camera height with up and down arrow keys while focused on map" [style.margin]="0">
-    Camera height: {{ cameraHeightRelativeToBoundingBox$ | async | length }}
+  <p matTooltip="Change camera focus height with up- and down-arrow keys while focused on map" [style.margin]="0">
+    Camera focus height: {{ cameraHeightRelativeToBoundingBox$ | async | length }}
   </p>
 </div>
 
@@ -13,12 +13,6 @@
 </mat-button-toggle-group>
 
 <div class="standalone-buttons">
-<!--  @for (tool of nonExclusiveTools; track tool) {-->
-<!--  <button mat-flat-button (click)="tool.click()" [matTooltip]="tool.label">-->
-<!--    <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>-->
-<!--  </button>-->
-<!--  }-->
-
   <button mat-flat-button [matMenuTriggerFor]="standaloneMenu" [matTooltip]="'Additional tools'">
     <mat-icon>expand_less</mat-icon>
   </button>
