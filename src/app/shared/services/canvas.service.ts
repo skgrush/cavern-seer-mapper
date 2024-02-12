@@ -51,6 +51,7 @@ import { ModelManagerService } from './model-manager.service';
 import {SettingsService} from "./settings/settings.service";
 import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
 import { MeshStandardMaterialService } from './3d-managers/mesh-standard-material.service';
+import { TemporaryAnnotation } from '../models/annotations/temporary.annotation';
 
 @Injectable()
 export class CanvasService {
@@ -90,6 +91,9 @@ export class CanvasService {
 
   readonly #gridVisibleSubject = new BehaviorSubject(true);
   readonly gridVisible$ = this.#gridVisibleSubject.asObservable();
+
+  readonly #embeddedAnnotationsVisibleSubject = new BehaviorSubject(true);
+  readonly embeddedAnnotationsVisible$ = this.#embeddedAnnotationsVisibleSubject.asObservable();
 
   readonly #boundingBoxForBottomGrid$ = new BehaviorSubject<Box3>(new Box3(new Vector3(), new Vector3(1, 1, 1)));
   readonly #cameraTargetHeight$ = new BehaviorSubject<number>(0);
@@ -158,6 +162,16 @@ export class CanvasService {
     ).subscribe(visible => {
       this.#bottomGrid.visible = visible;
       markSceneOfItemForReRender(this.#bottomGrid);
+    });
+
+    this.embeddedAnnotationsVisible$.pipe(
+      takeUntilDestroyed(),
+      switchMap(visible => this.#modelManager.currentOpenGroup$.pipe(map(cog => ({ cog, visible })))),
+    ).subscribe(({ visible, cog }) => {
+      cog?.getAllAnnotationsRecursively()
+        .filter((anno): anno is TemporaryAnnotation<any> => anno instanceof TemporaryAnnotation)
+        .forEach(anno => anno.toggleVisibility(visible));
+      markSceneOfItemForReRender(this.#scene);
     });
 
     combineLatest({
@@ -268,6 +282,12 @@ export class CanvasService {
   toggleGridVisible() {
     this.#gridVisibleSubject.next(
       !this.#gridVisibleSubject.value,
+    );
+  }
+
+  toggleEmbeddedAnnotationsVisible() {
+    this.#embeddedAnnotationsVisibleSubject.next(
+      !this.#embeddedAnnotationsVisibleSubject.value,
     );
   }
 
