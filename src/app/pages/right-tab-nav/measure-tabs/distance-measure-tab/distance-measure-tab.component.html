@@ -18,6 +18,18 @@
       }
     </mat-select>
   </mat-form-field>
+  <span>
+    <button
+      mat-icon-button
+      *ngIf="{ visible: measureTool.showMeasures$ | async } as visibilityState"
+      (click)="measureTool.toggleMeasureVisibility(!visibilityState.visible)"
+      matTooltip="Toggle measure visibility"
+    >
+      <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+    </button>
+  </span>
+
+  <span [style.flex-grow]="1"></span>
 
   <span>
     <button mat-icon-button [disabled]="!formGroup.controls.selectedMeasure.value" [matMenuTriggerFor]="optionsMenu">
@@ -36,7 +48,7 @@
   <div>
     Total: {{ selectedMeasure.distance | length }}
   </div>
-  <mat-selection-list #selectionList multiple [formControl]="formGroup.controls.selectedPoints">
+  <mat-selection-list multiple [formControl]="formGroup.controls.selectedPoints">
     @for (point of selectedMeasure.allPoints; track point) {
     <mat-list-option [value]="point" (click)="measureTool.lookAt(point)" [disabled]="$first">
       <p matListItemTitle>{{ point | vector }}</p>

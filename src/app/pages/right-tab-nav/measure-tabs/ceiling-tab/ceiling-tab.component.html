@@ -12,8 +12,26 @@
   Ceiling
 
   <span>
-    <button mat-icon-button [disabled]="!selectionList.selectedOptions.selected.length"
-      [matMenuTriggerFor]="optionsMenu"><mat-icon>more_vert</mat-icon></button>
+    <button
+      mat-icon-button
+      *ngIf="{ visible: ceilingHeightTool.showCeilingHeights$ | async } as visibilityState"
+      (click)="ceilingHeightTool.toggleCeilingHeights(!visibilityState.visible)"
+      matTooltip="Toggle measure visibility"
+    >
+      <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+    </button>
+  </span>
+
+  <span [style.flex-grow]="1"></span>
+
+  <span>
+    <button
+      mat-icon-button
+      [disabled]="!selectionList.selectedOptions.selected.length"
+      [matMenuTriggerFor]="optionsMenu"
+    >
+      <mat-icon>more_vert</mat-icon>
+    </button>
     <mat-menu #optionsMenu="matMenu">
       <button mat-menu-item (click)="deleteSelectedCeilingHeight()">Delete item</button>
       <button mat-menu-item (click)="clearSelection()">Clear selection</button>
@@ -22,17 +40,9 @@
       </button>
     </mat-menu>
   </span>
-
-  <span class="spanner"></span>
-  <mat-button-toggle-group [ngModel]="ceilingHeightTool.showCeilingHeights$ | async"
-    (ngModelChange)="ceilingHeightTool.toggleCeilingHeights($event)">
-    <mat-button-toggle [value]="true">Show</mat-button-toggle>
-    <mat-button-toggle [value]="false">Hide</mat-button-toggle>
-  </mat-button-toggle-group>
 </div>
 
 <mat-selection-list #selectionList multiple [formControl]="ceilingHeightSelectControl">
-
 
   @for (measure of (ceilingHeightTool.ceilingDistances$ | async); track measure) {
   <mat-list-option (click)="ceilingHeightTool.lookAt(measure)" [value]="measure">

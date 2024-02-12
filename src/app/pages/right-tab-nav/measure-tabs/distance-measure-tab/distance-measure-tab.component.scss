@@ -4,6 +4,12 @@
   height: 100%;
 }
 
+[mat-subheader] {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+}
+
 mat-selection-list {
   overflow-y: auto;
 }

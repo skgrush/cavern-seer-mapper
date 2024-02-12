@@ -25,6 +25,7 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
   readonly selectedMeasure$ = this.#selectedMeasureSubject.asObservable();
 
   readonly #showMeasuresSubject = new BehaviorSubject(true);
+  readonly showMeasures$ = this.#showMeasuresSubject.asObservable();
 
   override readonly id = 'distance';
   override readonly label = 'Distance measure';
@@ -113,10 +114,6 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
 
     measure.deletePoints(points);
     this.#selectedMeasureSubject.next(measure);
-  }
-
-  lookAtAnno(anno: MeasureDistanceAnnotation) {
-    this.#canvasService.lookAt(anno.worldPoint);
   }
 
   lookAt(localPoint: Vector3) {

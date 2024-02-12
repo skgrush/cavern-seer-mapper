@@ -13,6 +13,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { Vector3 } from 'three';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'mapper-distance-measure-tab',
@@ -20,7 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './distance-measure-tab.component.html',
   styleUrl: './distance-measure-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatListModule, CommonModule, MatIconModule, MatButtonModule, MatMenuModule, ReactiveFormsModule, MatSelectModule, LengthPipe, VectorPipe]
+  imports: [MatListModule, CommonModule, MatIconModule, MatButtonModule, MatMenuModule, ReactiveFormsModule, MatSelectModule, LengthPipe, VectorPipe, MatTooltip],
 })
 export class DistanceMeasureTabComponent {
   readonly #dialog = inject(MatDialog);

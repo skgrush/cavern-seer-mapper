@@ -9,10 +9,9 @@ button[mat-icon-button] {
 }
 
 [mat-subheader] {
-  display: grid;
-  grid-template-rows: 1fr;
-  grid-template-columns: min-content min-content 1fr min-content;
+  display: flex;
   align-items: center;
+  gap: 0.5em;
 }
 
 mat-selection-list {
