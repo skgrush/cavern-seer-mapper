@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, Subject, distinctUntilChanged, map, of, takeUntil } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map, of, Subject, takeUntil } from 'rxjs';
 import { Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
 import { CeilingHeightAnnotation } from '../../models/annotations/ceiling-height.annotation';
 import { IMapperUserData } from '../../models/user-data';
@@ -8,12 +8,14 @@ import { AnnotationBuilderService } from '../annotation-builder.service';
 import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
 import { BaseExclusiveToolService } from './base-tool.service';
+import { AlertService, AlertType } from '../alert.service';
 
 @Injectable()
 export class CeilingHeightToolService extends BaseExclusiveToolService {
   readonly #canvasService = inject(CanvasService);
   readonly #modelManager = inject(ModelManagerService);
   readonly #annotationBuilder = inject(AnnotationBuilderService);
+  readonly #alertService = inject(AlertService);
 
   readonly #stopSubject = new Subject<void>();
 
@@ -138,6 +140,7 @@ export class CeilingHeightToolService extends BaseExclusiveToolService {
   #handleCeilingRaycast(results: Intersection<Object3D>[]) {
     const firstMeshInter = results.find((r): r is Intersection<Mesh> => r.object instanceof Mesh);
     if (!firstMeshInter) {
+      this.#alertService.alert(AlertType.warning, 'No mesh found');
       console.info('no mesh intersected by raycast', results);
       return false;
     }
@@ -150,6 +153,7 @@ export class CeilingHeightToolService extends BaseExclusiveToolService {
     const firstParentGroup = this.#getFirstParentGroup(object);
 
     if (!firstParentGroup) {
+      this.#alertService.alert(AlertType.warning, 'No layer found');
       console.warn('Could not find a parent group?', object);
       return null;
     }
@@ -164,7 +168,7 @@ export class CeilingHeightToolService extends BaseExclusiveToolService {
     const firstMeshCeiling = upIntersections.find((r): r is Intersection<Mesh> => r.object instanceof Mesh);
 
     if (!firstMeshCeiling) {
-      console.warn('No ceiling');
+      this.#alertService.alert(AlertType.warning, 'No ceiling height');
       return null;
     }
 
