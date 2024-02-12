@@ -13,12 +13,13 @@ import { LocalizeService } from '../../services/localize.service';
 import { MatIconModule } from '@angular/material/icon';
 import { ignoreNullish } from '../../operators/ignore-nullish';
 import { MatIconButton } from '@angular/material/button';
+import { MatTooltip } from '@angular/material/tooltip';
 
 
 @Component({
   selector: 'mapper-model-detail-form',
   standalone: true,
-  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, MatIconModule, MatIconButton, AsyncPipe],
+  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, MatIconModule, MatIconButton, AsyncPipe, MatTooltip],
   templateUrl: './model-detail-form.component.html',
   styleUrl: './model-detail-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -5,6 +5,7 @@
       type="button"
       *ngIf="{ value: formGroup.controls.visible.value, status: formGroup.controls.visible.statusChanges | async } as visible"
       (click)="formGroup.controls.visible.setValue(!visible.value)"
+      matTooltip="Toggle layer visibility"
     >
       <mat-icon>{{ visible.value ? 'visibility': 'visibility_off' }}</mat-icon>
     </button>
