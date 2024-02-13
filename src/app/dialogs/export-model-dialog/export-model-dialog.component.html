@@ -25,20 +25,24 @@
           </p>
           <p *ngSwitchCase="ModelExporterNames.GLTF">
             gLTF is supported by many modeling systems; less-space-efficient version of GLB.
+            Supported by Windows 3D viewer.
           </p>
           <p *ngSwitchCase="ModelExporterNames.GLB">
             gLTF-binary is supported by many modeling systems; more-space-efficient version of gLTF.
+            Supported by Windows 3D viewer.
           </p>
           <p *ngSwitchCase="ModelExporterNames.STL">
             STL is a CAD modeling format supported by many systems.
             It seems to be one of the <b>least-space-efficient</b> binary formats for CavernSeer.
+            Supported by Windows and macOS 3D viewers.
           </p>
           <p *ngSwitchCase="ModelExporterNames.PLY">
             PLY is a format for storing polygonal data.
             It seems to be the <b>most-space-efficient</b> binary format for CavernSeer.
+            Supported by Windows 3D viewer.
           </p>
           <p *ngSwitchCase="ModelExporterNames.USDZ">
-            <em>Currently unsupported by CavernSeer Mapper; seems to export empty files.</em>
+            USD is a format for 3D graphics designers, but with limited viewer support.
           </p>
         </ng-container>
 
