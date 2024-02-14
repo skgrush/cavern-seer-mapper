@@ -32,22 +32,25 @@
             Supported by Windows 3D viewer.
           </p>
           <p *ngSwitchCase="ModelExporterNames.STL">
-            STL is a CAD modeling format supported by many systems.
+            STL is a CAD modeling format supported by many systems.<br/>
             It seems to be one of the <b>least-space-efficient</b> binary formats for CavernSeer.
             Supported by Windows and macOS 3D viewers.
           </p>
           <p *ngSwitchCase="ModelExporterNames.PLY">
-            PLY is a format for storing polygonal data.
+            PLY is a format for storing polygonal data.<br/>
             It seems to be the <b>most-space-efficient</b> binary format for CavernSeer.
             Supported by Windows 3D viewer.
           </p>
           <p *ngSwitchCase="ModelExporterNames.USDZ">
-            USD is a format for 3D graphics designers, but with limited viewer support.
+            USD is a format for 3D graphics designers, but with limited viewer support.<br>
+            It is the <b>least-space-efficient</b> when un-compressed, but when compressed
+            is nearly as small as PLY compressed.
           </p>
         </ng-container>
 
         <p class="ascii-warning" *ngIf="modelExporterAsciis.has(formGroup.controls.type.value)">
-          This format is a plaintext/ASCII format, which can create excessively large, or even un-exportable, files.
+          This format is a plaintext/ASCII format, which can create excessively large, or even un-exportable, files.<br/>
+          It is highly recommended to compress any ASCII format.
         </p>
       </section>
 
