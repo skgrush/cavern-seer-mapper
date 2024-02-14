@@ -50,6 +50,10 @@
           This format is a plaintext/ASCII format, which can create excessively large, or even un-exportable, files.
         </p>
       </section>
+
+      <section>
+        <mat-checkbox [formControl]="formGroup.controls.compress">GZip compress</mat-checkbox>
+      </section>
     </div>
 
     <div *ngIf="resultSubject | async as result">

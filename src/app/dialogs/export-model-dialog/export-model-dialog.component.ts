@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, Injector } from '@angular/core';
 import { ExportService, modelExporterAsciis, ModelExporterNames } from '../../shared/services/export.service';
 import {
   MAT_DIALOG_DATA,
@@ -17,6 +17,8 @@ import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-
 import { AsyncPipe, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { BytesPipe } from '../../shared/pipes/bytes.pipe';
 import { MatButton } from '@angular/material/button';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export type IExportModelDialogData = {
   readonly titleText: string;
@@ -42,6 +44,7 @@ export type IExportModelDialogData = {
     MatDialogClose,
     NgSwitch,
     NgSwitchCase,
+    MatCheckbox,
   ],
   templateUrl: './export-model-dialog.component.html',
   styleUrl: './export-model-dialog.component.scss',
@@ -55,6 +58,7 @@ export class ExportModelDialogComponent {
   readonly #exportService = inject(ExportService);
   readonly #dialogRef = inject<MatDialogRef<ExportModelDialogComponent, boolean>>(MatDialogRef);
   readonly #dialogData: IExportModelDialogData = inject(MAT_DIALOG_DATA);
+  readonly #destroyRef = inject(DestroyRef);
 
   readonly titleText = this.#dialogData.titleText;
 
@@ -67,6 +71,7 @@ export class ExportModelDialogComponent {
   readonly formGroup = new FormGroup({
     fileName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     type: new FormControl<ModelExporterNames | null>(null, { validators: [Validators.required] }),
+    compress: new FormControl(false, { nonNullable: true, validators: [Validators.required] }),
   });
 
   get wikiLink() {
@@ -116,9 +121,10 @@ export class ExportModelDialogComponent {
     this.resultSubject.next(undefined);
     this.#dialogRef.disableClose = true;
 
-    const { fileName, type } = this.formGroup.getRawValue();
+    const { fileName, type, compress } = this.formGroup.getRawValue();
 
-    this.#exportService.downloadModel$(fileName, type!).pipe(
+    this.#exportService.downloadModel$(fileName, type!, compress).pipe(
+      takeUntilDestroyed(this.#destroyRef),
       tap({
         finalize: () => {
           this.formGroup.enable();
