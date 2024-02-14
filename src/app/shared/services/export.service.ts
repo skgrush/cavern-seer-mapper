@@ -87,9 +87,9 @@ export class ExportService {
       map(({ STLExporter }) => new STLExporter().parse(model, { binary: false })),
     ),
     USDZ: (model: Object3D) => defer(() => import('three/examples/jsm/exporters/USDZExporter.js')).pipe(
-      map(({ USDZExporter }) => new USDZExporter().parse(model, { quickLookCompatible: true })),
+      switchMap(({ USDZExporter }) => new USDZExporter().parse(model, {quickLookCompatible: true})),
     ),
-  } satisfies Record<ModelExporterNames, any>;
+  } satisfies Record<ModelExporterNames, (model: Object3D) => any>;
 
   /**
    * Trigger a browser download of the currentOpenGroup.
