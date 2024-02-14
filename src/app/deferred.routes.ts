@@ -20,6 +20,7 @@ import { ThemeService } from "./shared/services/theme.service";
 import { ToolManagerService } from "./shared/services/tool-manager.service";
 import { toolsProviders } from "./shared/services/tools";
 import { MeshStandardMaterialService } from './shared/services/3d-managers/mesh-standard-material.service';
+import { CompressionService } from './shared/services/compression.service';
 
 const deferredRoutes: Routes = [
   {
@@ -46,6 +47,7 @@ const deferredRoutes: Routes = [
       CanvasService,
       ResizeService,
       ExportService,
+      CompressionService,
       ThemeService,
       importProvidersFrom(FileIconModule),
       FileTypeService,

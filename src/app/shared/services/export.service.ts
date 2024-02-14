@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, inject, Type } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { defer, first, map, Observable, of, switchMap, take, tap, timer } from 'rxjs';
 import { ModelManagerService } from './model-manager.service';
 import { ModelLoadService } from './model-load.service';
@@ -7,6 +7,7 @@ import { TransportProgressHandler } from '../models/transport-progress-handler';
 import { CanvasService } from './canvas.service';
 import { Camera, Object3D } from 'three';
 import { ignoreNullish } from '../operators/ignore-nullish';
+import { CompressionService } from './compression.service';
 
 export enum ModelExporterNames {
   OBJ = 'OBJ',
@@ -55,10 +56,12 @@ export class ExportService {
   readonly #modelManager = inject(ModelManagerService);
   readonly #modelLoad = inject(ModelLoadService);
   readonly #canvasService = inject(CanvasService);
+  readonly #compressionService = inject(CompressionService);
 
   readonly #gltfModule = defer(() => import('three/examples/jsm/exporters/GLTFExporter.js'));
   readonly #plyModule = defer(() => import('three/examples/jsm/exporters/PLYExporter.js'));
   readonly #stlModule = defer(() => import('three/examples/jsm/exporters/STLExporter.js'));
+
   readonly #parsers = {
     OBJ: (model: Object3D) => defer(() => import('three/examples/jsm/exporters/OBJExporter.js')).pipe(
       map(({ OBJExporter }) => new OBJExporter().parse(model)),
@@ -87,9 +90,9 @@ export class ExportService {
       map(({ STLExporter }) => new STLExporter().parse(model, { binary: false })),
     ),
     USDZ: (model: Object3D) => defer(() => import('three/examples/jsm/exporters/USDZExporter.js')).pipe(
-      map(({ USDZExporter }) => new USDZExporter().parse(model, { quickLookCompatible: true })),
+      switchMap(({ USDZExporter }) => new USDZExporter().parse(model, {quickLookCompatible: true})),
     ),
-  } satisfies Record<ModelExporterNames, any>;
+  } satisfies Record<ModelExporterNames, (model: Object3D) => any>;
 
   /**
    * Trigger a browser download of the currentOpenGroup.
@@ -123,11 +126,8 @@ export class ExportService {
         }
         const { blob, currentGroup } = info;
         const name = this.normalizeName(fileName, currentGroup.identifier, '.zip');
-        const size = blob.size;
 
-        return this.downloadBlob$(name, blob).pipe(
-          map(() => ({ name, size })),
-        );
+        return this.downloadBlob$(name, blob);
       }),
     )
   }
@@ -148,10 +148,7 @@ export class ExportService {
           ext = blob.type.slice(6) as typeof ext;
         }
         const name = this.normalizeName(null, baseName, `.${ext}`);
-        const size = blob.size;
-        return this.downloadBlob$(name, blob).pipe(
-          map(() => ({ name, size })),
-        );
+        return this.downloadBlob$(name, blob);
       }),
     );
   }
@@ -168,9 +165,7 @@ export class ExportService {
       const size = blob.size;
       console.info('Download SVG context:', { name, size, renderInfo });
 
-      return this.downloadBlob$(name, blob).pipe(
-        map(() => ({ name, size, renderInfo })),
-      );
+      return this.downloadBlob$(name, blob);
     });
   }
 
@@ -186,7 +181,8 @@ export class ExportService {
 
       return timer(10).pipe(
         tap(() => URL.revokeObjectURL(url)),
-      )
+        map(() => ({ name: filename, size: blob.size })),
+      );
     });
   }
 
@@ -203,7 +199,7 @@ export class ExportService {
     );
   }
 
-  downloadModel$<T extends ModelExporterNames>(baseName: string, type: T) {
+  downloadModel$<T extends ModelExporterNames>(baseName: string, type: T, gzipCompress: boolean) {
     const [ext, mime] = modelExporterExtensions[type];
 
     const name = this.normalizeName(null, baseName, `.${ext}`);
@@ -215,9 +211,14 @@ export class ExportService {
         }
         const blob = new Blob([result], { type: mime });
 
-        return this.downloadBlob$(name, blob).pipe(
-          map(() => ({ name, size: blob.size })),
-        );
+        if (gzipCompress) {
+          const compressedName = `${name}.gz`;
+          return this.#compressionService.compressOrDecompressBlob$(true, blob, 'gzip').pipe(
+            switchMap(compressedBlob => this.downloadBlob$(compressedName, compressedBlob)),
+          );
+        } else {
+          return this.downloadBlob$(name, blob);
+        }
       }),
     );
   }

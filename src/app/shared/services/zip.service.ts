@@ -55,6 +55,7 @@ export class ZipService {
         });
       }),
       last(),
+      tap(() => console.info('zipped last entry, starting compression...')),
       switchMap(() => this.zipZipWithTransportProgress({
         zip,
         fileComment,
