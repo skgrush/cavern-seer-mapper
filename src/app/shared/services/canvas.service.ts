@@ -44,13 +44,13 @@ import { OrthographicMapControls } from '../models/objects/orthographic-map-cont
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { IMapperUserData } from '../models/user-data';
 import { ignoreNullish } from '../operators/ignore-nullish';
-import { BaseMaterialService } from './3d-managers/base-material.service';
-import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
+import { BaseMaterialService } from './materials/base-material.service';
+import { MeshNormalMaterialService } from './materials/mesh-normal-material.service';
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
 import {SettingsService} from "./settings/settings.service";
 import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
-import { MeshStandardMaterialService } from './3d-managers/mesh-standard-material.service';
+import { MeshStandardMaterialService } from './materials/mesh-standard-material.service';
 import { TemporaryAnnotation } from '../models/annotations/temporary.annotation';
 
 @Injectable()

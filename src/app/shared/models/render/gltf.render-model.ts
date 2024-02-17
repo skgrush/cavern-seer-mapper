@@ -1,7 +1,7 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { BaseVisibleRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
+import { BaseMaterialService } from "../../services/materials/base-material.service";
 import { BoxHelper, Camera, Group, Mesh, Object3DEventMap, Vector3 } from "three";
 import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";

@@ -1,7 +1,7 @@
 import { Subject, Subscription } from "rxjs";
 import { BoxHelper, Group, Object3D, Object3DEventMap, Scene } from 'three';
 import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
+import { BaseMaterialService } from "../../services/materials/base-material.service";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { ModelChangeType } from "../model-change-type.enum";
 import { FileModelType } from "../model-type.enum";

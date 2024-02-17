@@ -5,7 +5,7 @@ import { ModelChangeType } from '../model-change-type.enum';
 import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, Object3DEventMap } from 'three';
 import { BaseAnnotation } from '../annotations/base.annotation';
 import { IMapperUserData } from '../user-data';
-import { BaseMaterialService } from '../../services/3d-managers/base-material.service';
+import { BaseMaterialService } from '../../services/materials/base-material.service';
 import { ISimpleVector3 } from '../simple-types';
 import { markSceneOfItemForReRender } from '../../functions/mark-scene-of-item-for-rerender';
 import { UploadFileModel } from '../upload-file-model';

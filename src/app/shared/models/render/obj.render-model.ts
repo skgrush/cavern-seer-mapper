@@ -1,7 +1,7 @@
 import { BoxHelper, Group, Mesh } from "three";
 import { BaseVisibleRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
+import { BaseMaterialService } from "../../services/materials/base-material.service";
 import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
 import { UploadFileModel } from "../upload-file-model";

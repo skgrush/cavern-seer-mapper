@@ -1,5 +1,5 @@
 import { Group, Vector3 } from "three";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
+import { BaseMaterialService } from "../../services/materials/base-material.service";
 import { FileModelType } from "../model-type.enum";
 import { Observable } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
