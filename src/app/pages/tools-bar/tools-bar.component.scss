@@ -3,7 +3,7 @@
   gap: 1em;
   align-items: stretch;
 
-  grid-template-columns: min-content min-content;
+  grid-template-columns: min-content min-content min-content;
   grid-template-rows: min-content min-content;
 }
 
@@ -17,10 +17,7 @@
   grid-column: 1;
 }
 
-.standalone-buttons {
-  grid-row: 2;
-  grid-column: 2;
-
+.opener-button-section {
   &>button {
     height: 100%;
     padding: 0;
@@ -31,4 +28,24 @@
       margin: 0;
     }
   }
+}
+
+.standalone-buttons {
+  grid-row: 2;
+  grid-column: 2;
+}
+
+.material-section {
+  grid-row: 2;
+  grid-column: 3;
+}
+
+.material-type-icon {
+  font-size: 24px;
+  font-weight: bold;
+  font-variant: all-small-caps;
+}
+
+[mat-menu-item] .material-type-icon {
+  padding-right: 0.5em;
 }

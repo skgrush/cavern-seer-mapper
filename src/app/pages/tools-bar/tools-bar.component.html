@@ -12,17 +12,34 @@
   }
 </mat-button-toggle-group>
 
-<div class="standalone-buttons">
-  <button mat-flat-button [matMenuTriggerFor]="standaloneMenu" [matTooltip]="'Additional tools'">
+<div class="standalone-buttons opener-button-section">
+  <button mat-flat-button [matMenuTriggerFor]="standaloneToolMenu" [matTooltip]="'Additional tools'">
     <mat-icon>expand_less</mat-icon>
   </button>
 
-  <mat-menu #standaloneMenu="matMenu">
+  <mat-menu #standaloneToolMenu="matMenu">
     @for (tool of nonExclusiveTools; track tool) {
     <button mat-menu-item (click)="tool.click()" [matTooltip]="tool.label">
       <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>
       <span>{{ tool.label }}</span>
     </button>
+    }
+  </mat-menu>
+</div>
+
+<div class="material-section opener-button-section" *ngIf="currentMaterialType$ | async as currentMaterialType">
+  <button mat-flat-button [matMenuTriggerFor]="materials" [matTooltip]="currentMaterialType + ' material'">
+    <span class="material-type-icon">
+      {{ currentMaterialType[0] }}
+    </span>
+  </button>
+
+  <mat-menu #materials="matMenu">
+    @for (materialType of materialTypes; track materialType) {
+      <button mat-menu-item (click)="selectMaterial(materialType)">
+        <span class="material-type-icon">{{ materialType[0] }}</span>
+        <span>{{ materialType }}</span>
+      </button>
     }
   </mat-menu>
 </div>

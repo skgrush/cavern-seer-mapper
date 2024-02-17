@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { BaseMaterialService, MATERIAL_SERVICES } from './base-material.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 import { FrontSide, Side } from 'three';
 
 @Injectable()
@@ -17,6 +17,7 @@ export class MaterialManagerService {
   get currentMaterial() {
     return this.#currentMaterialSubject.value;
   }
+  readonly currentMaterialType$ = this.currentMaterial$.pipe(map(m => m.type));
 
   readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
   readonly materialSide$ = this.#materialSideSubject.asObservable();
