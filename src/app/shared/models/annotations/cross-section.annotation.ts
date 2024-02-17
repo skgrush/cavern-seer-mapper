@@ -1,5 +1,18 @@
 import { Subject, defer, tap } from "rxjs";
-import { BoxGeometry, BufferGeometry, Group, Line, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, Object3DEventMap, OrthographicCamera, Vector3 } from "three";
+import {
+  BoxGeometry,
+  BufferGeometry,
+  DoubleSide,
+  Group,
+  Line,
+  LineBasicMaterial,
+  LineSegments,
+  Mesh,
+  MeshBasicMaterial,
+  Object3DEventMap,
+  OrthographicCamera,
+  Vector3,
+} from 'three';
 import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
 import { LocalizeService } from "../../services/localize.service";
 import { AnnotationType } from "../annotation-type.enum";
@@ -75,6 +88,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
       color: 0xFFFFFF,
       opacity: 0.5,
       transparent: true,
+      side: DoubleSide,
     }));
     this.#boxMesh.frustumCulled = false;
 
