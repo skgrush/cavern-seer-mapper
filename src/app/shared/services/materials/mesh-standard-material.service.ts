@@ -10,4 +10,5 @@ export class MeshStandardMaterialService extends BaseMaterialService<MeshStandar
     metalness: 0.2,
     flatShading: true,
   });
+  override readonly type = 'standard';
 }

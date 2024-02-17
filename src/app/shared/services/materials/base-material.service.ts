@@ -5,6 +5,7 @@ export const MATERIAL_SERVICES = new InjectionToken<readonly BaseMaterialService
 
 export abstract class BaseMaterialService<T extends Material> {
   abstract readonly material: T;
+  abstract readonly type: string;
 
   setSide(side: Side) {
     this.material.side = side;
