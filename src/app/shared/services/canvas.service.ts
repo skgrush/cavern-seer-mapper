@@ -23,13 +23,11 @@ import {
   Box3,
   Camera,
   Clock,
-  FrontSide,
   GridHelper,
   OrthographicCamera,
   Raycaster,
   SRGBColorSpace,
   Scene,
-  Side,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -45,7 +43,7 @@ import { IMapperUserData } from '../models/user-data';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
-import {SettingsService} from "./settings/settings.service";
+import { SettingsService } from "./settings/settings.service";
 import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
 import { TemporaryAnnotation } from '../models/annotations/temporary.annotation';
 import { MaterialManagerService } from './materials/material-manager.service';
@@ -77,9 +75,6 @@ export class CanvasService {
 
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
   #compass?: ControlViewHelper<OrthographicMapControls>;
-
-  readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
-  readonly materialSide$ = this.#materialSideSubject.asObservable();
 
   readonly #gridVisibleSubject = new BehaviorSubject(true);
   readonly gridVisible$ = this.#gridVisibleSubject.asObservable();
@@ -136,7 +131,12 @@ export class CanvasService {
     ).subscribe(mat => {
       this.#currentGroupInScene?.setMaterial(mat);
       markSceneOfItemForReRender(this.#scene);
-    })
+    });
+    this.#materialManager.materialSide$.pipe(
+      takeUntilDestroyed(),
+    ).subscribe(() => {
+      markSceneOfItemForReRender(this.#scene);
+    });
 
     const modelChangeRedrawBox =
       ModelChangeType.EntityAdded |
@@ -242,13 +242,6 @@ export class CanvasService {
       next: ele => this.#compassDivSubject.next(ele),
       complete: () => this.#compassDivSubject.next(undefined),
     });
-  }
-
-  toggleDoubleSideMaterial() {
-    this.#materialSideSubject.next(
-      this.#materialManager.currentMaterial.toggleDoubleSide()
-    );
-    markSceneOfItemForReRender(this.#scene);
   }
 
   toggleGridVisible() {
