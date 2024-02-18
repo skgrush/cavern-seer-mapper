@@ -47,6 +47,7 @@ import { SettingsService } from "./settings/settings.service";
 import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
 import { TemporaryAnnotation } from '../models/annotations/temporary.annotation';
 import { MaterialManagerService } from './materials/material-manager.service';
+import { ElevationMaterialService } from './materials/elevation-material.service';
 
 @Injectable()
 export class CanvasService {
@@ -55,6 +56,8 @@ export class CanvasService {
   readonly #materialManager = inject(MaterialManagerService);
   readonly #localize = inject(LocalizeService);
   readonly #settings = inject(SettingsService);
+
+  readonly #elevationMaterial = inject(ElevationMaterialService);
 
   readonly #renderClock = new Clock();
   readonly #scene = new Scene();
@@ -136,6 +139,12 @@ export class CanvasService {
       takeUntilDestroyed(),
     ).subscribe(() => {
       markSceneOfItemForReRender(this.#scene);
+    });
+
+    this.#boundingBoxForBottomGrid$.pipe(
+      takeUntilDestroyed(),
+    ).subscribe(boundingBox => {
+      this.#elevationMaterial.updateRange(boundingBox.min.y, boundingBox.max.y);
     });
 
     const modelChangeRedrawBox =
