@@ -6,4 +6,6 @@ import { BaseMaterialService } from './base-material.service';
 export class MeshNormalMaterialService extends BaseMaterialService<MeshNormalMaterial> {
   override readonly material = new MeshNormalMaterial();
   override readonly type = 'normal';
+  override readonly description = 'Material whose color is determined ' +
+    'by the angle of the surface compared to the camera angle.';
 }

@@ -29,7 +29,7 @@ export class ToolsBarComponent {
   readonly currentTool$ = this.#toolManager.currentToolId$;
   readonly nonExclusiveTools = this.#toolManager.nonExclusiveTools;
 
-  readonly materialTypes = this.#materialManager.materialTypes;
+  readonly materialOptions = this.#materialManager.materialOptions;
   readonly currentMaterialType$ = this.#materialManager.currentMaterialType$;
 
   readonly cameraHeightRelativeToBoundingBox$ = this.#canvasService.cameraHeightRelativeToBoundingBox$;

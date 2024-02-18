@@ -11,4 +11,5 @@ export class MeshStandardMaterialService extends BaseMaterialService<MeshStandar
     flatShading: true,
   });
   override readonly type = 'standard';
+  override readonly description = 'Material with a flat color and shadows';
 }

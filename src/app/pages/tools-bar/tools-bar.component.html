@@ -35,10 +35,10 @@
   </button>
 
   <mat-menu #materials="matMenu">
-    @for (materialType of materialTypes; track materialType) {
-      <button mat-menu-item (click)="selectMaterial(materialType)">
-        <span class="material-type-icon">{{ materialType[0] }}</span>
-        <span>{{ materialType }}</span>
+    @for (option of materialOptions; track option) {
+      <button mat-menu-item (click)="selectMaterial(option.type)" [matTooltip]="option.description">
+        <span class="material-type-icon">{{ option.type[0] }}</span>
+        <span>{{ option.type }}</span>
       </button>
     }
   </mat-menu>

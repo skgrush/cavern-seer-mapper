@@ -22,7 +22,9 @@ export class MaterialManagerService {
   readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
   readonly materialSide$ = this.#materialSideSubject.asObservable();
 
-  readonly materialTypes = Object.freeze([...this.#materials.keys()]);
+  readonly materialOptions = Object.freeze(
+    [...this.#materials.values()].map(({ type, description }) => ({ type, description })),
+  )
 
   constructor() {
     if (!this.#currentMaterialSubject.value) {
