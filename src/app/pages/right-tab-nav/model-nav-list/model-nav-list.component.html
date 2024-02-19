@@ -4,7 +4,7 @@
     matRipple
     class="clickable-node"
     *matTreeNodeDef="let node"
-    [class.selected-node]="node.model === selectedModel.value"
+    [class.selected-node]="node.model === selectedModel$.value"
     [class.hidden-node]="node.model.visible === false"
     (click)="selectModel($event, node)"
   >
@@ -16,7 +16,7 @@
     <div
       class="mat-tree-node clickable-node"
       matRipple
-      [class.selected-node]="node.model === selectedModel.value"
+      [class.selected-node]="node.model === selectedModel$.value"
       [class.hidden-node]="node.model.visible === false"
       (click)="selectModel($event, node)"
     >
@@ -31,5 +31,9 @@
 
 <div>
   <mat-divider/>
-  <mapper-model-detail-form *ngIf="selectedModel | async as selectedModel" [model]="selectedModel" />
+  <mapper-model-detail-form
+    *ngIf="selectedModel$ | async as selectedModel"
+    [model]="selectedModel"
+    (modelDeleted)="selectedModel$.next(undefined)"
+  />
 </div>

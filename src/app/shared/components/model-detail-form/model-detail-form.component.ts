@@ -1,5 +1,14 @@
 import { AsyncPipe, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  EventEmitter,
+  inject,
+  Input,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,6 +34,8 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { FileTypeService } from '../../services/file-type.service';
+import { ConfirmationDialogService } from '../../../dialogs';
+import { ModelManagerService } from '../../services/model-manager.service';
 
 
 @Component({
@@ -40,6 +51,8 @@ export class ModelDetailFormComponent implements OnInit {
   readonly #localize = inject(LocalizeService);
   readonly #dialog = inject(MatDialog);
   readonly #fileTypeService = inject(FileTypeService);
+  readonly #confirm = inject(ConfirmationDialogService);
+  readonly #modelManager = inject(ModelManagerService);
 
   readonly #model = new BehaviorSubject<BaseRenderModel<any>>(undefined!);
 
@@ -50,6 +63,9 @@ export class ModelDetailFormComponent implements OnInit {
   set model(m) {
     this.#model.next(m);
   }
+
+  @Output()
+  readonly modelDeleted = new EventEmitter<void>();
 
   readonly formGroup = new FormGroup({
     position: new FormGroup({
@@ -140,5 +156,21 @@ export class ModelDetailFormComponent implements OnInit {
     }
 
     this.model.rename(dialogResult);
+  }
+
+  delete() {
+    const model = this.model;
+
+    this.#confirm.open({
+      title: 'Delete a model?',
+      body: `Confirm deletion of ${model.identifier}`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+    }).pipe(
+      filter(confirmed => confirmed),
+    ).subscribe(() => {
+      this.#modelManager.removeModel(model);
+      this.modelDeleted.next();
+    })
   }
 }

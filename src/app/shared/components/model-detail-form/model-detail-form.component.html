@@ -18,6 +18,15 @@
   >
     Rename
   </button>
+
+  <button
+    mat-icon-button
+    color="warn"
+    (click)="delete()"
+    matTooltip="Delete model"
+  >
+    <mat-icon>delete</mat-icon>
+  </button>
 </div>
 
 <form *ngIf="model.rendered">

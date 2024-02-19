@@ -56,7 +56,7 @@ export class ModelNavListComponent {
   );
   readonly dataSource = new MatTreeNestedDataSource<INode>();
 
-  readonly selectedModel = new BehaviorSubject<BaseRenderModel<any> | undefined>(undefined);
+  readonly selectedModel$ = new BehaviorSubject<BaseRenderModel<any> | undefined>(undefined);
 
   constructor() {
     this.currentOpenOrChildOrPropChanged$.pipe(
@@ -72,7 +72,7 @@ export class ModelNavListComponent {
 
   selectModel(event: MouseEvent, node: undefined | INode) {
     console.info('selectModel', event, node);
-    this.selectedModel.next(node?.model);
+    this.selectedModel$.next(node?.model);
     event.stopPropagation();
   }
 
