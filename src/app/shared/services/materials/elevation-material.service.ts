@@ -2,19 +2,7 @@ import { Injectable } from '@angular/core';
 import { BaseMaterialService } from './base-material.service';
 import { Color, ShaderMaterial } from 'three';
 import { colorToVector3 } from '../../functions/color-to-vector3';
-
-/**
- * Vertex shader that sets `xyzPosition`
- */
-const vertexShader = `
-varying vec3 xyzPosition;
-
-void main() {
-    xyzPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}
-`;
+import { xyzPositionVertexShader } from '../../shaders/xyzPosition.vertex-shader';
 
 /**
  * Fragment shader that uses `xyzPosition` to set
@@ -60,7 +48,7 @@ export class ElevationMaterialService extends BaseMaterialService<ShaderMaterial
       colorMax: { value: colorToVector3(new Color(this.defaultColorMax)) },
     },
     fragmentShader,
-    vertexShader,
+    vertexShader: xyzPositionVertexShader,
   });
   override readonly type = 'elevation';
   override readonly description = `Material that shades from ${this.defaultColorMin} to ${this.defaultColorMax} based on elevation.`;
