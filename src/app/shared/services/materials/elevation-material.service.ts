@@ -8,6 +8,8 @@ import { xyzPositionVertexShader } from '../../shaders/xyzPosition.vertex-shader
  * Fragment shader that uses `xyzPosition` to set
  * fragment color between `colorMin` and `colorMax` based
  * on the Y coordinate's distance between `yMin` and `yMax`.
+ *
+ * Depends on {@link xyzPositionVertexShader}.
  */
 const fragmentShader = `
 uniform float yMin;

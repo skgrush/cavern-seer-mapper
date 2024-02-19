@@ -88,7 +88,7 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
   override setMaterial(material: BaseMaterialService<any>): void {
     this.#gltf.scene.traverse(child => {
       if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
-        child.material = material.material;
+        material.updateMesh(child);
       }
     });
   }

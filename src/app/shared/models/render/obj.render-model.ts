@@ -78,7 +78,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override setMaterial(material: BaseMaterialService<any>): void {
     this.#object.traverse(child => {
       if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
-        child.material = material.material;
+        material.updateMesh(child);
       }
     });
   }
