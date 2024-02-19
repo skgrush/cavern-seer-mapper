@@ -1,8 +1,7 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { BaseVisibleRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
-import { BoxHelper, Camera, Group, Mesh, Object3DEventMap, Vector3 } from "three";
+import { BoxHelper, Camera, Group, Object3DEventMap, Vector3 } from "three";
 import { Subject } from "rxjs";
 import { ISimpleVector3 } from "../simple-types";
 import { UploadFileModel } from "../upload-file-model";
@@ -11,10 +10,6 @@ import { ModelChangeType } from "../model-change-type.enum";
 import { IMapperUserData } from "../user-data";
 import {markSceneOfItemForReRender} from "../../functions/mark-scene-of-item-for-rerender";
 
-/**
- * TODO: #11: https://github.com/skgrush/cavern-seer-mapper/issues/11
- * Basically unimplemented so far...
- */
 export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> {
   override readonly type = FileModelType.gLTF;
   readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
@@ -28,6 +23,10 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
   }
   override get visible() {
     return this.#gltf.scene.visible;
+  }
+
+  protected override get _group() {
+    return this.#gltf.scene;
   }
 
   readonly #blob: Blob;
@@ -83,14 +82,6 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
     this.#gltf.scene.position.set(x, y, z);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
-  }
-
-  override setMaterial(material: BaseMaterialService<any>): void {
-    this.#gltf.scene.traverse(child => {
-      if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
-        child.material = material.material;
-      }
-    });
   }
 
   override setVisibility(visible: boolean) {

@@ -1,14 +1,13 @@
-import { BoxHelper, Group, Mesh } from "three";
-import { BaseVisibleRenderModel } from "./base.render-model";
-import { FileModelType } from "../model-type.enum";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
-import { Subject } from "rxjs";
-import { ISimpleVector3 } from "../simple-types";
-import { UploadFileModel } from "../upload-file-model";
-import { BaseAnnotation } from "../annotations/base.annotation";
-import { IMapperUserData } from "../user-data";
-import { ModelChangeType } from "../model-change-type.enum";
-import {markSceneOfItemForReRender} from "../../functions/mark-scene-of-item-for-rerender";
+import { BoxHelper, Group } from 'three';
+import { BaseVisibleRenderModel } from './base.render-model';
+import { FileModelType } from '../model-type.enum';
+import { Subject } from 'rxjs';
+import { ISimpleVector3 } from '../simple-types';
+import { UploadFileModel } from '../upload-file-model';
+import { BaseAnnotation } from '../annotations/base.annotation';
+import { IMapperUserData } from '../user-data';
+import { ModelChangeType } from '../model-change-type.enum';
+import { markSceneOfItemForReRender } from '../../functions/mark-scene-of-item-for-rerender';
 
 export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
@@ -22,6 +21,10 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   }
   override get visible() {
     return this.#object.visible;
+  }
+
+  protected override get _group() {
+    return this.#object;
   }
 
   readonly #object: Group;
@@ -73,14 +76,6 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     this.#object.position.set(x, y, z);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
-  }
-
-  override setMaterial(material: BaseMaterialService<any>): void {
-    this.#object.traverse(child => {
-      if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
-        child.material = material.material;
-      }
-    });
   }
 
   override setVisibility(visible: boolean) {

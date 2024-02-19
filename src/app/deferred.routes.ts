@@ -5,7 +5,6 @@ import { MainComponent } from "./pages/main/main.component";
 import { RightTabNavComponent } from "./pages/right-tab-nav/right-tab-nav.component";
 import { FileIconModule } from "./shared/components/file-icon/file-icon.module";
 import { SidenavComponent } from "./pages/sidenav/sidenav.component";
-import { MeshNormalMaterialService } from "./shared/services/3d-managers/mesh-normal-material.service";
 import { AnnotationBuilderService } from "./shared/services/annotation-builder.service";
 import { CanvasService } from "./shared/services/canvas.service";
 import { DialogOpenerService } from "./shared/services/dialog-opener.service";
@@ -19,8 +18,8 @@ import { provideSettings } from "./shared/services/settings";
 import { ThemeService } from "./shared/services/theme.service";
 import { ToolManagerService } from "./shared/services/tool-manager.service";
 import { toolsProviders } from "./shared/services/tools";
-import { MeshStandardMaterialService } from './shared/services/3d-managers/mesh-standard-material.service';
 import { CompressionService } from './shared/services/compression.service';
+import { materialsProviders } from './shared/services/materials';
 
 const deferredRoutes: Routes = [
   {
@@ -54,12 +53,10 @@ const deferredRoutes: Routes = [
       LocalizeService,
       ModelLoadService,
       ModelManagerService,
-      MeshNormalMaterialService,
-      MeshStandardMaterialService,
       ToolManagerService,
       AnnotationBuilderService,
       DialogOpenerService,
-
+      materialsProviders(),
       toolsProviders(),
       provideSettings(),
     ]

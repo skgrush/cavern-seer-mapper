@@ -2,10 +2,9 @@ import { BaseVisibleRenderModel } from './base.render-model';
 import { FileModelType } from '../model-type.enum';
 import { Subject } from 'rxjs';
 import { ModelChangeType } from '../model-change-type.enum';
-import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, Object3DEventMap } from 'three';
+import { BufferGeometry, Group, Line, LineBasicMaterial, Object3DEventMap } from 'three';
 import { BaseAnnotation } from '../annotations/base.annotation';
 import { IMapperUserData } from '../user-data';
-import { BaseMaterialService } from '../../services/3d-managers/base-material.service';
 import { ISimpleVector3 } from '../simple-types';
 import { markSceneOfItemForReRender } from '../../functions/mark-scene-of-item-for-rerender';
 import { UploadFileModel } from '../upload-file-model';
@@ -24,6 +23,10 @@ export class WallsRenderModel extends BaseVisibleRenderModel<FileModelType.walls
   }
   override get visible() {
     return this.#group.visible;
+  }
+
+  protected override get _group() {
+    return this.#group;
   }
 
   readonly #blob: Blob;
@@ -102,13 +105,7 @@ export class WallsRenderModel extends BaseVisibleRenderModel<FileModelType.walls
       annosToDelete.delete(anno);
     }
   }
-  override setMaterial(material: BaseMaterialService<any>): void {
-    this.#group.traverse(child => {
-      if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
-        child.material = material.material;
-      }
-    });
-  }
+
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#group.position.set(x, y, z);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);

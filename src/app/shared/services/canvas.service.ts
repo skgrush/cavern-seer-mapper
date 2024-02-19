@@ -23,14 +23,11 @@ import {
   Box3,
   Camera,
   Clock,
-  FrontSide,
   GridHelper,
-  Material,
   OrthographicCamera,
   Raycaster,
   SRGBColorSpace,
   Scene,
-  Side,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -44,21 +41,23 @@ import { OrthographicMapControls } from '../models/objects/orthographic-map-cont
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { IMapperUserData } from '../models/user-data';
 import { ignoreNullish } from '../operators/ignore-nullish';
-import { BaseMaterialService } from './3d-managers/base-material.service';
-import { MeshNormalMaterialService } from './3d-managers/mesh-normal-material.service';
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
-import {SettingsService} from "./settings/settings.service";
+import { SettingsService } from "./settings/settings.service";
 import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
-import { MeshStandardMaterialService } from './3d-managers/mesh-standard-material.service';
 import { TemporaryAnnotation } from '../models/annotations/temporary.annotation';
+import { MaterialManagerService } from './materials/material-manager.service';
+import { ElevationMaterialService } from './materials/elevation-material.service';
 
 @Injectable()
 export class CanvasService {
 
   readonly #modelManager = inject(ModelManagerService);
+  readonly #materialManager = inject(MaterialManagerService);
   readonly #localize = inject(LocalizeService);
   readonly #settings = inject(SettingsService);
+
+  readonly #elevationMaterial = inject(ElevationMaterialService);
 
   readonly #renderClock = new Clock();
   readonly #scene = new Scene();
@@ -79,15 +78,6 @@ export class CanvasService {
 
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
   #compass?: ControlViewHelper<OrthographicMapControls>;
-
-  readonly materials = Object.freeze({
-    'normal': inject(MeshNormalMaterialService),
-    'standard': inject(MeshStandardMaterialService),
-  });
-  #material: BaseMaterialService<Material> = this.materials.normal;
-
-  readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
-  readonly materialSide$ = this.#materialSideSubject.asObservable();
 
   readonly #gridVisibleSubject = new BehaviorSubject(true);
   readonly gridVisible$ = this.#gridVisibleSubject.asObservable();
@@ -127,7 +117,7 @@ export class CanvasService {
       // if there's a group, update the scene
       if (group) {
         group.addToScene(this.#scene);
-        group.setMaterial(this.#material);
+        group.setMaterial(this.#materialManager.currentMaterial);
 
         const bounds = group.getBoundingBox();
 
@@ -137,6 +127,24 @@ export class CanvasService {
 
       // regardless, update the renderer
       this.render();
+    });
+
+    this.#materialManager.currentMaterial$.pipe(
+      takeUntilDestroyed(),
+    ).subscribe(mat => {
+      this.#currentGroupInScene?.setMaterial(mat);
+      markSceneOfItemForReRender(this.#scene);
+    });
+    this.#materialManager.materialSide$.pipe(
+      takeUntilDestroyed(),
+    ).subscribe(() => {
+      markSceneOfItemForReRender(this.#scene);
+    });
+
+    this.#boundingBoxForBottomGrid$.pipe(
+      takeUntilDestroyed(),
+    ).subscribe(boundingBox => {
+      this.#elevationMaterial.updateRange(boundingBox.min.y, boundingBox.max.y);
     });
 
     const modelChangeRedrawBox =
@@ -153,6 +161,7 @@ export class CanvasService {
           map(() => group),
         ),
       ),
+      takeUntilDestroyed(),
     ).subscribe(cog => {
       this.#boundingBoxForBottomGrid$.next(cog.getBoundingBox());
     });
@@ -194,7 +203,7 @@ export class CanvasService {
         case 'ArrowDown':
           return this.#adjustCameraOnY(-1);
       }
-    })
+    });
   }
 
   #adjustCameraOnY(amount: number) {
@@ -241,41 +250,6 @@ export class CanvasService {
     compassEle$.subscribe({
       next: ele => this.#compassDivSubject.next(ele),
       complete: () => this.#compassDivSubject.next(undefined),
-    });
-  }
-
-  toggleDoubleSideMaterial() {
-    this.#materialSideSubject.next(
-      this.#material.toggleDoubleSide()
-    );
-    markSceneOfItemForReRender(this.#scene);
-  }
-
-  changeMaterial(to: keyof CanvasService['materials']) {
-    const newMaterialService = this.materials[to];
-    if (!newMaterialService) {
-      throw new Error(`Unsupported material: ${to}`);
-    }
-
-    this.#changeMaterialService(newMaterialService);
-  }
-
-  #changeMaterialService(materialService: BaseMaterialService<any>) {
-    this.#material = materialService;
-    this.#currentGroupInScene?.setMaterial(this.#material);
-    markSceneOfItemForReRender(this.#scene);
-  }
-
-  /**
-   * When observed, switch to the requested material.
-   * When unsubscribed, switch back to the original material.
-   */
-  temporarilySwitchMaterial$(to: keyof CanvasService['materials']) {
-    return new Observable<void>(subscriber => {
-      const oldMaterialService = this.#material;
-      this.changeMaterial(to);
-
-      return () => this.#changeMaterialService(oldMaterialService);
     });
   }
 

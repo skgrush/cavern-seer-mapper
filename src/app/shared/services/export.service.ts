@@ -8,6 +8,7 @@ import { CanvasService } from './canvas.service';
 import { Camera, Object3D } from 'three';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { CompressionService } from './compression.service';
+import { MaterialManagerService } from './materials/material-manager.service';
 
 export enum ModelExporterNames {
   OBJ = 'OBJ',
@@ -57,6 +58,7 @@ export class ExportService {
   readonly #modelLoad = inject(ModelLoadService);
   readonly #canvasService = inject(CanvasService);
   readonly #compressionService = inject(CompressionService);
+  readonly #materialManager = inject(MaterialManagerService);
 
   readonly #gltfModule = defer(() => import('three/examples/jsm/exporters/GLTFExporter.js'));
   readonly #plyModule = defer(() => import('three/examples/jsm/exporters/PLYExporter.js'));
@@ -187,7 +189,7 @@ export class ExportService {
   }
 
   exportModel$<T extends ModelExporterNames>(type: T) {
-    const meshSub = this.#canvasService.temporarilySwitchMaterial$('standard').subscribe();
+    const meshSub = this.#materialManager.temporarilySwitchMaterial$('standard').subscribe();
     const fn = this.#parsers[type] as (o: Object3D) => Observable<ModelExporterReturnMap[T]>;
     return this.#modelManager.currentOpenGroup$.pipe(
       ignoreNullish(),

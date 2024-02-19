@@ -1,12 +1,12 @@
-import { Subject, Subscription } from "rxjs";
+import { Subject, Subscription } from 'rxjs';
 import { BoxHelper, Group, Object3D, Object3DEventMap, Scene } from 'three';
-import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
-import { BaseAnnotation } from "../annotations/base.annotation";
-import { ModelChangeType } from "../model-change-type.enum";
-import { FileModelType } from "../model-type.enum";
-import { ISimpleVector3 } from "../simple-types";
-import { BaseRenderModel, BaseVisibleRenderModel } from "./base.render-model";
+import { markSceneOfItemForReRender } from '../../functions/mark-scene-of-item-for-rerender';
+import { BaseMaterialService } from '../../services/materials/base-material.service';
+import { BaseAnnotation } from '../annotations/base.annotation';
+import { ModelChangeType } from '../model-change-type.enum';
+import { FileModelType } from '../model-type.enum';
+import { ISimpleVector3 } from '../simple-types';
+import { BaseRenderModel, BaseVisibleRenderModel } from './base.render-model';
 
 
 export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group> {
@@ -21,6 +21,10 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   }
   override get visible() {
     return this.#group.visible;
+  }
+
+  protected override get _group() {
+    return this.#group;
   }
 
   readonly #group = new Group();
@@ -137,6 +141,10 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     return true;
   }
+
+  /**
+   * Overrides base setMaterial; recursively calls setMaterial on visible models.
+   */
   override setMaterial(material: BaseMaterialService<any>): void {
     this.#currentMaterial = material;
     for (const model of this.#models) {

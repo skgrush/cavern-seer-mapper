@@ -3,7 +3,6 @@ import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial
 import { float4x4ToMatrix4 } from "../../functions/float4x4-to-matrix4";
 import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
 import { ignoreNullishArray } from "../../operators/ignore-nullish";
-import { BaseMaterialService } from "../../services/3d-managers/base-material.service";
 import type { CSMeshSnapshot, SurveyLine, SurveyStation } from "../../types/cavern-seer-scan";
 import { BaseAnnotation } from "../annotations/base.annotation";
 import { TemporaryAnnotation } from "../annotations/temporary.annotation";
@@ -39,6 +38,10 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
   }
   override get visible() {
     return this.#group.visible;
+  }
+
+  protected override get _group() {
+    return this.#group;
   }
 
   readonly #blob: Blob;
@@ -98,14 +101,6 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
     markSceneOfItemForReRender(this.#group);
     return true;
-
-  }
-  override setMaterial(material: BaseMaterialService<any>): void {
-    this.#group.traverse(child => {
-      if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
-        child.material = material.material;
-      }
-    });
   }
 
   override setVisibility(visible: boolean) {
