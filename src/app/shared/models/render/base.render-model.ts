@@ -1,13 +1,14 @@
-import { Group, Vector3 } from "three";
-import { BaseMaterialService } from "../../services/materials/base-material.service";
-import { FileModelType } from "../model-type.enum";
-import { Observable } from "rxjs";
-import { ISimpleVector3 } from "../simple-types";
-import { BaseModelManifest } from "../model-manifest";
-import { BaseAnnotation } from "../annotations/base.annotation";
-import { AnnotationBuilderService } from "../../services/annotation-builder.service";
-import { ModelChangeType } from "../model-change-type.enum";
-import { filterErrors, filterSuccesses } from "../result";
+import { Group, Mesh, Vector3 } from 'three';
+import { BaseMaterialService } from '../../services/materials/base-material.service';
+import { FileModelType } from '../model-type.enum';
+import { Observable } from 'rxjs';
+import { ISimpleVector3 } from '../simple-types';
+import { BaseModelManifest } from '../model-manifest';
+import { BaseAnnotation } from '../annotations/base.annotation';
+import { AnnotationBuilderService } from '../../services/annotation-builder.service';
+import { ModelChangeType } from '../model-change-type.enum';
+import { filterErrors, filterSuccesses } from '../result';
+import { IMapperUserData } from '../user-data';
 
 export abstract class BaseRenderModel<T extends FileModelType> {
 
@@ -33,6 +34,7 @@ export abstract class BaseRenderModel<T extends FileModelType> {
 
 export abstract class BaseVisibleRenderModel<T extends FileModelType> extends BaseRenderModel<T> {
   abstract readonly visible: boolean;
+  protected abstract readonly _group: Group;
 
   abstract getAnnotations(): readonly BaseAnnotation[];
 
@@ -46,10 +48,21 @@ export abstract class BaseVisibleRenderModel<T extends FileModelType> extends Ba
    * the implementation should mutate the original set if they are removed.
    */
   abstract removeAnnotations(annosToDelete: Set<BaseAnnotation>): void;
-  abstract setMaterial(material: BaseMaterialService<any>): void;
 
   abstract setPosition(pos: ISimpleVector3): boolean;
   abstract setVisibility(visible: boolean): void;
+
+  /**
+   * Default implementation traverses the meshes and calls `material.updateMesh`
+   * on all meshes which are annotated with {@link IMapperUserData.fromSerializedModel}.
+   */
+  setMaterial(material: BaseMaterialService<any>): void {
+    this._group.traverse(child => {
+      if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
+        material.updateMesh(child);
+      }
+    });
+  }
 
   override setFromManifest(manifest: BaseModelManifest, path: string, annoBuilder: AnnotationBuilderService): Error[] {
     const pos = manifest.getPosition(path);
