@@ -13,7 +13,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   override readonly type = FileModelType.group;
   readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
-  override readonly identifier: string;
+  override identifier: string;
   override readonly comment = null;
   override readonly rendered = true;
   override get position() {
@@ -130,6 +130,13 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
   override serialize() {
     return null;
+  }
+
+  override rename(name: string): boolean {
+    this.identifier = name;
+    this.#group.name = name;
+    this.#childOrPropertyChanged.next(ModelChangeType.MetadataChanged);
+    return true;
   }
 
   override setComment(): boolean {

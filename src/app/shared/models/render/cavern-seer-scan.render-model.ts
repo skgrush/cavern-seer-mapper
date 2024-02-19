@@ -1,18 +1,30 @@
-import { Subject } from "rxjs";
-import { BufferGeometry, Group, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, Object3DEventMap, PlaneGeometry, SphereGeometry, Texture, Vector3 } from "three";
-import { float4x4ToMatrix4 } from "../../functions/float4x4-to-matrix4";
-import { markSceneOfItemForReRender } from "../../functions/mark-scene-of-item-for-rerender";
-import { ignoreNullishArray } from "../../operators/ignore-nullish";
-import type { CSMeshSnapshot, SurveyLine, SurveyStation } from "../../types/cavern-seer-scan";
-import { BaseAnnotation } from "../annotations/base.annotation";
-import { TemporaryAnnotation } from "../annotations/temporary.annotation";
-import { ModelChangeType } from "../model-change-type.enum";
-import { FileModelType } from "../model-type.enum";
-import { RenderingOrder } from "../rendering-layers";
-import { ISimpleVector3 } from "../simple-types";
-import { UploadFileModel } from "../upload-file-model";
-import { IMapperUserData } from "../user-data";
-import { BaseVisibleRenderModel } from "./base.render-model";
+import { Subject } from 'rxjs';
+import {
+  BufferGeometry,
+  Group,
+  Line,
+  LineBasicMaterial,
+  Mesh,
+  MeshBasicMaterial,
+  Object3DEventMap,
+  PlaneGeometry,
+  SphereGeometry,
+  Texture,
+  Vector3,
+} from 'three';
+import { float4x4ToMatrix4 } from '../../functions/float4x4-to-matrix4';
+import { markSceneOfItemForReRender } from '../../functions/mark-scene-of-item-for-rerender';
+import { ignoreNullishArray } from '../../operators/ignore-nullish';
+import type { CSMeshSnapshot, SurveyLine, SurveyStation } from '../../types/cavern-seer-scan';
+import { BaseAnnotation } from '../annotations/base.annotation';
+import { TemporaryAnnotation } from '../annotations/temporary.annotation';
+import { ModelChangeType } from '../model-change-type.enum';
+import { FileModelType } from '../model-type.enum';
+import { RenderingOrder } from '../rendering-layers';
+import { ISimpleVector3 } from '../simple-types';
+import { UploadFileModel } from '../upload-file-model';
+import { IMapperUserData } from '../user-data';
+import { BaseVisibleRenderModel } from './base.render-model';
 
 export interface IScanFileParsed {
   readonly encodingVersion: bigint;
@@ -29,7 +41,7 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
   override readonly type = FileModelType.cavernseerscan;
   override readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
-  override readonly identifier: string;
+  override identifier: string;
   override comment: string | null;
   override readonly rendered = true;
 
@@ -87,6 +99,12 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
       blob,
       comment,
     );
+  }
+
+  override rename(name: string): boolean {
+    this.identifier = name;
+    this.#childOrPropertyChanged.next(ModelChangeType.MetadataChanged);
+    return true;
   }
 
   override setComment(comment: string | null): boolean {

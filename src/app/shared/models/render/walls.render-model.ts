@@ -14,7 +14,7 @@ export class WallsRenderModel extends BaseVisibleRenderModel<FileModelType.walls
   override readonly type = FileModelType.walls;
   readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
-  override readonly identifier: string;
+  override identifier: string;
   override comment: string | null;
   override readonly rendered = true;
 
@@ -116,6 +116,12 @@ export class WallsRenderModel extends BaseVisibleRenderModel<FileModelType.walls
     this.#group.visible = visible;
     markSceneOfItemForReRender(this.#group);
   }
+  override rename(name: string): boolean {
+    this.identifier = name;
+    this.#childOrPropertyChanged.next(ModelChangeType.MetadataChanged);
+    return true;
+  }
+
   override setComment(comment: string | null): boolean {
     this.comment = comment;
     return true;

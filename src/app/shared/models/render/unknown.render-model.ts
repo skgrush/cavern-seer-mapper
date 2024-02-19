@@ -1,15 +1,17 @@
-import { NEVER } from "rxjs";
+import { NEVER, Subject } from 'rxjs';
 import { Group, Object3DEventMap, Vector3 } from "three";
 import { FileModelType } from "../model-type.enum";
 import { UploadFileModel } from "../upload-file-model";
 import { BaseRenderModel } from "./base.render-model";
+import { ModelChangeType } from '../model-change-type.enum';
 
 
 export class UnknownRenderModel extends BaseRenderModel<FileModelType.unknown> {
   override readonly type = FileModelType.unknown;
-  override readonly childOrPropertyChanged$ = NEVER;
+  readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
+  override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override readonly position: Readonly<Vector3> = new Vector3();
-  override readonly identifier: string;
+  override identifier: string;
   override comment: string | null;
   override readonly rendered = false;
 
@@ -33,6 +35,12 @@ export class UnknownRenderModel extends BaseRenderModel<FileModelType.unknown> {
 
   override serialize() {
     return this.#blob;
+  }
+
+  override rename(name: string): boolean {
+    this.identifier = name;
+    this.#childOrPropertyChanged.next(ModelChangeType.MetadataChanged);
+    return true;
   }
 
   override setComment(comment: string | null): boolean {
