@@ -9,7 +9,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * Fragment shader that uses `xyzPosition` to
- * set fragment color to `topographicColor` if the fragment is on
+ * set fragment color to `contourColor` if the fragment is on
  * a multiple of `yIncrement`, or sub-increment.
  *
  * Sub-increments are 30% closer to black and are 1/3 the thickness of increments.
@@ -17,7 +17,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
  */
 const fragmentShader = `
 uniform float yIncrement;
-uniform vec3 topographicColor;
+uniform vec3 contourColor;
 uniform float roundPrecision;
 uniform uint numSubIncrements;
 
@@ -27,14 +27,14 @@ void main()
 {
   // primary increment
   if (mod( xyzPosition.y, yIncrement ) < roundPrecision) {
-    gl_FragColor.rgb = topographicColor;
+    gl_FragColor.rgb = contourColor;
     gl_FragColor.a = 1.0;
   }
   else {
     // sub-increments
     for (uint i = 0u; i < numSubIncrements; ++i) {
       if (mod( xyzPosition.y + yIncrement * float(i) / float(numSubIncrements) , yIncrement ) < roundPrecision / 3.0) {
-        gl_FragColor.rgb = mix(topographicColor, vec3(0,0,0), 0.3);
+        gl_FragColor.rgb = mix(contourColor, vec3(0,0,0), 0.3);
         gl_FragColor.a = 1.0;
       }
     }
@@ -43,7 +43,7 @@ void main()
 `;
 
 @Injectable()
-export class TopographicMaterialService extends BaseMaterialService<Material[]> {
+export class ContourMaterialService extends BaseMaterialService<Material[]> {
   readonly #settings = inject(SettingsService);
   readonly #localize = inject(LocalizeService);
 
@@ -57,7 +57,7 @@ export class TopographicMaterialService extends BaseMaterialService<Material[]> 
   readonly #shaderMat = new ShaderMaterial({
     uniforms: {
       yIncrement: { value: 1 },
-      topographicColor: { value: colorToVector3(new Color('white')) },
+      contourColor: { value: colorToVector3(new Color('white')) },
       roundPrecision: { value: 0.01 },
       numSubIncrements: { value: this.subIncrements },
     },
@@ -72,8 +72,8 @@ export class TopographicMaterialService extends BaseMaterialService<Material[]> 
     this.#normalMat,
     this.#shaderMat,
   ];
-  override readonly type = 'topographic';
-  override readonly description = `Normal material with topographic lines at each height increment and each ${this.subIncrements} sub-increments.`;
+  override readonly type = 'contour';
+  override readonly description = `Normal material with contour lines at each height increment and each ${this.subIncrements} sub-increments.`;
 
   constructor() {
     super();
