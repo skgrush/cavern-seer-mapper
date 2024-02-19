@@ -19,7 +19,7 @@
 
   <mat-menu #standaloneToolMenu="matMenu">
     @for (tool of nonExclusiveTools; track tool) {
-    <button mat-menu-item (click)="tool.click()" [matTooltip]="tool.label">
+    <button mat-menu-item (click)="tool.click()" [matTooltip]="tool.label" matTooltipPosition="left">
       <mat-icon *ngIf="tool.icon$ | async as icon" [fontSet]="icon.fontSet ?? 'material-icons'">{{ icon.icon }}</mat-icon>
       <span>{{ tool.label }}</span>
     </button>
@@ -36,7 +36,7 @@
 
   <mat-menu #materials="matMenu">
     @for (option of materialOptions; track option) {
-      <button mat-menu-item (click)="selectMaterial(option.type)" [matTooltip]="option.description">
+      <button mat-menu-item (click)="selectMaterial(option.type)" [matTooltip]="option.description" matTooltipPosition="left">
         <span class="material-type-icon">{{ option.type[0] }}</span>
         <span>{{ option.type }}</span>
       </button>
