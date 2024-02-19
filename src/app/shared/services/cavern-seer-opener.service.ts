@@ -144,14 +144,14 @@ export class CavernSeerOpenerService {
   async #parseBPListToScanFile(file: UploadFileModel, progress?: TransportProgressHandler) {
     const archivedPlist = await this.#readTopObjectFromBPList(file);
 
-    progress?.setLoadPercent(0.60, 'Converting top-level object into ScanFile...');
+    progress?.setLoadPercent(60, 'Converting top-level object into ScanFile...');
     return ScanFileCoder.unarchiveObject(ScanFileCoder, archivedPlist);
   }
 
   async #readTopObjectFromBPList(file: UploadFileModel, progress?: TransportProgressHandler) {
     const reader = await this.#readBPList(file);
 
-    progress?.setLoadPercent(0.40, 'Converting unarchived-bplist into top-level object...');
+    progress?.setLoadPercent(40, 'Converting unarchived-bplist into top-level object...');
     const result = reader.buildTopLevelObject();
     if (!result || typeof result !== 'object' || !('$archiver' in result)) {
       throw new Error('Invalid cavernseerscan file');
@@ -161,10 +161,10 @@ export class CavernSeerOpenerService {
   }
 
   async #readBPList(file: UploadFileModel, progress?: TransportProgressHandler) {
-    progress?.setLoadPercent(0.10, 'Reading binary blob...');
+    progress?.setLoadPercent(10, 'Reading binary blob...');
     const arrayBuffer = await file.blob.arrayBuffer();
 
-    progress?.setLoadPercent(0.20, 'Converting blob into unarchived-bplist...');
+    progress?.setLoadPercent(20, 'Converting blob into unarchived-bplist...');
     return new Reader(arrayBuffer, buildLeveledLogger({
       logger: console,
       level: LogLevel.warn,
