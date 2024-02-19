@@ -1,5 +1,5 @@
-<form *ngIf="model.rendered">
-  <div>
+<div class="button-toolbar">
+  <ng-container *ngIf="model.rendered">
     <button
       mat-icon-button
       type="button"
@@ -9,7 +9,18 @@
     >
       <mat-icon>{{ visible.value ? 'visibility': 'visibility_off' }}</mat-icon>
     </button>
-  </div>
+  </ng-container>
+
+  <button
+    mat-stroked-button
+    type="button"
+    (click)="rename()"
+  >
+    Rename
+  </button>
+</div>
+
+<form *ngIf="model.rendered">
   <mat-form-field>
     <mat-label>X</mat-label>
     <input matInput type="number" step="0.1" [formControl]="formGroup.controls.position.controls.x">

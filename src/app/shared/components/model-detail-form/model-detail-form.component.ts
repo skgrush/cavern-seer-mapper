@@ -1,10 +1,19 @@
 import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { BehaviorSubject, debounceTime, distinctUntilChanged, filter, startWith, switchMap, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  firstValueFrom,
+  startWith,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { zeroVector3 } from '../../constants/zero-vectors';
 import { simpleVector3Equality } from '../../functions/vector-equality';
 import { BaseRenderModel, BaseVisibleRenderModel } from '../../models/render/base.render-model';
@@ -12,14 +21,16 @@ import { ISimpleVector3 } from '../../models/simple-types';
 import { LocalizeService } from '../../services/localize.service';
 import { MatIconModule } from '@angular/material/icon';
 import { ignoreNullish } from '../../operators/ignore-nullish';
-import { MatIconButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatTooltip } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
+import { FileTypeService } from '../../services/file-type.service';
 
 
 @Component({
   selector: 'mapper-model-detail-form',
   standalone: true,
-  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, MatIconModule, MatIconButton, AsyncPipe, MatTooltip],
+  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, MatIconModule, MatIconButton, AsyncPipe, MatTooltip, MatButton],
   templateUrl: './model-detail-form.component.html',
   styleUrl: './model-detail-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -27,6 +38,8 @@ import { MatTooltip } from '@angular/material/tooltip';
 export class ModelDetailFormComponent implements OnInit {
   readonly #destroyRef = inject(DestroyRef);
   readonly #localize = inject(LocalizeService);
+  readonly #dialog = inject(MatDialog);
+  readonly #fileTypeService = inject(FileTypeService);
 
   readonly #model = new BehaviorSubject<BaseRenderModel<any>>(undefined!);
 
@@ -89,5 +102,43 @@ export class ModelDetailFormComponent implements OnInit {
 
       this.model.setVisibility(visible);
     });
+  }
+
+  async rename() {
+    const model = this.model;
+    const currentExt = this.#fileTypeService.getFileExtension(model.identifier);
+
+    const renameValidator: ValidatorFn = (control: AbstractControl<string>) => {
+      const newName = control.value;
+      if (!newName) {
+        return null;
+      }
+      if (this.#fileTypeService.getFileExtension(newName) !== currentExt) {
+        return { [`Must end with the same extension: ${currentExt}`]: true };
+      }
+      return null;
+    }
+
+    const { TextInputDialogComponent } = await import('../../../dialogs/text-input-dialog/text-input-dialog.component');
+
+    const dialogResult = await firstValueFrom(
+      TextInputDialogComponent.open(
+        this.#dialog,
+        {
+          title: 'Rename a model',
+          submitText: 'Rename',
+          cancelText: 'Cancel',
+          fieldLabel: `Rename ${model.identifier}`,
+          inputType: 'text',
+          validators: [Validators.required, renameValidator],
+        }
+      ).afterClosed()
+    );
+
+    if (!dialogResult) {
+      return;
+    }
+
+    this.model.rename(dialogResult);
   }
 }
