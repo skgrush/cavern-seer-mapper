@@ -100,6 +100,8 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
       this.#modelsSubscriptions.delete(model);
     }
 
+    this.#childOrPropertyChanged.next(ModelChangeType.EntityRemoved);
+
     return true;
   }
 
