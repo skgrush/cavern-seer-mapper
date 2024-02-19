@@ -50,7 +50,6 @@ export class ContourMaterialService extends BaseMaterialService<Material[]> {
   readonly subIncrements = 5;
 
   readonly #normalMat = new MeshNormalMaterial({
-    depthWrite: false,
     depthTest: false,
     transparent: true,
   });

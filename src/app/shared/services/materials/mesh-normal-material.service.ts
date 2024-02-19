@@ -7,5 +7,5 @@ export class MeshNormalMaterialService extends BaseMaterialService<MeshNormalMat
   override readonly material = new MeshNormalMaterial();
   override readonly type = 'normal';
   override readonly description = 'Material whose color is determined ' +
-    'by the angle of the surface compared to the camera angle.';
+    'by the (normal) angle of the surface compared to the camera angle.';
 }
