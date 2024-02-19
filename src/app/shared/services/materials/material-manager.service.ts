@@ -60,7 +60,7 @@ export class MaterialManagerService {
 
   toggleDoubleSideMaterial() {
     this.#materialSideSubject.next(
-      this.#currentMaterialSubject.value.toggleDoubleSide()
+      this.#currentMaterialSubject.value.toggleDoubleSideFrom(this.#materialSideSubject.value),
     );
   }
 }

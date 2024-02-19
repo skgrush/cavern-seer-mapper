@@ -15,10 +15,15 @@ export abstract class BaseMaterialService<T extends Material> {
   toggleDoubleSide() {
     const newValue =
       this.material.side === FrontSide
+  toggleDoubleSideFrom(previousSide: Side) {
+    const newSide =
+      previousSide === FrontSide
         ? DoubleSide
         : FrontSide;
 
     this.material.side = newValue;
     return newValue;
+    this.setSide(newSide);
+    return newSide;
   }
 }
