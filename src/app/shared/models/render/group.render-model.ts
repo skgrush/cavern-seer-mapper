@@ -7,6 +7,7 @@ import { ModelChangeType } from '../model-change-type.enum';
 import { FileModelType } from '../model-type.enum';
 import { ISimpleVector3 } from '../simple-types';
 import { BaseRenderModel, BaseVisibleRenderModel } from './base.render-model';
+import { moveItemInArray } from '@angular/cdk/drag-drop';
 
 
 export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group> {
@@ -29,7 +30,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
   readonly #group = new Group();
   readonly #annotations = new Set<BaseAnnotation>();
-  readonly #models = new Set<BaseRenderModel<any>>();
+  readonly #models: BaseRenderModel<any>[] = [];
   readonly #modelsSubscriptions = new WeakMap<BaseRenderModel<any>, Subscription>();
 
   #currentMaterial?: BaseMaterialService<any>;
@@ -60,12 +61,12 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
    * Emits {@link childOrPropertyChanged$} before returning.
    */
   addModel(model: BaseRenderModel<any>): boolean {
-    if (this.#models.has(model)) {
+    if (this.#models.includes(model)) {
       return false;
     }
 
     model.addToGroup(this.#group);
-    this.#models.add(model);
+    this.#models.push(model);
 
     if (model instanceof BaseVisibleRenderModel) {
       if (this.#currentMaterial) {
@@ -87,12 +88,13 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
    * Emits {@link childOrPropertyChanged$} before returning.
    */
   removeModel(model: BaseRenderModel<any>) {
-    if (!this.#models.has(model)) {
+    const currentIdx = this.#models.indexOf(model);
+    if (currentIdx === -1) {
       return false;
     }
 
     model.removeFromGroup(this.#group);
-    this.#models.delete(model);
+    this.#models.slice(currentIdx);
 
     const subscription = this.#modelsSubscriptions.get(model);
     if (subscription) {
@@ -103,6 +105,16 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     this.#childOrPropertyChanged.next(ModelChangeType.EntityRemoved);
 
     return true;
+  }
+
+  reorderModels(currentIndex: number, previousIndex: number) {
+    if (currentIndex >= this.#models.length || previousIndex >= this.#models.length) {
+      console.warn('currentIndex or previousIndex out of bounds of models list');
+      return;
+    }
+
+    moveItemInArray(this.#models, previousIndex, currentIndex);
+    this.#childOrPropertyChanged.next(ModelChangeType.MetadataChanged);
   }
 
   addToScene(scene: Scene) {
