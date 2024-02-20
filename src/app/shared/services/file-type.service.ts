@@ -13,6 +13,7 @@ export class FileTypeService {
     [FileModelType.group]: '.zip',
     [FileModelType.walls]: '.wrl',
     [FileModelType.cavernseerscan]: '.cavernseerscan',
+    [FileModelType.mtl]: '.mtl',
   } as const;
 
   *mapFileList(files: FileList) {
@@ -44,7 +45,27 @@ export class FileTypeService {
     if (this.isVrmlFile(mime, name)) {
       return FileModelType.walls;
     }
+    if (this.isMtlFile(mime, name)) {
+      return FileModelType.mtl;
+    }
+
     return FileModelType.unknown;
+  }
+
+  isVisibleRenderModelType(type: FileModelType) {
+    switch (type) {
+      case FileModelType.obj:
+      case FileModelType.gLTF:
+      case FileModelType.walls:
+      case FileModelType.group:
+      case FileModelType.cavernseerscan:
+        return true;
+      case FileModelType.unknown:
+      case FileModelType.mtl:
+        return false;
+      default:
+        throw new Error(`Unknown FileModelType: ${type satisfies never}`);
+    }
   }
 
   /**
@@ -85,5 +106,9 @@ export class FileTypeService {
 
   isVrmlFile(mime: string, name: string) {
     return mime === 'model/vrml' || this.getFileExtension(name) === this.extensions.walls;
+  }
+
+  isMtlFile(mime: string, name: string) {
+    return mime === 'model/mtl' || this.getFileExtension(name) === this.extensions.mtl;
   }
 }

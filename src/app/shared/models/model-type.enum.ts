@@ -10,4 +10,6 @@ export enum FileModelType {
   cavernseerscan = 'cavernseerscan',
   /** Walls */
   walls = 'walls',
+  /** Material Library File */
+  mtl = 'mtl',
 }
