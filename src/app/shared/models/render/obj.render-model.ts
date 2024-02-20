@@ -55,7 +55,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     })
   }
 
-  static fromUploadModel(uploadModel: UploadFileModel, object: Group, hasCustomTexture: boolean = false) {
+  static fromUploadModel(uploadModel: UploadFileModel, object: Group, hasCustomTexture: boolean) {
     const { identifier, blob, comment } = uploadModel;
     object.name = uploadModel.identifier;
     return new ObjRenderModel(
