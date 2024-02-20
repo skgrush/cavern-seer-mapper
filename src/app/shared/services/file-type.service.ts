@@ -7,6 +7,14 @@ export class FileTypeService {
 
   readonly manifestFileName = '__cavern-seer-manifest.json';
 
+  readonly extensions = {
+    [FileModelType.obj]: '.obj',
+    [FileModelType.gLTF]: ['.gltf', '.glb'],
+    [FileModelType.group]: '.zip',
+    [FileModelType.walls]: '.wrl',
+    [FileModelType.cavernseerscan]: '.cavernseerscan',
+  } as const;
+
   *mapFileList(files: FileList) {
     for (let i = 0; i < files.length; ++i) {
       yield this.mapFileModel(files[i]);
@@ -51,7 +59,7 @@ export class FileTypeService {
   }
 
   isObj(mime: string, name: string) {
-    return mime === 'model/obj' || this.getFileExtension(name) === '.obj';
+    return mime === 'model/obj' || this.getFileExtension(name) === this.extensions.obj;
   }
 
   isGltf(mime: string, name: string) {
@@ -59,13 +67,12 @@ export class FileTypeService {
     return (
       mime === 'model/gltf+json' ||
       mime === 'model/gltf-binary' ||
-      ext === '.gltf' ||
-      ext === '.glb'
+      this.extensions.gltf.includes(ext as '.gltf' | '.glb')
     );
   }
 
   isZip(mime: string, name: string) {
-    return mime === 'application/zip' || this.getFileExtension(name) === '.zip';
+    return mime === 'application/zip' || this.getFileExtension(name) === this.extensions.group;
   }
 
   isSupportedGroupArchive(mime: string, name: string) {
@@ -73,10 +80,10 @@ export class FileTypeService {
   }
 
   isCavernSeerScan(mime: string, name: string) {
-    return mime === 'application/vnd.org.grush.cavernseer.scan' || this.getFileExtension(name) === '.cavernseerscan';
+    return mime === 'application/vnd.org.grush.cavernseer.scan' || this.getFileExtension(name) === this.extensions.cavernseerscan;
   }
 
   isVrmlFile(mime: string, name: string) {
-    return mime === 'model/vrml' || this.getFileExtension(name) === '.wrl';
+    return mime === 'model/vrml' || this.getFileExtension(name) === this.extensions.walls;
   }
 }

@@ -34,6 +34,12 @@ mat-snack-bar-container {
     }
   }
 
+  &.snack-panel-warning {
+    .mdc-snackbar__surface {
+      background-color: color-mix(in srgb, var(--mat-form-field-error-text-color), white 80%);
+    }
+  }
+
   &.snack-panel-info {
     .mdc-snackbar__surface {
       // background-color: var(--mat-form-field-error-text-color);

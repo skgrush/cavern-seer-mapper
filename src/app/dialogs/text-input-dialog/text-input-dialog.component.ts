@@ -76,7 +76,6 @@ export class TextInputDialogComponent {
   }
 
   getError() {
-    console.info('formControl', this.formControl);
     const errors = this.formControl.errors;
     if (!errors) {
       return '';

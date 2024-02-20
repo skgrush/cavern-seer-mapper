@@ -1,6 +1,17 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {BehaviorSubject, Subject, distinctUntilChanged, filter, merge, switchMap, takeUntil, tap, of} from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  distinctUntilChanged,
+  filter,
+  merge,
+  of,
+  Subject,
+  switchMap,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { BufferGeometry, GridHelper, Intersection, Line, LineBasicMaterial, Vector2, Vector3 } from 'three';
 import { markSceneOfItemForReRender } from '../../functions/mark-scene-of-item-for-rerender';
 import { normalizeCanvasCoords } from '../../functions/normalize-canvas-coords';
@@ -13,6 +24,7 @@ import { CanvasService } from '../canvas.service';
 import { ModelManagerService } from '../model-manager.service';
 import { BaseExclusiveToolService } from './base-tool.service';
 import { AlertService, AlertType } from '../alert.service';
+import { ErrorService } from '../error.service';
 
 @Injectable()
 export class CrossSectionToolService extends BaseExclusiveToolService {
@@ -20,6 +32,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
   readonly #modelManager = inject(ModelManagerService);
   readonly #annoBuilder = inject(AnnotationBuilderService);
   readonly #alertService = inject(AlertService);
+  readonly #errorService = inject(ErrorService);
 
   readonly normalCursor = 'pointer';
   readonly movingCursor = 'col-resize';
@@ -191,17 +204,21 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
       tap(upEvent => {
         this.#cursor.next(this.normalCursor);
 
+        const preview = this.#preview;
+        if (!preview) {
+          this.#alertService.alert(AlertType.warning, 'No line found on draw end');
+          this.#cancelDraw();
+          return;
+        }
+
         const coord = this.#pointerEventToGridCoordinate(upEvent);
         if (coord) {
           this.#drawLine(coord);
         }
 
-        const preview = this.#preview;
         const group = this.#currentModelRef?.deref();
-        if (!preview) {
-          throw new Error('missing preview??');
-        }
         if (!group) {
+          this.#cancelDraw();
           throw new Error('missing group??');
         }
 

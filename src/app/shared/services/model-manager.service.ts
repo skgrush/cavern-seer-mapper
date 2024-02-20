@@ -59,6 +59,39 @@ export class ModelManagerService {
     this.resetCurrentGroup(group);
   }
 
+  /**
+   * @throws Error if removal failed
+   */
+  removeModel(model: BaseRenderModel<any>): void {
+    const cog = this.#currentOpenGroup.value;
+    if (!cog) {
+      throw new Error('Failed to delete: No current open group');
+    }
+    if (model === cog) {
+      this.#currentOpenGroup.next(undefined);
+      return;
+    }
+    if (this.#removeModelRecursive(cog, model)) {
+      return;
+    }
+
+    throw new Error('Failed to delete: model not found in current open group');
+  }
+
+  #removeModelRecursive(group: GroupRenderModel, modelToRemove: BaseRenderModel<any>): boolean {
+    if (group.removeModel(modelToRemove)) {
+      return true;
+    }
+
+    for (const child of group.children) {
+      if (child instanceof GroupRenderModel && this.#removeModelRecursive(child, modelToRemove)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   removeAnnotations(annos: Set<BaseAnnotation>) {
     const current = this.#currentOpenGroup.value;
     if (!current) {

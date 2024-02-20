@@ -14,7 +14,7 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
   override readonly type = FileModelType.gLTF;
   readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
-  override readonly identifier: string;
+  override identifier: string;
   override comment: string | null;
   override readonly rendered = true;
 
@@ -73,8 +73,15 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
     return this.#blob;
   }
 
+  override rename(name: string): boolean {
+    this.identifier = name;
+    this.#childOrPropertyChanged.next(ModelChangeType.MetadataChanged);
+    return true;
+  }
+
   override setComment(comment: string | null) {
     this.comment = comment;
+    this.#childOrPropertyChanged.next(ModelChangeType.MetadataChanged);
     return true;
   }
 

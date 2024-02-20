@@ -19,6 +19,7 @@ export abstract class BaseRenderModel<T extends FileModelType> {
   abstract readonly rendered: boolean;
   abstract readonly comment: string | null;
 
+  abstract rename(name: string): boolean;
   abstract setComment(comment: string | null): boolean;
   abstract serialize(): Blob | null;
 

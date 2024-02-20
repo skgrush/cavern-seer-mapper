@@ -18,6 +18,10 @@
 
     column-gap: 2px;
 
+    mat-icon.cdk-drag-handle {
+      cursor: row-resize;
+    }
+
     &.selected-node {
       background-color: var(--mat-ripple-color);
     }

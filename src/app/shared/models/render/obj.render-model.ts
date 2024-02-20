@@ -13,7 +13,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   override readonly type = FileModelType.obj;
   readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
-  override readonly identifier: string;
+  override identifier: string;
   override comment: string | null;
   override readonly rendered = true;
   override get position() {
@@ -65,6 +65,12 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
 
   override serialize() {
     return this.#blob;
+  }
+
+  override rename(name: string): boolean {
+    this.identifier = name;
+    this.#childOrPropertyChanged.next(ModelChangeType.MetadataChanged);
+    return true;
   }
 
   override setComment(comment: string | null): boolean {
