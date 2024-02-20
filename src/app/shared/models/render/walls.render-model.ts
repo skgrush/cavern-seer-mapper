@@ -28,6 +28,7 @@ export class WallsRenderModel extends BaseVisibleRenderModel<FileModelType.walls
   protected override get _group() {
     return this.#group;
   }
+  protected override readonly _hasCustomTexture = true;
 
   readonly #blob: Blob;
   readonly #walls: PrimitiveWallsFile;

@@ -27,6 +27,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   protected override get _group() {
     return this.#group;
   }
+  protected override readonly _hasCustomTexture = false;
 
   readonly #group = new Group();
   readonly #annotations = new Set<BaseAnnotation>();

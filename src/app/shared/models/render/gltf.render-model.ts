@@ -28,6 +28,7 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
   protected override get _group() {
     return this.#gltf.scene;
   }
+  protected override readonly _hasCustomTexture: boolean;
 
   readonly #blob: Blob;
   readonly #gltf: GLTF;
@@ -46,6 +47,7 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
     this.#blob = blob;
     this.#gltf = gltf;
     this.comment = comment;
+    this._hasCustomTexture = false;
 
     const object = gltf.scene;
     this.#boxHelper = new BoxHelper(object);

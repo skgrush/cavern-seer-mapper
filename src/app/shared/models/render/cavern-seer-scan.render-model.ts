@@ -55,6 +55,7 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
   protected override get _group() {
     return this.#group;
   }
+  protected override readonly _hasCustomTexture: boolean;
 
   readonly #blob: Blob;
   readonly #parsedScanFile: IScanFileParsed;
@@ -72,6 +73,7 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
     this.identifier = identifier;
     this.comment = comment;
     this.#blob = blob;
+    this._hasCustomTexture = false;
 
     this.#parsedScanFile = parsedScanFile;
     this.#group = parsedScanFile.group;
