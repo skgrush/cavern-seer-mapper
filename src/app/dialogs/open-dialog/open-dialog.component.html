@@ -10,7 +10,7 @@
       </mat-list-item>
       }
     </mat-list>
-    <input *ngIf="!hasInitialFiles" #fileInput type="file" [multiple]="!!multiple" (change)="inputChanged($event)">
+    <input *ngIf="!hasInitialFiles" type="file" [multiple]="multiple" [accept]="accept" (change)="inputChanged($event)">
 
     <ng-container *ngIf="uploadProgress.progress$ | async as progress">
       <div class="loading-container" *ngIf="progress.active">

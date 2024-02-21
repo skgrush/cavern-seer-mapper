@@ -1,8 +1,9 @@
-import { Injectable, Injector, inject } from '@angular/core';
+import { inject, Injectable, Injector } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ModelManagerService } from './model-manager.service';
 import { ICrossSectionRenderDialogData } from '../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component';
 import { defer, switchMap } from 'rxjs';
+import { FileTypeService } from './file-type.service';
 
 /**
  * Service solely responsible for opening dialogs
@@ -13,6 +14,7 @@ export class DialogOpenerService {
   readonly #modelManager = inject(ModelManagerService);
   readonly #dialog = inject(MatDialog);
   readonly #injector = inject(Injector);
+  readonly #fileTypeService = inject(FileTypeService);
 
   open() {
     import('../../dialogs/open-dialog/open-dialog.component')
@@ -21,6 +23,7 @@ export class DialogOpenerService {
           submitText: 'Open',
           titleText: 'Open a file',
           multiple: false,
+          accept: this.#fileTypeService.getAllExtensionsAndMimes().join(','),
         }).afterClosed().subscribe(result => {
           if (result) {
             this.#modelManager.resetToNonGroupModel(result[0]);
@@ -44,6 +47,7 @@ export class DialogOpenerService {
           submitText: 'Import',
           titleText: 'Import one or more files',
           multiple: true,
+          accept: this.#fileTypeService.getAllExtensionsAndMimes().join(','),
           initialFiles,
         }).afterClosed().subscribe(result => {
           if (result) {
