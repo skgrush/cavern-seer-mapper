@@ -104,16 +104,16 @@ export class ModelLoadService {
   loadFile(
     file: UploadFileModel,
     progress?: TransportProgressHandler,
-    nonModelSiblingEntries?: AnyRenderModel[],
+    parentDirectory?: UnzippedDirectoryOpener,
   ): Observable<IModelLoadResult<AnyRenderModel>> {
     return defer(() => {
       switch (file.type) {
 
         case FileModelType.obj:
-          return this.loadObj(file, progress, nonModelSiblingEntries);
+          return this.loadObj(file, progress, parentDirectory);
 
         case FileModelType.gLTF:
-          return this.loadGltf(file, progress, nonModelSiblingEntries);
+          return this.loadGltf(file, progress, parentDirectory);
 
         case FileModelType.group:
           return this.loadGroup(file, progress);
@@ -125,7 +125,7 @@ export class ModelLoadService {
           return this.loadWallsFile(file, progress);
 
         case FileModelType.mtl:
-          return this.loadMtlFile(file, progress, nonModelSiblingEntries);
+          return this.loadMtlFile(file, progress, parentDirectory);
 
         default:
           return of({
@@ -143,11 +143,11 @@ export class ModelLoadService {
   loadObj(
     file: UploadFileModel,
     progress?: TransportProgressHandler,
-    nonModelSiblingEntries?: AnyRenderModel[],
+    parentDirectory?: UnzippedDirectoryOpener,
   ): Observable<IModelLoadResult<ObjRenderModel>> {
     return defer(() => file.blob.text()).pipe(
       tap(() => progress?.addToLoadedCount(file.blob.size)),
-      switchMap(rawJson => this.#rawLoadObj(rawJson, progress, nonModelSiblingEntries)),
+      switchMap(rawJson => this.#rawLoadObj(rawJson, progress, parentDirectory)),
       map(({ group, hasCustomTexture }) => ({
         errors: [],
         result: ObjRenderModel.fromUploadModel(file, group, hasCustomTexture),
@@ -161,13 +161,15 @@ export class ModelLoadService {
   #rawLoadObj(
     rawText: string,
     progress?: TransportProgressHandler,
-    nonModelSiblingEntries?: AnyRenderModel[],
+    parentDirectory?: UnzippedDirectoryOpener,
   ) {
     return this.#objLoader$.pipe(
       map(cls => new cls()),
-      map(loader => {
-        loader.manager = new ZipRelativeLoadingManager('some-obj', nonModelSiblingEntries ?? []);
-        const mtlModel = this.#findMtlLibInObj(rawText.slice(0, 500), nonModelSiblingEntries);
+      switchMap(loader =>
+        this.#findMtlLibInObj(rawText.slice(0, 500), parentDirectory).pipe(map(mtlModel => ({ mtlModel, loader }))),
+      ),
+      map(({ loader, mtlModel }) => {
+        loader.manager = new ZipRelativeLoadingManager('some-obj', parentDirectory);
         if (mtlModel) {
           loader.setMaterials(mtlModel.materialCreator);
         }
@@ -184,11 +186,11 @@ export class ModelLoadService {
   loadGltf(
     file: UploadFileModel,
     progress?: TransportProgressHandler,
-    nonModelSiblingEntries?: AnyRenderModel[],
+    parentDirectory?: UnzippedDirectoryOpener,
   ): Observable<IModelLoadResult<GltfRenderModel>> {
     return defer(() => file.blob.arrayBuffer()).pipe(
       tap(() => progress?.addToLoadedCount(file.blob.size)),
-      switchMap(buffer => this.#rawLoadGltf(buffer, progress, nonModelSiblingEntries)),
+      switchMap(buffer => this.#rawLoadGltf(buffer, progress, parentDirectory)),
       map(result => ({
         errors: [],
         result: result ? GltfRenderModel.fromUploadModel(file, result) : undefined,
@@ -202,12 +204,12 @@ export class ModelLoadService {
   #rawLoadGltf(
     arrayBuffer: ArrayBuffer,
     progress?: TransportProgressHandler,
-    nonModelSiblingEntries?: AnyRenderModel[],
+    parentDirectory?: UnzippedDirectoryOpener,
   ) {
     return this.#gltfLoader$.pipe(
       map(cls => new cls()),
       switchMap(loader => {
-        loader.manager = new ZipRelativeLoadingManager('some-gltf', nonModelSiblingEntries ?? []);
+        loader.manager = new ZipRelativeLoadingManager('some-gltf', parentDirectory);
         return loader.parseAsync(arrayBuffer, '');
       }),
     );
@@ -275,13 +277,13 @@ export class ModelLoadService {
   loadMtlFile(
     file: UploadFileModel,
     progress?: TransportProgressHandler,
-    nonModelSiblingEntries?: AnyRenderModel[],
+    parentDirectory?: UnzippedDirectoryOpener,
   ): Observable<IModelLoadResult<MtlRenderModel>> {
     return defer(() =>
       file.blob.text(),
     ).pipe(
       map(text => {
-        const loadingManager = new ZipRelativeLoadingManager(file.identifier, nonModelSiblingEntries ?? []);
+        const loadingManager = new ZipRelativeLoadingManager(file.identifier, parentDirectory);
         const loader = new MTLLoader(loadingManager);
         const creator = loader.parse(text, '');
 
@@ -309,10 +311,16 @@ export class ModelLoadService {
         switchMap(zs => zs.unzip$(file)),
         tap(() => progress?.setLoadedCount(0, `Unzipped! Preparing models...`)),
         switchMap(({ file, ...dirEntry }) => this.#readAndRemoveManifest$(dirEntry)),
-        switchMap(({ dirEntry, manifest }) => this.#loadZipEntriesRecursively$(dirEntry, manifest, progress, [])),
-        map(({ result, errors }): IModelLoadResult<GroupRenderModel> => ({
-          errors,
-          result: result as GroupRenderModel,
+        switchMap(({ dirEntry, manifest }) => {
+          const dirOpener = new UnzippedDirectoryOpener(dirEntry, this, this.#fileTypeService);
+            return this.#loadZipEntriesRecursively$(dirOpener, manifest, progress).pipe(
+              map(model => ({ dirOpener, model })),
+            );
+          }
+        ),
+        map(({ dirOpener, model }): IModelLoadResult<GroupRenderModel> => ({
+          errors: dirOpener.getErrorsRecursively(),
+          result: model,
         })),
         tap(compl => console.info('group complete')),
       );
@@ -387,76 +395,39 @@ export class ModelLoadService {
    * @private
    */
   #loadZipEntriesRecursively$(
-    unzipEntry: IUnzipEntry,
+    opener: UnzippedDirectoryOpener,
     manifest: BaseModelManifest | undefined,
     progress: TransportProgressHandler | undefined,
-    nonModelSiblingEntries: AnyRenderModel[],
-  ): Observable<IModelLoadResult<AnyRenderModel>> {
-    return defer((): Observable<IModelLoadResult<AnyRenderModel>> => {
-      if (unzipEntry.dir) {
-        // entry is a directory
-        if (unzipEntry.children.length === 0) {
-          // entry is an *empty* directory
-          return of({
-            result: GroupRenderModel.fromModels(unzipEntry.name, []),
-            errors: [],
-          });
-        }
-
-        // entry is a directory with entries; split model and non-model entries
-        const modelEntryChildren = unzipEntry.children.filter(({name}) => this.#fileTypeService.isVisibleRenderModelType(this.#fileTypeService.getType('', name)));
-        const mtlEntryChildren = unzipEntry.children.filter(({name}) => this.#fileTypeService.isMtlFile('', name));
-        const nonModelEntryChildren2 = unzipEntry.children.filter(child => !modelEntryChildren.includes(child) && !mtlEntryChildren.includes(child));
-
-        // load non-model entries first
-        return forkOrEmpty(
-          nonModelEntryChildren2.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress, [])),
-        ).pipe(
-          map(results => flattenModelLoadResults(results)),
-          switchMap(({errors: nonModelErrors, result: nonModelResults}) => {
-            // load MTL entries next
-            return forkOrEmpty(
-              mtlEntryChildren.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress, nonModelResults))
-            ).pipe(
-              map(results => flattenModelLoadResults(results)),
-              switchMap(({ errors: mtlModelErrors, result: mtlResults }) => {
-                // load model entries
-                return forkOrEmpty(
-                  modelEntryChildren.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress, [...nonModelResults, ...mtlResults])),
-                ).pipe(
-                  map(results => flattenModelLoadResults(results)),
-                  map(({errors: modelErrors, result: modelResults}) => {
-                    return {
-                      errors: [...nonModelErrors, ...mtlModelErrors, ...modelErrors],
-                      result: GroupRenderModel.fromModels(unzipEntry.name, [...nonModelResults, ...mtlResults, ...modelResults]),
-                    };
-                  }),
-                );
-              }),
-            );
-          }),
-        );
+  ): Observable<GroupRenderModel>;
+  #loadZipEntriesRecursively$(
+    opener: UnzippedFileOpener | UnzippedDirectoryOpener,
+    manifest: BaseModelManifest | undefined,
+    progress: TransportProgressHandler | undefined,
+  ): Observable<AnyRenderModel>;
+  #loadZipEntriesRecursively$(
+    opener: UnzippedFileOpener | UnzippedDirectoryOpener,
+    manifest: BaseModelManifest | undefined,
+    progress: TransportProgressHandler | undefined,
+  ): Observable<AnyRenderModel> {
+    return defer(() => {
+      if (opener instanceof UnzippedFileOpener) {
+        return opener.loadRenderModel$();
       }
 
-      // file is not a directory
-      return defer(() =>
-          this.loadFile(
-            UploadFileModel.fromUnzip(
-              unzipEntry,
-              this.#fileTypeService.getType(unzipEntry.blob.type, unzipEntry.name),
-            ),
-            progress,
-            nonModelSiblingEntries,
-          ),
+      if (!opener.childOpeners.length) {
+        return of(GroupRenderModel.fromUnzipDirEntry(opener.unzipEntry, []));
+      }
+
+      return forkJoin(
+        opener.childOpeners.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress)),
+      ).pipe(
+        map(models => GroupRenderModel.fromUnzipDirEntry(opener.unzipEntry, models))
       );
     }).pipe(
-      catchError(err => of({
-        errors: [err],
-        result: undefined,
-      })),
-      map((result: IModelLoadResult<AnyRenderModel>) => {
-        if (manifest && result.result) {
-          result.errors.push(...result.result.setFromManifest(manifest, unzipEntry.path, this.#annotationBuilder));
+      map(result => {
+        if (manifest) {
+          const manifestError = result.setFromManifest(manifest, opener.unzipEntry.path, this.#annotationBuilder);
+          opener.errors.push(...manifestError);
         }
 
         return result;
@@ -495,24 +466,35 @@ export class ModelLoadService {
     );
   }
 
-  #findMtlLibInObj(text: string, possibleMtlModels: undefined | AnyRenderModel[]) {
-    const match = /^mtllib +(?:.\/|.\\)?(.*)$/m.exec(text);
+  #findMtlLibInObj(objText: string, parentDirectory?: UnzippedDirectoryOpener): Observable<MtlRenderModel | undefined> {
+    const match = /^mtllib +(?:.\/|.\\)?(.*)$/m.exec(objText);
     const libName = match?.[1];
     if (!libName) {
-      return;
+      return of(undefined);
     }
-    if (!possibleMtlModels?.length) {
+    if (!parentDirectory) {
       console.warn('OBJ specified a mtllib', libName, 'but no sibling models were passed');
-      return;
+      return of(undefined);
     }
-    const mtlModel = possibleMtlModels
-      .filter((model): model is MtlRenderModel => model instanceof MtlRenderModel)
-      .find(model => model.identifier === libName);
+    const mtlModel = parentDirectory.childOpeners
+      .filter((opener): opener is UnzippedFileOpener => !!opener.uploadFileModel)
+      .find(opener =>
+        opener.uploadFileModel.type === FileModelType.mtl &&
+        opener.unzipEntry.name === libName
+      );
 
     if (!mtlModel) {
       console.warn('OBJ specified a mtllib', libName, 'but no match was found');
+      return of(undefined)
     }
-    return mtlModel;
+    return mtlModel.loadRenderModel$().pipe(
+      map(renderModel => {
+        if (!renderModel || renderModel instanceof MtlRenderModel) {
+          return renderModel;
+        }
+        throw new Error(`Weird case where #findMtlLibInObj() tried to load a non MTL render model?`);
+      }),
+    );
   }
 }
 
@@ -524,26 +506,24 @@ export class ModelLoadService {
  */
 class UnzippedFileOpener implements IModelLoadResult<AnyRenderModel> {
 
-  private attemptedToReadRenderModel = false;
-
   readonly uploadFileModel: UploadFileModel;
   result?: AnyRenderModel;
   errors: Error[] = [];
 
   constructor(
-    readonly unzipFileEntry: IUnzipFileEntry,
+    readonly unzipEntry: IUnzipFileEntry,
     readonly parent: UnzippedDirectoryOpener,
   ) {
     this.uploadFileModel = UploadFileModel.fromUnzip(
-      unzipFileEntry,
-      parent.fileTypeService.getType(unzipFileEntry.blob.type, unzipFileEntry.name),
+      unzipEntry,
+      parent.fileTypeService.getType(unzipEntry.blob.type, unzipEntry.name),
     );
   }
 
-  public loadRenderModel$() {
+  public loadRenderModel$(): Observable<AnyRenderModel> {
     return defer(() => {
-      if (this.attemptedToReadRenderModel) {
-        return of(this);
+      if (this.result) {
+        return of(this.result);
       }
       return this._loadRenderModel$();
     });
@@ -554,15 +534,18 @@ class UnzippedFileOpener implements IModelLoadResult<AnyRenderModel> {
       this.parent.modelLoadService.loadFile(
         this.uploadFileModel,
         undefined,
-        // TODO
+        this.parent,
       ),
     ).pipe(
       catchError(err => of({ errors: [err], result: undefined })),
       map(result => {
         this.errors.push(...result.errors);
-        this.result = result.result;
-
-        return this;
+        if (result.result) {
+          this.result = result.result;
+        } else {
+          this.result = UnknownRenderModel.fromUploadModel(this.uploadFileModel);
+        }
+        return this.result;
       }),
     );
   }
@@ -571,23 +554,29 @@ class UnzippedFileOpener implements IModelLoadResult<AnyRenderModel> {
 class UnzippedDirectoryOpener {
 
   readonly childOpeners: Array<UnzippedFileOpener | UnzippedDirectoryOpener> = [];
+  readonly uploadFileModel?: never;
+
+  errors: Error[] = [];
 
   constructor(
-    readonly unzipDirEntry: IUnzipDirEntry,
+    readonly unzipEntry: IUnzipDirEntry,
     readonly modelLoadService: ModelLoadService,
     readonly fileTypeService: FileTypeService,
     readonly parent?: UnzippedDirectoryOpener,
   ) {
     this.childOpeners.push(
-      ...this.unzipDirEntry.children.map(
+      ...this.unzipEntry.children.map(
         childEntry => childEntry.dir
           ? new UnzippedDirectoryOpener(childEntry, modelLoadService, fileTypeService, parent)
           : new UnzippedFileOpener(childEntry, this),
       ),
     );
   }
-}
 
+  getErrorsRecursively() {
+    return this.errors.concat(this.childOpeners.flatMap(child => child.errors));
+  }
+}
 
 class ZipRelativeLoadingManager extends LoadingManager {
 
@@ -595,7 +584,7 @@ class ZipRelativeLoadingManager extends LoadingManager {
 
   constructor(
     readonly entityIdOfLoader: string,
-    readonly nonModelSiblingEntries: AnyRenderModel[],
+    readonly parentDirectory?: UnzippedDirectoryOpener
   ) {
     super();
   }
@@ -604,17 +593,16 @@ class ZipRelativeLoadingManager extends LoadingManager {
     if (url.startsWith('./')) {
       url = url.slice(2);
     }
-    const match = this.nonModelSiblingEntries.find(entry => entry.identifier === url);
+    const match = this.parentDirectory?.childOpeners.find(entry => entry.unzipEntry.name === url);
     if (!match) {
       console.error('Failed to resolve url', JSON.stringify(url), 'while loading', this.entityIdOfLoader);
       return url;
     }
-
-    const blob = match.serialize();
-
-    if (!blob) {
-      throw new Error(`Cannot link ${this.entityIdOfLoader} to ${match.identifier}; no blob`);
+    if (match instanceof UnzippedDirectoryOpener) {
+      throw new Error(`Cannot link ${this.entityIdOfLoader} to ${match.unzipEntry.name} which is a directory`);
     }
+
+    const blob = match.unzipEntry.blob;
 
     const objUrl = URL.createObjectURL(blob);
     this.#objectURLRegistry.add(objUrl);
