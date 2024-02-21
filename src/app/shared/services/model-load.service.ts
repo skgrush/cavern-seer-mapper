@@ -578,6 +578,10 @@ class UnzippedDirectoryOpener {
   }
 }
 
+/**
+ * LoadingManager for using ThreeJS loaders inside of zip contexts
+ * (converts "URL" loading to relative blob loading).
+ */
 class ZipRelativeLoadingManager extends LoadingManager {
 
   #objectURLRegistry = new Set<string>();
