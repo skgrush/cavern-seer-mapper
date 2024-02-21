@@ -489,7 +489,7 @@ export class ModelLoadService {
     }
     return mtlModel.loadRenderModel$().pipe(
       map(renderModel => {
-        if (!renderModel || renderModel instanceof MtlRenderModel) {
+        if (renderModel instanceof MtlRenderModel) {
           return renderModel;
         }
         throw new Error(`Weird case where #findMtlLibInObj() tried to load a non MTL render model?`);
