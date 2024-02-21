@@ -28,7 +28,7 @@ import { UploadFileModel } from '../models/upload-file-model';
 import { ignoreNullishArray } from '../operators/ignore-nullish';
 import { AnnotationBuilderService } from './annotation-builder.service';
 import { FileTypeService } from './file-type.service';
-import type { IUnzipDirEntry, IUnzipEntry, IZipEntry } from './zip.service';
+import type { IUnzipDirEntry, IUnzipEntry, IUnzipFileEntry, IZipEntry } from './zip.service';
 import { WallsRenderModel } from '../models/render/walls.render-model';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { MtlRenderModel } from '../models/render/mtl.render-model';
@@ -381,10 +381,16 @@ export class ModelLoadService {
     }
   }
 
+  /**
+   * Recursively load IUnzipEntry to models.
+   *
+   * @private
+   */
   #loadZipEntriesRecursively$(
     unzipEntry: IUnzipEntry,
-    manifest?: BaseModelManifest,
-    progress?: TransportProgressHandler,
+    manifest: BaseModelManifest | undefined,
+    progress: TransportProgressHandler | undefined,
+    nonModelSiblingEntries: AnyRenderModel[],
   ): Observable<IModelLoadResult<AnyRenderModel>> {
     return defer((): Observable<IModelLoadResult<AnyRenderModel>> => {
       if (unzipEntry.dir) {
@@ -397,16 +403,37 @@ export class ModelLoadService {
           });
         }
 
-        // entry is a directory with entries
-        return forkJoin(
-          unzipEntry.children.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress)),
+        // entry is a directory with entries; split model and non-model entries
+        const modelEntryChildren = unzipEntry.children.filter(({name}) => this.#fileTypeService.isVisibleRenderModelType(this.#fileTypeService.getType('', name)));
+        const mtlEntryChildren = unzipEntry.children.filter(({name}) => this.#fileTypeService.isMtlFile('', name));
+        const nonModelEntryChildren2 = unzipEntry.children.filter(child => !modelEntryChildren.includes(child) && !mtlEntryChildren.includes(child));
+
+        // load non-model entries first
+        return forkOrEmpty(
+          nonModelEntryChildren2.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress, [])),
         ).pipe(
-          map((results): IModelLoadResult<GroupRenderModel> => {
-            const models = results.map(r => r.result).filter(ignoreNullishArray);
-            return {
-              errors: results.flatMap(r => r.errors),
-              result: GroupRenderModel.fromModels(unzipEntry.name, models),
-            };
+          map(results => flattenModelLoadResults(results)),
+          switchMap(({errors: nonModelErrors, result: nonModelResults}) => {
+            // load MTL entries next
+            return forkOrEmpty(
+              mtlEntryChildren.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress, nonModelResults))
+            ).pipe(
+              map(results => flattenModelLoadResults(results)),
+              switchMap(({ errors: mtlModelErrors, result: mtlResults }) => {
+                // load model entries
+                return forkOrEmpty(
+                  modelEntryChildren.map(child => this.#loadZipEntriesRecursively$(child, manifest, progress, [...nonModelResults, ...mtlResults])),
+                ).pipe(
+                  map(results => flattenModelLoadResults(results)),
+                  map(({errors: modelErrors, result: modelResults}) => {
+                    return {
+                      errors: [...nonModelErrors, ...mtlModelErrors, ...modelErrors],
+                      result: GroupRenderModel.fromModels(unzipEntry.name, [...nonModelResults, ...mtlResults, ...modelResults]),
+                    };
+                  }),
+                );
+              }),
+            );
           }),
         );
       }
@@ -416,12 +443,11 @@ export class ModelLoadService {
           this.loadFile(
             UploadFileModel.fromUnzip(
               unzipEntry,
-              unzipEntry.blob,
               this.#fileTypeService.getType(unzipEntry.blob.type, unzipEntry.name),
             ),
-            progress
+            progress,
+            nonModelSiblingEntries,
           ),
-        ),
       );
     }).pipe(
       catchError(err => of({
@@ -435,7 +461,7 @@ export class ModelLoadService {
 
         return result;
       }),
-    )
+    );
   }
 
   #readAndRemoveManifest$(dirEntry: IUnzipDirEntry): Observable<{
@@ -489,6 +515,79 @@ export class ModelLoadService {
     return mtlModel;
   }
 }
+
+/**
+ * Lazy opener which allows opening files as-needed without re-opening.
+ * Some logic like this is necessary to open files that reference other files.
+ *
+ * TODO: no support for TransportProgressHandler
+ */
+class UnzippedFileOpener implements IModelLoadResult<AnyRenderModel> {
+
+  private attemptedToReadRenderModel = false;
+
+  readonly uploadFileModel: UploadFileModel;
+  result?: AnyRenderModel;
+  errors: Error[] = [];
+
+  constructor(
+    readonly unzipFileEntry: IUnzipFileEntry,
+    readonly parent: UnzippedDirectoryOpener,
+  ) {
+    this.uploadFileModel = UploadFileModel.fromUnzip(
+      unzipFileEntry,
+      parent.fileTypeService.getType(unzipFileEntry.blob.type, unzipFileEntry.name),
+    );
+  }
+
+  public loadRenderModel$() {
+    return defer(() => {
+      if (this.attemptedToReadRenderModel) {
+        return of(this);
+      }
+      return this._loadRenderModel$();
+    });
+  }
+
+  private _loadRenderModel$() {
+    return defer(() =>
+      this.parent.modelLoadService.loadFile(
+        this.uploadFileModel,
+        undefined,
+        // TODO
+      ),
+    ).pipe(
+      catchError(err => of({ errors: [err], result: undefined })),
+      map(result => {
+        this.errors.push(...result.errors);
+        this.result = result.result;
+
+        return this;
+      }),
+    );
+  }
+}
+
+class UnzippedDirectoryOpener {
+
+  readonly childOpeners: Array<UnzippedFileOpener | UnzippedDirectoryOpener> = [];
+
+  constructor(
+    readonly unzipDirEntry: IUnzipDirEntry,
+    readonly modelLoadService: ModelLoadService,
+    readonly fileTypeService: FileTypeService,
+    readonly parent?: UnzippedDirectoryOpener,
+  ) {
+    this.childOpeners.push(
+      ...this.unzipDirEntry.children.map(
+        childEntry => childEntry.dir
+          ? new UnzippedDirectoryOpener(childEntry, modelLoadService, fileTypeService, parent)
+          : new UnzippedFileOpener(childEntry, this),
+      ),
+    );
+  }
+}
+
 
 class ZipRelativeLoadingManager extends LoadingManager {
 
