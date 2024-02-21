@@ -11,7 +11,7 @@ export type IUnzipDirEntry = {
   readonly name: string;
   readonly comment: string | null;
   readonly children: IUnzipEntry[];
-  readonly loader?: undefined;
+  readonly blob?: undefined;
 };
 export type IUnzipFileEntry = {
   readonly dir: false;
@@ -19,7 +19,7 @@ export type IUnzipFileEntry = {
   readonly name: string;
   readonly comment: string | null;
   readonly children?: never;
-  readonly loader: () => Promise<Blob>;
+  readonly blob: Blob;
 }
 
 export type IZipEntry = {
@@ -91,13 +91,13 @@ export class ZipService {
    */
   unzip$(file: UploadFileModel) {
     return defer(() => loadAsync(file.blob)).pipe(
-      map(jszip => {
+      switchMap(async (jszip) => {
 
         // comment field exists on top-level JSZip but the type is not defined?
         const comment = (jszip as any).comment ?? null;
 
-        const children = [...this.recursivelyBuildHierarchy(jszip)];
-        const result = {
+        const children = await Promise.all([...this.recursivelyBuildHierarchy(jszip)]);
+        const result: IUnzipDirEntry & { file: UploadFileModel } = {
           file,
           dir: true as const,
           path: '',
@@ -105,7 +105,7 @@ export class ZipService {
           comment,
           children,
         };
-        return result satisfies IUnzipDirEntry;
+        return result;
       }),
     );
   }
@@ -114,7 +114,7 @@ export class ZipService {
    * First yield all files at this level,
    * then yield all directories at this level (each with their children).
    */
-  *recursivelyBuildHierarchy(zip: JSZip): Generator<IUnzipEntry> {
+  *recursivelyBuildHierarchy(zip: JSZip): Generator<Promise<IUnzipEntry>> {
     const filesAtThisLevel = new Map<string, JSZipObject>();
     const dirsAtThisLevel = new Map<string, JSZipObject>();
 
@@ -136,13 +136,13 @@ export class ZipService {
 
     // yield files (from this dir) first
     for (const [name, fileEntry] of filesAtThisLevel) {
-      yield {
+      yield fileEntry.async('blob').then(blob => ({
         dir: false,
         comment: fileEntry.comment,
         path: fileEntry.name,
         name,
-        loader: () => fileEntry.async('blob'),
-      }
+        blob,
+      }));
     }
 
     // yield directories from this dir
@@ -151,13 +151,13 @@ export class ZipService {
       if (!folderJSZip) {
         throw new Error(`Dir entry just found was not found by .folder(): ${name}|${dirEntry.name}`);
       }
-      yield {
+      yield Promise.all([...this.recursivelyBuildHierarchy(folderJSZip)]).then(children => ({
         dir: true,
         comment: dirEntry.comment,
         path: dirEntry.name,
         name,
-        children: [...this.recursivelyBuildHierarchy(folderJSZip)],
-      };
+        children,
+      }));
     }
   }
 }

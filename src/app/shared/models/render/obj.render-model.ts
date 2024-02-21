@@ -26,6 +26,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
   protected override get _group() {
     return this.#object;
   }
+  protected override readonly _hasCustomTexture: boolean;
 
   readonly #object: Group;
   readonly #boxHelper: BoxHelper;
@@ -37,11 +38,13 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     object: Group,
     blob: Blob,
     comment: string | null,
+    hasCustomTexture: boolean,
   ) {
     super();
     this.#object = object;
     this.#blob = blob;
     this.#boxHelper = new BoxHelper(object);
+    this._hasCustomTexture = hasCustomTexture;
 
     this.identifier = identifier;
     this.comment = comment;
@@ -52,7 +55,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
     })
   }
 
-  static fromUploadModel(uploadModel: UploadFileModel, object: Group) {
+  static fromUploadModel(uploadModel: UploadFileModel, object: Group, hasCustomTexture: boolean) {
     const { identifier, blob, comment } = uploadModel;
     object.name = uploadModel.identifier;
     return new ObjRenderModel(
@@ -60,6 +63,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
       object,
       blob,
       comment,
+      hasCustomTexture,
     );
   }
 

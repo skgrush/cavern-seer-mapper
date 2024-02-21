@@ -23,6 +23,7 @@ export class FileIconComponent {
     obj: 'shape_line',
     cavernseerscan: 'svg:CavernSeer',
     walls: 'ssid_chart',
+    mtl: 'texture',
   } satisfies Record<FileModelType, string>);
 
 

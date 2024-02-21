@@ -8,6 +8,7 @@ import { FileModelType } from '../model-type.enum';
 import { ISimpleVector3 } from '../simple-types';
 import { BaseRenderModel, BaseVisibleRenderModel } from './base.render-model';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
+import { IUnzipDirEntry } from '../../services/zip.service';
 
 
 export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group> {
@@ -15,7 +16,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override identifier: string;
-  override readonly comment = null;
+  override comment: string | null;
   override readonly rendered = true;
   override get position() {
     return this.#group.position;
@@ -27,6 +28,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   protected override get _group() {
     return this.#group;
   }
+  protected override readonly _hasCustomTexture = false;
 
   readonly #group = new Group();
   readonly #annotations = new Set<BaseAnnotation>();
@@ -41,14 +43,26 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
   constructor(
     identifier: string,
+    comment: string | null,
   ) {
     super();
     this.identifier = identifier;
     this.#group.name = identifier;
+
+    this.comment = comment;
   }
 
   public static fromModels(identifier: string, models: BaseRenderModel<any>[]) {
-    const group = new GroupRenderModel(identifier);
+    const group = new GroupRenderModel(identifier, null);
+
+    for (const model of models) {
+      group.addModel(model);
+    }
+    return group;
+  }
+
+  public static fromUnzipDirEntry(entry: IUnzipDirEntry, models: BaseRenderModel<any>[]) {
+    const group = new GroupRenderModel(entry.name, entry.comment);
 
     for (const model of models) {
       group.addModel(model);
@@ -153,8 +167,9 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
     return true;
   }
 
-  override setComment(): boolean {
-    return false;
+  override setComment(comment:string | null): boolean {
+    this.comment = comment;
+    return true;
   }
 
   override setPosition({ x, y, z }: ISimpleVector3): boolean {

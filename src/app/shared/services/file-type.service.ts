@@ -13,7 +13,24 @@ export class FileTypeService {
     [FileModelType.group]: '.zip',
     [FileModelType.walls]: '.wrl',
     [FileModelType.cavernseerscan]: '.cavernseerscan',
+    [FileModelType.mtl]: '.mtl',
   } as const;
+
+  readonly mimes = {
+    [FileModelType.obj]: 'model/obj',
+    [FileModelType.gLTF]: ['model/gltf+json', 'model/gltf-binary'],
+    [FileModelType.group]: 'application/zip',
+    [FileModelType.walls]: 'model/vrml',
+    [FileModelType.cavernseerscan]: 'application/vnd.org.grush.cavernseer.scan',
+    [FileModelType.mtl]: 'model/mtl',
+  } as const;
+
+  getAllExtensionsAndMimes() {
+    return [
+      ...Object.values(this.extensions),
+      ...Object.values(this.mimes),
+    ].flat();
+  }
 
   *mapFileList(files: FileList) {
     for (let i = 0; i < files.length; ++i) {
@@ -44,7 +61,27 @@ export class FileTypeService {
     if (this.isVrmlFile(mime, name)) {
       return FileModelType.walls;
     }
+    if (this.isMtlFile(mime, name)) {
+      return FileModelType.mtl;
+    }
+
     return FileModelType.unknown;
+  }
+
+  isVisibleRenderModelType(type: FileModelType) {
+    switch (type) {
+      case FileModelType.obj:
+      case FileModelType.gLTF:
+      case FileModelType.walls:
+      case FileModelType.group:
+      case FileModelType.cavernseerscan:
+        return true;
+      case FileModelType.unknown:
+      case FileModelType.mtl:
+        return false;
+      default:
+        throw new Error(`Unknown FileModelType: ${type satisfies never}`);
+    }
   }
 
   /**
@@ -59,20 +96,19 @@ export class FileTypeService {
   }
 
   isObj(mime: string, name: string) {
-    return mime === 'model/obj' || this.getFileExtension(name) === this.extensions.obj;
+    return mime === this.mimes.obj || this.getFileExtension(name) === this.extensions.obj;
   }
 
   isGltf(mime: string, name: string) {
     const ext = this.getFileExtension(name);
     return (
-      mime === 'model/gltf+json' ||
-      mime === 'model/gltf-binary' ||
-      this.extensions.gltf.includes(ext as '.gltf' | '.glb')
+      this.mimes.gltf.includes(mime as any) ||
+      this.extensions.gltf.includes(ext as any)
     );
   }
 
   isZip(mime: string, name: string) {
-    return mime === 'application/zip' || this.getFileExtension(name) === this.extensions.group;
+    return mime === this.mimes.group || this.getFileExtension(name) === this.extensions.group;
   }
 
   isSupportedGroupArchive(mime: string, name: string) {
@@ -80,10 +116,14 @@ export class FileTypeService {
   }
 
   isCavernSeerScan(mime: string, name: string) {
-    return mime === 'application/vnd.org.grush.cavernseer.scan' || this.getFileExtension(name) === this.extensions.cavernseerscan;
+    return mime === this.mimes.cavernseerscan || this.getFileExtension(name) === this.extensions.cavernseerscan;
   }
 
   isVrmlFile(mime: string, name: string) {
-    return mime === 'model/vrml' || this.getFileExtension(name) === this.extensions.walls;
+    return mime === this.mimes.walls || this.getFileExtension(name) === this.extensions.walls;
+  }
+
+  isMtlFile(mime: string, name: string) {
+    return mime === this.mimes.mtl || this.getFileExtension(name) === this.extensions.mtl;
   }
 }

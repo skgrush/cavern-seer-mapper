@@ -21,6 +21,7 @@ export type IOpenDialogData = {
   readonly submitText: string;
   readonly multiple?: boolean;
   readonly initialFiles?: FileList;
+  readonly accept?: string;
 };
 
 @Component({
@@ -43,6 +44,7 @@ export class OpenDialogComponent implements OnInit {
   readonly submitText = this.#dialogData.submitText;
   readonly multiple = this.#dialogData.multiple;
   readonly hasInitialFiles = !!this.#dialogData.initialFiles?.length;
+  readonly accept = this.#dialogData.accept ?? '*/*';
 
   protected readonly uploadProgress = new TransportProgressHandler();
 

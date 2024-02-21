@@ -25,11 +25,11 @@ export class UploadFileModel {
     );
   }
 
-  static fromUnzip(unzipEntry: IUnzipFileEntry, blob: Blob, type: FileModelType) {
+  static fromUnzip(unzipEntry: IUnzipFileEntry, type: FileModelType) {
     return new UploadFileModel(
       unzipEntry.name,
-      blob,
-      blob.type,
+      unzipEntry.blob,
+      unzipEntry.blob.type,
       type,
       unzipEntry.comment,
     );

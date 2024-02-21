@@ -36,6 +36,7 @@ export abstract class BaseRenderModel<T extends FileModelType> {
 export abstract class BaseVisibleRenderModel<T extends FileModelType> extends BaseRenderModel<T> {
   abstract readonly visible: boolean;
   protected abstract readonly _group: Group;
+  protected abstract readonly _hasCustomTexture: boolean;
 
   abstract getAnnotations(): readonly BaseAnnotation[];
 
@@ -58,6 +59,9 @@ export abstract class BaseVisibleRenderModel<T extends FileModelType> extends Ba
    * on all meshes which are annotated with {@link IMapperUserData.fromSerializedModel}.
    */
   setMaterial(material: BaseMaterialService<any>): void {
+    if (this._hasCustomTexture) {
+      return;
+    }
     this._group.traverse(child => {
       if (child instanceof Mesh && (child.userData as IMapperUserData).fromSerializedModel) {
         material.updateMesh(child);
