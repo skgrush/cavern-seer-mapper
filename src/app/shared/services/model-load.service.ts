@@ -28,9 +28,9 @@ import { UploadFileModel } from '../models/upload-file-model';
 import { ignoreNullishArray } from '../operators/ignore-nullish';
 import { AnnotationBuilderService } from './annotation-builder.service';
 import { FileTypeService } from './file-type.service';
-import type { IUnzipDirEntry, IUnzipEntry, IUnzipFileEntry, IZipEntry } from './zip.service';
+import type { IUnzipDirEntry, IUnzipFileEntry, IZipEntry } from './zip.service';
 import { WallsRenderModel } from '../models/render/walls.render-model';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { MtlRenderModel } from '../models/render/mtl.render-model';
 
 type IModelLoadResult<T extends BaseRenderModel<any>> = {
