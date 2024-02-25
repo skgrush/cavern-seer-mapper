@@ -10,13 +10,6 @@ export class DialogOpenerService {
   readonly #dialog = inject(MatDialog);
   readonly #injector = inject(Injector);
 
-  settings() {
-    import('../../dialogs/settings-dialog/settings-dialog.component')
-      .then(({ SettingsDialogComponent }) => {
-        SettingsDialogComponent.open(this.#dialog, this.#injector);
-      });
-  }
-
   exportImage() {
     import('../../dialogs/export-image-dialog/export-image-dialog.component')
       .then(({ ExportImageDialogComponent }) => {
