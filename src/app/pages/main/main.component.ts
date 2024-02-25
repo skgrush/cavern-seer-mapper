@@ -3,7 +3,7 @@ import { CompassComponent } from '../../shared/components/compass/compass.compon
 import { CanvasComponent } from '../canvas/canvas.component';
 import { FileUrlLoaderComponent } from '../file-url-loader/file-url-loader.component';
 import { ToolsBarComponent } from '../tools-bar/tools-bar.component';
-import { OpenDialogOpener } from '../../dialogs/open-dialog/open-dialog.opener';
+import { OpenDialogOpener } from '../../dialogs';
 
 @Component({
   selector: 'mapper-main',

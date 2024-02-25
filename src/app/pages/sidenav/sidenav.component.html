@@ -1,7 +1,7 @@
 <mat-list>
   <button mat-list-item (click)="openDialog.openAFile$().subscribe()">Open...</button>
   <button mat-list-item (click)="openDialog.importFiles$().subscribe()">Import...</button>
-  <button mat-list-item (click)="dialogOpener.save()">Zip...</button>
+  <button mat-list-item (click)="saveDialog.saveOpenFile$().subscribe()">Zip...</button>
   <button mat-list-item (click)="dialogOpener.exportImage()">Export image...</button>
   <button mat-list-item (click)="dialogOpener.exportModel()">Export model...</button>
   <button mat-list-item (click)="dialogOpener.settings()">Settings</button>

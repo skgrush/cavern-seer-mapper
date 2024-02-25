@@ -22,7 +22,6 @@ import { CompressionService } from './shared/services/compression.service';
 import { materialsProviders } from './shared/services/materials';
 import { provideDialogServices } from './dialogs';
 import { LaunchQueueService } from './shared/services/launch-queue.service';
-import { OpenDialogOpener } from './dialogs/open-dialog/open-dialog.opener';
 
 const deferredRoutes: Routes = [
   {
@@ -60,7 +59,6 @@ const deferredRoutes: Routes = [
       AnnotationBuilderService,
       DialogOpenerService,
       LaunchQueueService,
-      OpenDialogOpener,
       materialsProviders(),
       toolsProviders(),
       provideSettings(),

@@ -22,15 +22,6 @@ export class DialogOpenerService {
     )
   }
 
-  save() {
-    import('../../dialogs/zip-download-model-dialog/zip-download-model-dialog.component')
-      .then(({ ZipDownloadModelDialogComponent }) => {
-        ZipDownloadModelDialogComponent.open(this.#dialog, this.#injector, {
-          titleText: 'Zip and download group',
-        });
-      });
-  }
-
   settings() {
     import('../../dialogs/settings-dialog/settings-dialog.component')
       .then(({ SettingsDialogComponent }) => {
