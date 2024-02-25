@@ -1,6 +1,6 @@
 <mat-list>
-  <button mat-list-item (click)="dialogOpener.open()">Open...</button>
-  <button mat-list-item (click)="dialogOpener.import()">Import...</button>
+  <button mat-list-item (click)="openDialog.openAFile$().subscribe()">Open...</button>
+  <button mat-list-item (click)="openDialog.importFiles$().subscribe()">Import...</button>
   <button mat-list-item (click)="dialogOpener.save()">Zip...</button>
   <button mat-list-item (click)="dialogOpener.exportImage()">Export image...</button>
   <button mat-list-item (click)="dialogOpener.exportModel()">Export model...</button>
@@ -10,8 +10,11 @@
 <div class="footer">
   <p>{{ mapperVersion.version }}</p>
   <p>
-    <a [style.color]="'white'"
-      [href]="'https://github.com/skgrush/cavern-seer-mapper/releases/tag/v' + mapperVersion.packageVersion">
+    <a
+      [style.color]="'white'"
+      [href]="'https://github.com/skgrush/cavern-seer-mapper/releases/tag/v' + mapperVersion.packageVersion"
+      target="_blank"
+    >
       View on GitHub
     </a>
   </p>

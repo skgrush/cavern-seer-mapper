@@ -1,9 +1,9 @@
 import { inject, Injectable, Injector } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ModelManagerService } from './model-manager.service';
-import { ICrossSectionRenderDialogData } from '../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component';
+import {
+  ICrossSectionRenderDialogData,
+} from '../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component';
 import { defer, switchMap } from 'rxjs';
-import { FileTypeService } from './file-type.service';
 
 /**
  * Service solely responsible for opening dialogs
@@ -11,26 +11,8 @@ import { FileTypeService } from './file-type.service';
 @Injectable()
 export class DialogOpenerService {
 
-  readonly #modelManager = inject(ModelManagerService);
   readonly #dialog = inject(MatDialog);
   readonly #injector = inject(Injector);
-  readonly #fileTypeService = inject(FileTypeService);
-
-  open() {
-    import('../../dialogs/open-dialog/open-dialog.component')
-      .then(({ OpenDialogComponent }) => {
-        OpenDialogComponent.open(this.#dialog, this.#injector, {
-          submitText: 'Open',
-          titleText: 'Open a file',
-          multiple: false,
-          accept: this.#fileTypeService.getAllExtensionsAndMimes().join(','),
-        }).afterClosed().subscribe(result => {
-          if (result) {
-            this.#modelManager.resetToNonGroupModel(result[0]);
-          }
-        });
-      });
-  }
 
   exportCrossSection(data: ICrossSectionRenderDialogData) {
     return defer(() => import('../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component')).pipe(
@@ -38,23 +20,6 @@ export class DialogOpenerService {
         return CrossSectionRenderDialogComponent.open(this.#dialog, this.#injector, data).afterClosed();
       })
     )
-  }
-
-  import(initialFiles?: FileList) {
-    import('../../dialogs/open-dialog/open-dialog.component')
-      .then(({ OpenDialogComponent }) => {
-        OpenDialogComponent.open(this.#dialog, this.#injector, {
-          submitText: 'Import',
-          titleText: 'Import one or more files',
-          multiple: true,
-          accept: this.#fileTypeService.getAllExtensionsAndMimes().join(','),
-          initialFiles,
-        }).afterClosed().subscribe(result => {
-          if (result) {
-            this.#modelManager.importModels(result);
-          }
-        });
-      });
   }
 
   save() {
