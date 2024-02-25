@@ -33,6 +33,20 @@
       "purpose": "maskable any"
     }
   ],
+  "file_handlers": [
+    {
+      "action": "./?fileHandler",
+      "accept": {
+        "model/obj": ".obj",
+        "model/gltf+json": ".gltf",
+        "model/gltf-binary": ".glb",
+        "application/zip": ".zip",
+        "model/vrml": ".wrl",
+        "application/vnd.org.grush.cavernseer.scan": ".cavernseerscan"
+      },
+      "launch_type": "single-client"
+    }
+  ],
   "screenshots": [
     {
       "src": "assets/marketing/screenshot_narrow-390x844.png",

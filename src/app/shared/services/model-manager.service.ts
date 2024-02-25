@@ -1,16 +1,29 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, map } from 'rxjs';
 import { GroupRenderModel } from '../models/render/group.render-model';
 import { BaseRenderModel } from '../models/render/base.render-model';
 import { BaseAnnotation } from '../models/annotations/base.annotation';
 import { Group } from 'three';
+import { Title } from '@angular/platform-browser';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable()
 export class ModelManagerService {
 
+  readonly #title = inject(Title);
+
   readonly #currentOpenGroup = new BehaviorSubject<GroupRenderModel | undefined>(undefined);
 
   readonly currentOpenGroup$ = this.#currentOpenGroup.asObservable();
+
+  constructor() {
+    this.currentOpenGroup$.pipe(
+      map(cog => cog?.identifier ?? 'No model'),
+      takeUntilDestroyed(),
+    ).subscribe(title => {
+      this.#title.setTitle(title);
+    })
+  }
 
   resetCurrentGroup(group?: GroupRenderModel) {
     // don't dispose of the current, let the canvas do that
@@ -24,7 +37,7 @@ export class ModelManagerService {
     }
 
     const group = GroupRenderModel.fromModels(
-      'from resetToNonGroupModel()',
+      `${model.identifier} (not-zipped)`,
       [model],
     );
     this.resetCurrentGroup(group);
@@ -47,13 +60,13 @@ export class ModelManagerService {
       return;
     }
 
-    if (models.length === 1 && models[0] instanceof GroupRenderModel) {
-      this.resetCurrentGroup(models[0]);
+    if (models.length === 1) {
+      this.resetToNonGroupModel(models[0]);
       return;
     }
 
     const group = GroupRenderModel.fromModels(
-      'from resetToNonGroupModel()',
+      '(group of imported models)',
       [...models],
     );
     this.resetCurrentGroup(group);
