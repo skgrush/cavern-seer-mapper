@@ -13,21 +13,9 @@ import { ErrorService } from '../../shared/services/error.service';
 import { FileTypeService } from '../../shared/services/file-type.service';
 import { ModelLoadService } from '../../shared/services/model-load.service';
 import { ModelManagerService } from '../../shared/services/model-manager.service';
-import { WINDOW } from '../../shared/tokens/window.token';
+import { LaunchQueueService } from '../../shared/services/launch-queue.service';
 
-declare global {
-  interface LaunchParams {
-    readonly files: readonly FileSystemHandle[];
-    readonly targetURL: string;
-  }
-  interface LaunchQueue {
-    setConsumer(consumer: (launchParams: LaunchParams) => void): void;
-  }
 
-  interface Window {
-    launchQueue?: LaunchQueue;
-  }
-}
 
 type OpenerResult = {
   readonly fileId: string;
@@ -49,7 +37,7 @@ export class FileUrlLoaderComponent implements OnInit {
   readonly #modelManager = inject(ModelManagerService);
   readonly #modelLoader = inject(ModelLoadService);
   readonly #fileType = inject(FileTypeService);
-  readonly #window = inject(WINDOW);
+  readonly #launchQueue = inject(LaunchQueueService);
 
   readonly progress = new TransportProgressHandler();
 
@@ -132,32 +120,26 @@ export class FileUrlLoaderComponent implements OnInit {
     }
 
     #handleFileHandler(): Observable<OpenerResult | null> {
-      if (!this.#window.launchQueue) {
-        return of(null);
-      }
 
-      console.info('launchQueue', this.#window.launchQueue);
+      return this.#launchQueue.launchQueueConsumer$.pipe(
+        switchMap(async launchParams => {
+          if (!launchParams) {
+            return null;
+          }
+          this.progress.reset(true);
 
-      this.progress.reset(true);
-
-      return new Observable<FileSystemFileHandle>(subscriber => {
-        this.#window.launchQueue?.setConsumer(params => {
-          console.info('launchParams', params);
-
-          const firstEntry = params.files[0];
+          const firstEntry = launchParams.files[0];
           if (!firstEntry) {
-            subscriber.error(new Error('no file found in fileHandler'));
+            throw new Error('no file found in fileHandler');
           }
           if (firstEntry.kind === 'directory') {
-            subscriber.error(new Error('opening directories not yet supported by fileHandler'));
+            throw new Error('opening directories not yet supported by fileHandler');
           }
-          return subscriber.next(firstEntry as FileSystemFileHandle);
-        });
-      }).pipe(
-        switchMap(async entry => {
-          const file = await entry.getFile();
-          return { blob: file, fileId: entry.name };
-        }),
-      );
+
+          const file = await (firstEntry as FileSystemFileHandle).getFile();
+
+          return { blob: file, fileId: firstEntry.name };
+        })
+      )
     }
 }
