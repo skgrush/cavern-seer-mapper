@@ -26,10 +26,10 @@ import { CrossSectionAnnotation } from '../../../shared/models/annotations/cross
 import { ISimpleVector3, vector3FromSimpleVector3 } from '../../../shared/models/simple-types';
 import { ignoreNullish } from '../../../shared/operators/ignore-nullish';
 import { VectorPipe } from '../../../shared/pipes/vector.pipe';
-import { DialogOpenerService } from '../../../shared/services/dialog-opener.service';
 import { LocalizeService } from '../../../shared/services/localize.service';
 import { CrossSectionToolService } from '../../../shared/services/tools/cross-section-tool.service';
 import { MatTooltip } from '@angular/material/tooltip';
+import { CrossSectionRenderDialogOpener } from '../../../dialogs';
 
 @Component({
   selector: 'mapper-cross-section-tab',
@@ -43,7 +43,7 @@ export class CrossSectionTabComponent {
   readonly #dialog = inject(MatDialog);
   readonly crossSectionTool = inject(CrossSectionToolService);
   readonly #localize = inject(LocalizeService);
-  readonly #dialogOpener = inject(DialogOpenerService);
+  readonly #crossSectionOpener = inject(CrossSectionRenderDialogOpener);
 
   readonly dialogOpen$ = new BehaviorSubject(false);
 
@@ -181,7 +181,7 @@ export class CrossSectionTabComponent {
     });
   }
 
-  async render() {
+  render() {
     const selected = this.formGroup.controls.selected.value?.[0];
     if (!selected) {
       return;
@@ -189,7 +189,7 @@ export class CrossSectionTabComponent {
 
     this.dialogOpen$.next(true);
 
-    this.#dialogOpener.exportCrossSection({
+    this.#crossSectionOpener.exportCrossSection({
       crossSection: selected,
       formGroup: this.formGroup.controls.details,
     }).subscribe(() => {

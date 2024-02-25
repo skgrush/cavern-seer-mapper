@@ -1,9 +1,5 @@
 import { inject, Injectable, Injector } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  ICrossSectionRenderDialogData,
-} from '../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component';
-import { defer, switchMap } from 'rxjs';
 
 /**
  * Service solely responsible for opening dialogs
@@ -13,14 +9,6 @@ export class DialogOpenerService {
 
   readonly #dialog = inject(MatDialog);
   readonly #injector = inject(Injector);
-
-  exportCrossSection(data: ICrossSectionRenderDialogData) {
-    return defer(() => import('../../dialogs/cross-section-render-dialog/cross-section-render-dialog.component')).pipe(
-      switchMap(({ CrossSectionRenderDialogComponent }) => {
-        return CrossSectionRenderDialogComponent.open(this.#dialog, this.#injector, data).afterClosed();
-      })
-    )
-  }
 
   settings() {
     import('../../dialogs/settings-dialog/settings-dialog.component')
