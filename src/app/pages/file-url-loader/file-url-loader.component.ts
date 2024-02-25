@@ -81,7 +81,7 @@ export class FileUrlLoaderComponent implements OnInit {
           fileId,
           blob,
           blob.type,
-          this.#fileType.getType(blob.type, ''),
+          this.#fileType.getType(blob.type, fileId),
           null
         );
         return this.#modelLoader.loadFile(fileModel, this.progress).pipe(map(loadResult => ({ loadResult, fileId })));
