@@ -14,6 +14,7 @@ import { INTL_UNIT_LIST_FORMAT } from './shared/tokens/intl-unit-list-format.tok
 import { LOCAL_STORAGE } from './shared/tokens/local-storage.token';
 import { MAPPER_VERSION, VersionObject } from './shared/tokens/version.token';
 import { provideHttpClient } from '@angular/common/http';
+import { WINDOW } from './shared/tokens/window.token';
 
 
 export const appConfig: ApplicationConfig = {
@@ -37,6 +38,7 @@ export const appConfig: ApplicationConfig = {
     { provide: INTL_COLLATOR, useFactory: (locale: string) => new Intl.Collator(locale), deps: [LOCALE_ID] },
     { provide: INTL_UNIT_LIST_FORMAT, useFactory: (locale: string) => new Intl.ListFormat(locale, { type: 'unit' }), deps: [LOCALE_ID] },
     { provide: LOCAL_STORAGE, useFactory: () => globalThis.localStorage },
+    { provide: WINDOW, useValue: window },
     {
       provide: ErrorHandler,
       useExisting: ErrorService,
