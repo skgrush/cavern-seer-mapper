@@ -37,7 +37,7 @@ export class ModelManagerService {
     }
 
     const group = GroupRenderModel.fromModels(
-      'from resetToNonGroupModel()',
+      `${model.identifier} (not-zipped)`,
       [model],
     );
     this.resetCurrentGroup(group);
@@ -60,13 +60,13 @@ export class ModelManagerService {
       return;
     }
 
-    if (models.length === 1 && models[0] instanceof GroupRenderModel) {
-      this.resetCurrentGroup(models[0]);
+    if (models.length === 1) {
+      this.resetToNonGroupModel(models[0]);
       return;
     }
 
     const group = GroupRenderModel.fromModels(
-      'from resetToNonGroupModel()',
+      '(group of imported models)',
       [...models],
     );
     this.resetCurrentGroup(group);
