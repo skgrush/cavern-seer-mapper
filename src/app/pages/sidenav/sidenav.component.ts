@@ -4,7 +4,7 @@ import { MatListModule } from '@angular/material/list';
 import { DialogOpenerService } from '../../shared/services/dialog-opener.service';
 import { ServiceWorkerService } from '../../shared/services/service-worker.service';
 import { MAPPER_VERSION } from '../../shared/tokens/version.token';
-import { OpenDialogOpener, SaveDialogOpener, SettingsDialogOpener } from '../../dialogs';
+import { ExportImageDialogOpener, OpenDialogOpener, SaveDialogOpener, SettingsDialogOpener } from '../../dialogs';
 
 @Component({
   selector: 'mapper-sidenav',
@@ -23,6 +23,7 @@ export class SidenavComponent {
   readonly openDialog = inject(OpenDialogOpener);
   readonly saveDialog = inject(SaveDialogOpener);
   readonly settingsDialog = inject(SettingsDialogOpener);
+  readonly exportImageDialog = inject(ExportImageDialogOpener);
 
   checkForUpdate() {
     this.#serviceWorker.checkForUpdate().subscribe();

@@ -10,19 +10,6 @@ export class DialogOpenerService {
   readonly #dialog = inject(MatDialog);
   readonly #injector = inject(Injector);
 
-  exportImage() {
-    import('../../dialogs/export-image-dialog/export-image-dialog.component')
-      .then(({ ExportImageDialogComponent }) => {
-        ExportImageDialogComponent.open(
-          this.#dialog,
-          this.#injector,
-          {
-            titleText: 'Export image',
-          },
-        );
-      });
-  }
-
   exportModel() {
     import('../../dialogs/export-model-dialog/export-model-dialog.component')
       .then(({ ExportModelDialogComponent }) => {
