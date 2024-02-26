@@ -8,6 +8,7 @@ export { ConfirmationDialogData } from './confirmation-dialog/confirmation-dialo
 
 import { makeEnvironmentProviders } from '@angular/core';
 import { ConfirmationDialogService } from './confirmation-dialog/confirmation-dialog.service';
+import { ExportModelDialogOpener } from './export-model-dialog/export-model-dialog.opener';
 
 export {
   OpenDialogOpener,
@@ -16,6 +17,7 @@ export {
   ConfirmationDialogService,
   SettingsDialogOpener,
   ExportImageDialogOpener,
+  ExportModelDialogOpener,
 };
 
 export function provideDialogServices() {
@@ -26,5 +28,6 @@ export function provideDialogServices() {
     SettingsDialogOpener,
     CrossSectionRenderDialogOpener,
     ExportImageDialogOpener,
+    ExportModelDialogOpener,
   ]);
 }

@@ -3,9 +3,9 @@
   <button mat-list-item (click)="openDialog.importFiles$().subscribe()">Import...</button>
   <button mat-list-item (click)="saveDialog.saveOpenFile$().subscribe()">Zip...</button>
   <button mat-list-item (click)="exportImageDialog.exportImage$().subscribe()">Export image...</button>
-  <button mat-list-item (click)="dialogOpener.exportModel()">Export model...</button>
+  <button mat-list-item (click)="exportModelDialog.exportModel$().subscribe()">Export model...</button>
   <button mat-list-item (click)="settingsDialog.openSettings$().subscribe()">Settings</button>
-  <button mat-list-item (click)="checkForUpdate()">Check for update</button>
+  <button mat-list-item (click)="serviceWorker.checkForUpdate().subscribe()">Check for update</button>
 </mat-list>
 <div class="footer">
   <p>{{ mapperVersion.version }}</p>
