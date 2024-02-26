@@ -7,7 +7,6 @@ import { FileIconModule } from './shared/components/file-icon/file-icon.module';
 import { SidenavComponent } from './pages/sidenav/sidenav.component';
 import { AnnotationBuilderService } from './shared/services/annotation-builder.service';
 import { CanvasService } from './shared/services/canvas.service';
-import { DialogOpenerService } from './shared/services/dialog-opener.service';
 import { ExportService } from './shared/services/export.service';
 import { FileTypeService } from './shared/services/file-type.service';
 import { LocalizeService } from './shared/services/localize.service';
@@ -57,7 +56,6 @@ const deferredRoutes: Routes = [
       ModelManagerService,
       ToolManagerService,
       AnnotationBuilderService,
-      DialogOpenerService,
       LaunchQueueService,
       materialsProviders(),
       toolsProviders(),
