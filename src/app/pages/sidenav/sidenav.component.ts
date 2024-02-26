@@ -1,9 +1,15 @@
 import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
-import { DialogOpenerService } from '../../shared/services/dialog-opener.service';
 import { ServiceWorkerService } from '../../shared/services/service-worker.service';
 import { MAPPER_VERSION } from '../../shared/tokens/version.token';
+import {
+  ExportImageDialogOpener,
+  ExportModelDialogOpener,
+  OpenDialogOpener,
+  SaveDialogOpener,
+  SettingsDialogOpener,
+} from '../../dialogs';
 
 @Component({
   selector: 'mapper-sidenav',
@@ -16,10 +22,11 @@ import { MAPPER_VERSION } from '../../shared/tokens/version.token';
 export class SidenavComponent {
 
   readonly mapperVersion = inject(MAPPER_VERSION);
-  readonly dialogOpener = inject(DialogOpenerService);
-  readonly #serviceWorker = inject(ServiceWorkerService);
+  readonly serviceWorker = inject(ServiceWorkerService);
 
-  checkForUpdate() {
-    this.#serviceWorker.checkForUpdate().subscribe();
-  }
+  readonly openDialog = inject(OpenDialogOpener);
+  readonly saveDialog = inject(SaveDialogOpener);
+  readonly settingsDialog = inject(SettingsDialogOpener);
+  readonly exportImageDialog = inject(ExportImageDialogOpener);
+  readonly exportModelDialog = inject(ExportModelDialogOpener);
 }

@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, HostBinding, HostListener, inject } from '@angular/core';
-import { CompassComponent } from "../../shared/components/compass/compass.component";
-import { CanvasComponent } from "../canvas/canvas.component";
-import { FileUrlLoaderComponent } from "../file-url-loader/file-url-loader.component";
-import { DialogOpenerService } from '../../shared/services/dialog-opener.service';
+import { CompassComponent } from '../../shared/components/compass/compass.component';
+import { CanvasComponent } from '../canvas/canvas.component';
+import { FileUrlLoaderComponent } from '../file-url-loader/file-url-loader.component';
 import { ToolsBarComponent } from '../tools-bar/tools-bar.component';
+import { OpenDialogOpener } from '../../dialogs';
 
 @Component({
   selector: 'mapper-main',
@@ -15,7 +15,7 @@ import { ToolsBarComponent } from '../tools-bar/tools-bar.component';
 })
 export class MainComponent {
 
-  readonly #dialogOpener = inject(DialogOpenerService);
+  readonly #openDialog = inject(OpenDialogOpener);
 
   @HostBinding('attr.data-draggable')
   readonly dataDraggable = 'main';
@@ -93,6 +93,6 @@ export class MainComponent {
 
     console.info('file drop', e, files);
 
-    this.#dialogOpener.import(files);
+    this.#openDialog.importFiles$(files).subscribe();
   }
 }
