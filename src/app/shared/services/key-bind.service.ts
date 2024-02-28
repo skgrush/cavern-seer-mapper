@@ -2,18 +2,24 @@ import { inject, Injectable } from '@angular/core';
 import { filter, fromEvent, map, Observable } from 'rxjs';
 import { ErrorService } from './error.service';
 
-type IKeyBind = {
+type UpperCaseCharacter = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
+type AlphaCharacter = UpperCaseCharacter | Lowercase<UpperCaseCharacter>;
+type NumericCharacter = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+type SpecialCharacter = ' ' | '`' | '~' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '*' | '(' | ')' | '-' | '_' | '+' | '=' | '[' | '{' | '}' | ']' | '\\' | '|' | ';' | ':' | '"' | '\'' | ',' | '<' | '>' | '.' | '?' | '/';
+
+type KeyCharacter = AlphaCharacter | NumericCharacter | SpecialCharacter;
+
+type IKeyBind<TKey extends KeyCharacter = KeyCharacter> = {
   readonly altKey?: boolean;
   readonly ctrlKey?: boolean;
   readonly shiftKey?: boolean;
   readonly metaKey?: boolean;
-  readonly key: string;
+  readonly key: TKey;
 }
 
 const modifiers = ['ctrlKey', 'altKey', 'shiftKey', 'metaKey'] as const satisfies readonly (keyof IKeyBind)[];
 
-type KeyStr = '';
-type KeyBindString = `${'ctrl+'|''}${'alt+'|''}${'shift+'|''}${'meta+'|''}${KeyStr}`;
+type KeyBindString = `${'ctrl+'|''}${'alt+'|''}${'shift+'|''}${'meta+'|''}${KeyCharacter}`;
 
 type UnSuffixKey<T extends `${string}Key`> = T extends `${infer K}Key` ? K : never;
 
@@ -42,7 +48,11 @@ export class KeyBindService {
    * @returns true if-and-only-if the event matched a registered event and called the callback.
    */
   keyEventCalled(e: KeyboardEvent) {
-    const bindStr = this.makeBindStr(e);
+    if (e.key.length > 1) {
+      return false;
+    }
+
+    const bindStr = this.makeBindStr(e as IKeyBind);
 
     const callback = this.#registry.get(bindStr);
     try {
@@ -78,6 +88,6 @@ export class KeyBindService {
       .map(mod => mod.slice(0, -3) as UnSuffixKey<typeof mod>)
       .map(modPrefix => `${modPrefix}+` as const);
 
-    return mods.join('') + e.key as '';
+    return (mods.join('') + e.key) as KeyBindString;
   }
 }
