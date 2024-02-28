@@ -14,6 +14,7 @@ import { INTL_UNIT_LIST_FORMAT } from './shared/tokens/intl-unit-list-format.tok
 import { LOCAL_STORAGE } from './shared/tokens/local-storage.token';
 import { MAPPER_VERSION, VersionObject } from './shared/tokens/version.token';
 import { provideHttpClient } from '@angular/common/http';
+import { KeyBindService } from './shared/services/key-bind.service';
 
 
 export const appConfig: ApplicationConfig = {
@@ -23,6 +24,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     ErrorService,
     AlertService,
+    KeyBindService,
     importProvidersFrom(MatSnackBarModule),
     {
       provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
