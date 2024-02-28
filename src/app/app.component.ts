@@ -30,7 +30,7 @@ export class AppComponent {
     e.preventDefault();
   }
 
-  @HostListener('keybdown', ['$event'])
+  @HostListener('keydown', ['$event'])
   keydown(e: KeyboardEvent) {
     console.debug('keydown', e.key, e);
     const called = this.#keybind.keyEventCalled(e);

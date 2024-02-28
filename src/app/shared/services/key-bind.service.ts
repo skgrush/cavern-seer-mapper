@@ -2,12 +2,11 @@ import { inject, Injectable } from '@angular/core';
 import { filter, fromEvent, map, Observable } from 'rxjs';
 import { ErrorService } from './error.service';
 
-type UpperCaseCharacter = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
-type AlphaCharacter = UpperCaseCharacter | Lowercase<UpperCaseCharacter>;
+type LowerCaseCharacter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 type NumericCharacter = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 type SpecialCharacter = ' ' | '`' | '~' | '!' | '@' | '#' | '$' | '%' | '^' | '&' | '*' | '(' | ')' | '-' | '_' | '+' | '=' | '[' | '{' | '}' | ']' | '\\' | '|' | ';' | ':' | '"' | '\'' | ',' | '<' | '>' | '.' | '?' | '/';
 
-type KeyCharacter = AlphaCharacter | NumericCharacter | SpecialCharacter;
+type KeyCharacter = LowerCaseCharacter | NumericCharacter | SpecialCharacter;
 
 type IKeyBind<TKey extends KeyCharacter = KeyCharacter> = {
   readonly altKey?: boolean;
@@ -19,7 +18,7 @@ type IKeyBind<TKey extends KeyCharacter = KeyCharacter> = {
 
 const modifiers = ['ctrlKey', 'altKey', 'shiftKey', 'metaKey'] as const satisfies readonly (keyof IKeyBind)[];
 
-type KeyBindString = `${'ctrl+'|''}${'alt+'|''}${'shift+'|''}${'meta+'|''}${KeyCharacter}`;
+export type KeyBindString = `${'ctrl+'|''}${'alt+'|''}${'shift+'|''}${'meta+'|''}${KeyCharacter}`;
 
 type UnSuffixKey<T extends `${string}Key`> = T extends `${infer K}Key` ? K : never;
 
@@ -53,6 +52,7 @@ export class KeyBindService {
     }
 
     const bindStr = this.makeBindStr(e as IKeyBind);
+    console.debug('keyEventCalled', bindStr);
 
     const callback = this.#registry.get(bindStr);
     try {
@@ -88,6 +88,6 @@ export class KeyBindService {
       .map(mod => mod.slice(0, -3) as UnSuffixKey<typeof mod>)
       .map(modPrefix => `${modPrefix}+` as const);
 
-    return (mods.join('') + e.key) as KeyBindString;
+    return (mods.join('') + e.key.toLowerCase()) as KeyBindString;
   }
 }
