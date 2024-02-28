@@ -1,22 +1,33 @@
-import { Directive, inject, Input, Output } from '@angular/core';
+import { Directive, inject, Injectable, Input, Output } from '@angular/core';
 import { KeyBindService, KeyBindString } from '../services/key-bind.service';
-import { map, Subject, switchMap } from 'rxjs';
+import { map, ReplaySubject, switchMap } from 'rxjs';
+
+@Injectable()
+export class KeyBindContext {
+  readonly #keyBindString$ = new ReplaySubject<KeyBindString>(1);
+  public keyBindString$ = this.#keyBindString$.asObservable();
+
+  public changeKeyBind(keybind: KeyBindString) {
+    this.#keyBindString$.next(keybind);
+  }
+}
 
 @Directive({
   selector: '[mapperKeyBind]',
   standalone: true,
+  providers: [KeyBindContext],
 })
 export class KeyBindDirective {
   readonly #keyBindService = inject(KeyBindService);
 
-  readonly #keyBindString$ = new Subject<KeyBindString>();
+  readonly #keyBindContext = inject(KeyBindContext);
 
   /**
    * The keybinding that should trigger a click.
    */
   @Input({ required: true })
   set mapperKeyBind(v: KeyBindString) {
-    this.#keyBindString$.next(v);
+    this.#keyBindContext.changeKeyBind(v);
   }
 
   /**
@@ -24,7 +35,7 @@ export class KeyBindDirective {
    * if the mapped keybinding is clicked.
    */
   @Output('click')
-  readonly clickCallback = this.#keyBindString$.pipe(
+  readonly clickCallback = this.#keyBindContext.keyBindString$.pipe(
     switchMap(kb => this.#keyBindService.registerStr$(kb)),
     map(() => undefined),
   );

@@ -111,4 +111,23 @@ export class KeyBindService {
 
     return (mods.join('') + e.key.toLowerCase()) as KeyBindString;
   }
+
+  bindStringToObject(str: KeyBindString): IKeyBind {
+    let char: KeyCharacter;
+
+    const parts = str.split('+').filter(i => i);
+    if (str.endsWith('++')) {
+      char = '+';
+    } else {
+      char = parts[parts.length - 1] as KeyCharacter;
+    }
+
+    return {
+      key: char,
+      altKey: parts.includes('alt'),
+      metaKey: parts.includes('meta'),
+      ctrlKey: parts.includes('ctrl'),
+      shiftKey: parts.includes('shift'),
+    };
+  }
 }

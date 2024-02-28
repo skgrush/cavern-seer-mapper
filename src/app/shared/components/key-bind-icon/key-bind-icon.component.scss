@@ -1,0 +1,8 @@
+:host {
+  display: inline-flex;
+  color: gray;
+
+  &.icons-symbolic span {
+    gap: 2px;
+  }
+}
