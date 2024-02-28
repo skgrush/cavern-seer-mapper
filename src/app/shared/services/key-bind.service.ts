@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { filter, fromEvent, map, Observable } from 'rxjs';
 import { ErrorService } from './error.service';
+import { Platform, PlatformService } from './platform.service';
 
 type LowerCaseCharacter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 type NumericCharacter = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
@@ -25,8 +26,28 @@ type UnSuffixKey<T extends `${string}Key`> = T extends `${infer K}Key` ? K : nev
 @Injectable()
 export class KeyBindService {
   readonly #errorService = inject(ErrorService);
+  readonly #platform = inject(PlatformService);
 
   readonly #registry = new Map<KeyBindString, (e: KeyboardEvent) => void>();
+
+  readonly icons: Record<typeof modifiers[number], string> & { symbolic: boolean };
+
+  constructor() {
+    switch (this.#platform.platform) {
+      case Platform.MacOS:
+      case Platform.iDevice:
+        this.icons = { symbolic: true, ctrlKey: '⌃', altKey: '⌥', shiftKey: '⇧', metaKey: '⌘' };
+        break;
+      case Platform.Android:
+      case Platform.Linux:
+      case Platform.Windows:
+      default:
+        this.icons = { symbolic: true, ctrlKey: '⌃', altKey: '⌥', shiftKey: '⇧', metaKey: '⊞' };
+        // this.icons = { symbolic: false, ctrlKey: 'Ctrl', altKey: 'Alt', shiftKey: 'Shift', metaKey: '⊞' };
+        break;
+    }
+  }
+
 
   /**
    * Bind the element for universal keybindings.
