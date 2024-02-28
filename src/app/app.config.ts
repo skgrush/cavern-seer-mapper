@@ -15,6 +15,7 @@ import { LOCAL_STORAGE } from './shared/tokens/local-storage.token';
 import { MAPPER_VERSION, VersionObject } from './shared/tokens/version.token';
 import { provideHttpClient } from '@angular/common/http';
 import { KeyBindService } from './shared/services/key-bind.service';
+import { PlatformService } from './shared/services/platform.service';
 
 
 export const appConfig: ApplicationConfig = {
@@ -25,6 +26,7 @@ export const appConfig: ApplicationConfig = {
     ErrorService,
     AlertService,
     KeyBindService,
+    PlatformService,
     importProvidersFrom(MatSnackBarModule),
     {
       provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
