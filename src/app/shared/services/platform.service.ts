@@ -60,14 +60,17 @@ export class PlatformService {
 
     userAgentDataPlatform = userAgentDataPlatform.toLowerCase();
 
-    if (userAgentDataPlatform.includes('macos')) {
+    if (userAgentDataPlatform.startsWith('macos')) {
       return Platform.MacOS;
     }
-    if (userAgentDataPlatform.includes('windows')) {
+    if (userAgentDataPlatform.startsWith('windows')) {
       return Platform.Windows;
     }
-    if (userAgentDataPlatform.includes('android')) {
+    if (userAgentDataPlatform.startsWith('android')) {
       return Platform.Android;
+    }
+    if (userAgentDataPlatform.startsWith('linux')) {
+      return Platform.Linux;
     }
 
     return undefined;
