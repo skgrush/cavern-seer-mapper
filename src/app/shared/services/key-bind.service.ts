@@ -111,18 +111,25 @@ export class KeyBindService {
     return (mods.join('') + e.key.toLowerCase()) as KeyBindString;
   }
 
-  bindStringToObject(str: KeyBindString): IKeyBind {
-    let char: KeyCharacter;
+  localizeKeyBindString(str: KeyBindString) {
+    const obj = this.bindStringToObject(str);
+    const icons = this.icons;
 
-    const parts = str.split('+').filter(i => i);
-    if (str.endsWith('++')) {
-      char = '+';
-    } else {
-      char = parts[parts.length - 1] as KeyCharacter;
-    }
+    const parts = modifiers
+      .filter(mod => obj[mod])
+      .map(mod => icons[mod])
+      .concat(obj.key);
+
+    return parts.join(icons.symbolic ? '' : '+');
+  }
+
+  #plusSplitter = /(?<!\+)\+/;
+  bindStringToObject(str: KeyBindString): IKeyBind {
+    const parts = str.split(this.#plusSplitter).filter(i => i);
+    const key = parts[parts.length - 1] as KeyCharacter;
 
     return {
-      key: char,
+      key,
       altKey: parts.includes('alt'),
       metaKey: parts.includes('meta'),
       ctrlKey: parts.includes('ctrl'),

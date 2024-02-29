@@ -1,7 +1,1 @@
-<ng-container *ngIf="obj$ | async as obj">
-  <span *ngIf="obj.ctrlKey">{{ icons.ctrlKey }}</span>
-  <span *ngIf="obj.altKey">{{ icons.altKey }}</span>
-  <span *ngIf="obj.shiftKey">{{ icons.shiftKey }}</span>
-  <span *ngIf="obj.metaKey">{{ icons.metaKey }}</span>
-  <span>{{ obj.key }}</span>
-</ng-container>
+{{ localizedStr$ | async }}
