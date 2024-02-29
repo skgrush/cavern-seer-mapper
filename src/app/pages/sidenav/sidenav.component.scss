@@ -6,10 +6,12 @@
   mat-list {
     overflow-y: auto;
 
-    button[mat-list-item] span:not(span[class]) {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
+    button[mat-list-item] {
+      span:not(span[class]) {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+      }
     }
   }
 }

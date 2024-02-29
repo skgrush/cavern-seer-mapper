@@ -2,7 +2,9 @@
   display: inline-flex;
   color: gray;
 
-  &.icons-symbolic span {
-    gap: 2px;
+  &:not(.icons-symbolic) span {
+    &:not(:last-child):after {
+      content: '+';
+    }
   }
 }

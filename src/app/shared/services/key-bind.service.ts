@@ -42,8 +42,7 @@ export class KeyBindService {
       case Platform.Linux:
       case Platform.Windows:
       default:
-        this.icons = { symbolic: true, ctrlKey: '⌃', altKey: '⌥', shiftKey: '⇧', metaKey: '⊞' };
-        // this.icons = { symbolic: false, ctrlKey: 'Ctrl', altKey: 'Alt', shiftKey: 'Shift', metaKey: '⊞' };
+        this.icons = { symbolic: false, ctrlKey: 'Ctrl', altKey: 'Alt', shiftKey: 'Shift', metaKey: '⊞' };
         break;
     }
   }
