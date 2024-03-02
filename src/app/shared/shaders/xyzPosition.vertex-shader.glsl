@@ -1,7 +1,6 @@
 /**
- * Vertex shader that sets `xyzPosition`
+ * Vertex shader that sets `xyzPosition`.
  */
-export const xyzPositionVertexShader = `
 varying vec3 xyzPosition;
 
 void main() {
@@ -9,4 +8,4 @@ void main() {
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
-`;
+

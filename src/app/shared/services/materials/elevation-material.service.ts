@@ -2,36 +2,8 @@ import { Injectable } from '@angular/core';
 import { BaseMaterialService } from './base-material.service';
 import { Color, ShaderMaterial } from 'three';
 import { colorToVector3 } from '../../functions/color-to-vector3';
-import { xyzPositionVertexShader } from '../../shaders/xyzPosition.vertex-shader';
-
-/**
- * Fragment shader that uses `xyzPosition` to set
- * fragment color between `colorMin` and `colorMax` based
- * on the Y coordinate's distance between `yMin` and `yMax`.
- *
- * Depends on {@link xyzPositionVertexShader}.
- */
-const fragmentShader = `
-uniform float yMin;
-uniform float yMax;
-
-uniform vec3 colorMin;
-uniform vec3 colorMax;
-
-varying vec3 xyzPosition;
-
-void main()
-{
-  float yPos = xyzPosition.y;
-
-  yPos = clamp(yPos, yMin, yMax);
-  float fractionBetweenMinAndMax = (yPos - yMin) / (yMax - yMin);
-
-  gl_FragColor.rgb = mix(colorMin, colorMax, fractionBetweenMinAndMax);
-  gl_FragColor.a = 1.0;
-}
-`;
-
+import xyzPositionVertexShader from '../../shaders/xyzPosition.vertex-shader.glsl';
+import elevationFragmentShader from '../../shaders/elevation.fragment-shader.glsl';
 
 @Injectable()
 export class ElevationMaterialService extends BaseMaterialService<ShaderMaterial> {
@@ -49,7 +21,7 @@ export class ElevationMaterialService extends BaseMaterialService<ShaderMaterial
       colorMin: { value: colorToVector3(new Color(this.defaultColorMin)) },
       colorMax: { value: colorToVector3(new Color(this.defaultColorMax)) },
     },
-    fragmentShader,
+    fragmentShader: elevationFragmentShader,
     vertexShader: xyzPositionVertexShader,
   });
   override readonly type = 'elevation';
