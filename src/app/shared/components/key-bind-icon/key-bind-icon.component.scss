@@ -1,10 +1,4 @@
 :host {
   display: inline-flex;
   color: gray;
-
-  &:not(.icons-symbolic) span {
-    &:not(:last-child):after {
-      content: '+';
-    }
-  }
 }
