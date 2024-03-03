@@ -46,7 +46,6 @@
             ],
             "scripts": [],
             "prerender": false,
-
             "namedChunks": true
           },
           "configurations": {
