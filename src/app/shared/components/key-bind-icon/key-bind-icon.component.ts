@@ -4,6 +4,10 @@ import { map } from 'rxjs';
 import { KeyBindService } from '../../services/key-bind.service';
 import { AsyncPipe } from '@angular/common';
 
+/**
+ * Should be used inside an element with the {@link mapperKeyBind} directive.
+ * A platform-localized version of the keybind icons/text are rendered.
+ */
 @Component({
   selector: 'mapper-key-bind-icon',
   standalone: true,

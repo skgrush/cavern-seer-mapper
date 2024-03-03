@@ -33,8 +33,8 @@ export class AppComponent {
   @HostListener('keydown', ['$event'])
   keydown(e: KeyboardEvent) {
     console.debug('keydown', e.key, e);
-    const called = this.#keybind.keyEventCalled(e);
-    if (called) {
+    const handled = this.#keybind.keyEventCalled(e);
+    if (handled) {
       e.preventDefault();
     }
   }
