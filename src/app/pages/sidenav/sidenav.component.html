@@ -1,11 +1,11 @@
 <mat-list>
-  <button mat-list-item (click)="openDialog.openAFile$().subscribe()">Open...</button>
-  <button mat-list-item (click)="openDialog.importFiles$().subscribe()">Import...</button>
-  <button mat-list-item (click)="saveDialog.saveOpenFile$().subscribe()">Save zip...</button>
-  <button mat-list-item (click)="exportImageDialog.exportImage$().subscribe()">Export image...</button>
-  <button mat-list-item (click)="exportModelDialog.exportModel$().subscribe()">Export model...</button>
-  <button mat-list-item (click)="settingsDialog.openSettings$().subscribe()">Settings</button>
-  <button mat-list-item (click)="serviceWorker.checkForUpdate().subscribe()">Check for update</button>
+  <button mat-list-item [mapperKeyBind]="'ctrl+o'" (click)="openDialog.openAFile$().subscribe()"><span>Open... <mapper-key-bind-icon /></span></button>
+  <button mat-list-item [mapperKeyBind]="'ctrl+i'" (click)="openDialog.importFiles$().subscribe()"><span>Import... <mapper-key-bind-icon /></span></button>
+  <button mat-list-item [mapperKeyBind]="'ctrl+s'" (click)="saveDialog.saveOpenFile$().subscribe()"><span>Save zip... <mapper-key-bind-icon /></span></button>
+  <button mat-list-item [mapperKeyBind]="'ctrl+e'" (click)="exportImageDialog.exportImage$().subscribe()"><span>Export image... <mapper-key-bind-icon /></span></button>
+  <button mat-list-item [mapperKeyBind]="'ctrl+shift+e'" (click)="exportModelDialog.exportModel$().subscribe()"><span>Export model... <mapper-key-bind-icon /></span></button>
+  <button mat-list-item (click)="settingsDialog.openSettings$().subscribe()"><span>Settings</span></button>
+  <button mat-list-item (click)="serviceWorker.checkForUpdate().subscribe()"><span>Check for update</span></button>
 </mat-list>
 <div class="footer">
   <p>{{ mapperVersion.version }}</p>

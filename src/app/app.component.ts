@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterOutlet } from '@angular/router';
+import { KeyBindService } from './shared/services/key-bind.service';
 
 @Component({
   selector: 'mapper-root',
@@ -15,6 +16,7 @@ import { RouterOutlet } from '@angular/router';
   imports: [CommonModule, RouterOutlet, MatSidenavModule, MatButtonModule, MatIconModule, MatTooltipModule]
 })
 export class AppComponent {
+  readonly #keybind = inject(KeyBindService);
 
   @HostListener('dragover', ['$event'])
   dragOver(e: DragEvent) {
@@ -26,5 +28,14 @@ export class AppComponent {
   drop(e: DragEvent) {
     console.info('drop on app', e);
     e.preventDefault();
+  }
+
+  @HostListener('keydown', ['$event'])
+  keydown(e: KeyboardEvent) {
+    console.debug('keydown', e.key, e);
+    const handled = this.#keybind.keyEventCalled(e);
+    if (handled) {
+      e.preventDefault();
+    }
   }
 }

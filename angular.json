@@ -34,6 +34,9 @@
               "src/assets",
               "src/manifest.webmanifest"
             ],
+            "loader": {
+              ".glsl": "text"
+            },
             "styles": [
               "@angular/material/prebuilt-themes/purple-green.css",
               "src/styles.scss"
