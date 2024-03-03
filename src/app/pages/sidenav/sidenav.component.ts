@@ -11,13 +11,12 @@ import {
   SettingsDialogOpener,
 } from '../../dialogs';
 import { KeyBindDirective } from '../../shared/directives/key-bind.directive';
-import { MatTooltip } from '@angular/material/tooltip';
 import { KeyBindIconComponent } from '../../shared/components/key-bind-icon/key-bind-icon.component';
 
 @Component({
   selector: 'mapper-sidenav',
   standalone: true,
-  imports: [MatListModule, AsyncPipe, NgIf, KeyBindDirective, MatTooltip, KeyBindIconComponent],
+  imports: [MatListModule, AsyncPipe, NgIf, KeyBindDirective, KeyBindIconComponent],
   templateUrl: './sidenav.component.html',
   styleUrl: './sidenav.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
