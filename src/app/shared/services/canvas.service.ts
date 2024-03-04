@@ -32,6 +32,7 @@ import {
   Vector3,
   WebGLRenderer,
   DirectionalLight,
+  Intersection,
 } from 'three';
 import { markSceneOfItemForReRender } from '../functions/mark-scene-of-item-for-rerender';
 import { traverseSome } from '../functions/traverse-some';
@@ -403,13 +404,17 @@ export class CanvasService {
   raycastFromCamera(coords: Vector2) {
     this.#raycaster.setFromCamera(coords, this.#orthoControls!.camera);
 
-    return this.#raycaster.intersectObjects(this.#scene.children, true);
+    return this.#raycaster.intersectObject(this.#scene);
   }
 
   raycast(origin: Vector3, direction: Vector3) {
     this.#raycaster.set(origin, direction);
 
-    return this.#raycaster.intersectObjects(this.#scene.children, true);
+    return this.#raycaster.intersectObject(this.#scene);
+  }
+
+  raycastWithPreparedRaycaster(raycaster: Raycaster, recursive?: boolean, optionalTarget?: Intersection[]) {
+    return raycaster.intersectObject(this.#scene, recursive, optionalTarget);
   }
 
   enableControls(enable: boolean) {
