@@ -4,7 +4,7 @@ import { BehaviorSubject, map, of, switchMap, take, tap, timer } from 'rxjs';
 import { ModelManagerService } from '../model-manager.service';
 import { ignoreNullish } from '../../operators/ignore-nullish';
 import { TemporaryAnnotation } from '../../models/annotations/temporary.annotation';
-import { Group, Intersection, Mesh, MeshBasicMaterial, Object3D, Raycaster, Vector3 } from 'three';
+import { BoxGeometry, Group, Intersection, Mesh, MeshBasicMaterial, Object3D, Raycaster, Vector3 } from 'three';
 import { CanvasService } from '../canvas.service';
 import { IMapperUserData } from '../../models/user-data';
 import { LocalizeService } from '../localize.service';
@@ -60,10 +60,10 @@ class MapProbe {
       // we want heights ordered from top to bottom
       .reverse()
       .map((txt, i) => {
-        const textMesh = this.#builSingleTextItem(txt);
-        textMesh.position.y = highestPoint.y - this.origin.y;
-        textMesh.position.z = fontSize * i;
-        return textMesh;
+        const textGroup = this.#builSingleTextItem(txt);
+        textGroup.position.y = highestPoint.y - this.origin.y;
+        textGroup.position.z = fontSize * i;
+        return textGroup;
       });
   }
 
@@ -75,20 +75,37 @@ class MapProbe {
         font: droidSansFont,
         size: fontSize,
         height: fontSize / 5,
-        // bevelEnabled: true,
-        // bevelSize: fontSize,
       },
     );
-    const textMat = new MeshBasicMaterial({ color: 0x00 });
-    textMat.depthTest = false;
+    textGeometry.computeBoundingBox();
+    const textBox = textGeometry.boundingBox!;
+    const textSize = textBox.getSize(new Vector3());
 
-    const mesh = new Mesh(
+    const textMat = new MeshBasicMaterial({ color: 0x00 });
+    const textMesh = new Mesh(
       textGeometry,
       textMat,
     );
-    mesh.rotation.set(-Math.PI / 2, 0, 0);
-    mesh.renderOrder = RenderingOrder.Annotation;
-    return mesh;
+
+    const boxGeometry = new BoxGeometry(
+      textSize.x,
+      textSize.y,
+      0.001,
+    );
+    const boxMat = new MeshBasicMaterial({ color: 0xFFFFFF });
+    const boxMesh = new Mesh(boxGeometry, boxMat);
+    boxMesh.position.x = textSize.x / 2;
+    boxMesh.position.y = textSize.y / 2;
+    boxMesh.position.z = -textSize.z / 2;
+
+    textMat.depthTest = false;
+    textMesh.renderOrder = RenderingOrder.Annotation;
+
+    const textGroup = new Group();
+    textGroup.add(boxMesh, textMesh);
+    textGroup.rotation.set(-Math.PI / 2, 0, 0);
+
+    return textGroup;
   }
 
   *#getPairs(): Generator<IntersectionPair> {
@@ -136,6 +153,7 @@ export class FullHeightMapToolService extends BaseClickToolService {
 
   override click() {
     this.#modelManager.currentOpenGroup$.pipe(
+      // only take 1 THEN cut off on nullish; we don't want to hang if there's no group
       take(1),
       ignoreNullish(),
       switchMap(group => {
@@ -161,6 +179,7 @@ export class FullHeightMapToolService extends BaseClickToolService {
     const rangeY = maxY - minY;
 
     const raycaster = new Raycaster(new Vector3(), yDown, 0, rangeY);
+    raycaster.params['Mesh'].threshold = 0.1;
 
     const stepSize = this.#stepSize;
     const tmpResults: Intersection[] = [];
@@ -219,16 +238,16 @@ export class FullHeightMapToolService extends BaseClickToolService {
     this.#ceilingHeightsGroup$.next(anno);
 
     this.#alert.alert(AlertType.info, `Generated full height-map in ${Math.round(ts1 - ts0) / 1e3} sec`, 'X', {
-      duration: 10e3,
+      duration: 15e3,
     })
   }
 
-  #clearAnnotations(group: GroupRenderModel) {
+  #clearAnnotations(group?: GroupRenderModel) {
     const anno = this.#ceilingHeightsGroup$.value;
     if (!anno) {
       return;
     }
-    group.removeAnnotations(new Set([anno]));
+    group?.removeAnnotations(new Set([anno]));
 
     this.#ceilingHeightsGroup$.next(undefined);
   }
