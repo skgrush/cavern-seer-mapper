@@ -1,37 +1,38 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
-  BehaviorSubject,
-  Observable,
-  Subject,
   animationFrames,
+  BehaviorSubject,
+  combineLatest,
   defer,
   distinctUntilChanged,
   filter,
   fromEvent,
   map,
+  Observable,
+  of,
   scan,
+  startWith,
+  Subject,
   switchMap,
   takeUntil,
   tap,
-  combineLatest,
-  of,
-  startWith,
 } from 'rxjs';
 import {
   AmbientLight,
   Box3,
   Camera,
   Clock,
+  DirectionalLight,
   GridHelper,
+  Intersection,
   OrthographicCamera,
   Raycaster,
-  SRGBColorSpace,
   Scene,
+  SRGBColorSpace,
   Vector2,
   Vector3,
   WebGLRenderer,
-  DirectionalLight,
 } from 'three';
 import { markSceneOfItemForReRender } from '../functions/mark-scene-of-item-for-rerender';
 import { traverseSome } from '../functions/traverse-some';
@@ -43,7 +44,7 @@ import { IMapperUserData } from '../models/user-data';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { LocalizeService } from './localize.service';
 import { ModelManagerService } from './model-manager.service';
-import { SettingsService } from "./settings/settings.service";
+import { SettingsService } from './settings/settings.service';
 import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
 import { TemporaryAnnotation } from '../models/annotations/temporary.annotation';
 import { MaterialManagerService } from './materials/material-manager.service';
@@ -403,13 +404,17 @@ export class CanvasService {
   raycastFromCamera(coords: Vector2) {
     this.#raycaster.setFromCamera(coords, this.#orthoControls!.camera);
 
-    return this.#raycaster.intersectObjects(this.#scene.children, true);
+    return this.#raycaster.intersectObject(this.#scene);
   }
 
   raycast(origin: Vector3, direction: Vector3) {
     this.#raycaster.set(origin, direction);
 
-    return this.#raycaster.intersectObjects(this.#scene.children, true);
+    return this.#raycaster.intersectObject(this.#scene);
+  }
+
+  raycastWithPreparedRaycaster(raycaster: Raycaster, recursive?: boolean, optionalTarget?: Intersection[]) {
+    return raycaster.intersectObject(this.#scene, recursive, optionalTarget);
   }
 
   enableControls(enable: boolean) {
