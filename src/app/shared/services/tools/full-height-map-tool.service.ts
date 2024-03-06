@@ -4,7 +4,7 @@ import { BehaviorSubject, map, of, switchMap, take, tap, timer } from 'rxjs';
 import { ModelManagerService } from '../model-manager.service';
 import { ignoreNullish } from '../../operators/ignore-nullish';
 import { TemporaryAnnotation } from '../../models/annotations/temporary.annotation';
-import { BoxGeometry, Group, Intersection, Mesh, MeshBasicMaterial, Object3D, Raycaster, Vector3 } from 'three';
+import { BoxGeometry, Group, Intersection, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three';
 import { CanvasService } from '../canvas.service';
 import { IMapperUserData } from '../../models/user-data';
 import { LocalizeService } from '../localize.service';
