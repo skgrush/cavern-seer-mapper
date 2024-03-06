@@ -16,7 +16,7 @@ import { AlertService, AlertType } from '../alert.service';
 
 const yUp = new Vector3(0, 1, 0);
 const yDown = new Vector3(0, -1, 0);
-const fontSize = 0.05;
+// const fontSize = 0.05;
 
 type IntersectionPair = {
   readonly floor: Intersection;
@@ -24,7 +24,9 @@ type IntersectionPair = {
 }
 
 class MapProbe {
-  readonly identifier = `${this.origin.x}, ${this.origin.y}, ${this.origin.z}`;
+  get identifier() {
+    return `${this.origin.x}, ${this.origin.y}, ${this.origin.z}`;
+  }
 
   readonly group: Group;
 
@@ -33,6 +35,7 @@ class MapProbe {
     readonly downIntersections: readonly Intersection[],
     readonly upIntersections: readonly Intersection[],
     readonly minY: number,
+    readonly fontSize: number,
     localize: LocalizeService,
   ) {
     this.group = this.#toGroup(localize);
@@ -52,7 +55,8 @@ class MapProbe {
 
     const highestPoint = [...this.upIntersections, ...this.downIntersections]
       .map(i => i.point)
-      .sort((a, b) => b.y - a.y)[0];
+      .sort((a, b) => b.y - a.y)
+      [0];
 
     return pairs
       .map(({ floor, ceiling }) => ceiling.point.y - floor.point.y)
@@ -60,21 +64,21 @@ class MapProbe {
       // we want heights ordered from top to bottom
       .reverse()
       .map((txt, i) => {
-        const textGroup = this.#builSingleTextItem(txt);
+        const textGroup = this.#buildSingleTextItem(txt);
         textGroup.position.y = highestPoint.y - this.origin.y;
-        textGroup.position.z = fontSize * i;
+        textGroup.position.z = this.fontSize * i;
         return textGroup;
       });
   }
 
-  #builSingleTextItem(text: string) {
+  #buildSingleTextItem(text: string) {
 
     const textGeometry = new TextGeometry(
       text,
       {
         font: droidSansFont,
-        size: fontSize,
-        height: fontSize / 5,
+        size: this.fontSize,
+        height: this.fontSize / 5,
       },
     );
     textGeometry.computeBoundingBox();
@@ -182,6 +186,7 @@ export class FullHeightMapToolService extends BaseClickToolService {
     raycaster.params['Mesh'].threshold = 0.1;
 
     const stepSize = this.#stepSize;
+    const fontSize = stepSize / 5;
     const tmpResults: Intersection[] = [];
     const finalResults: MapProbe[] = [];
 
@@ -219,7 +224,7 @@ export class FullHeightMapToolService extends BaseClickToolService {
           continue;
         }
 
-        finalResults.push(new MapProbe(origin, downResults, upResults, minY, this.#localize));
+        finalResults.push(new MapProbe(origin, downResults, upResults, minY, fontSize, this.#localize));
       }
     }
 
