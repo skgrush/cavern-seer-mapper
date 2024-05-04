@@ -49,6 +49,7 @@ import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
 import { TemporaryAnnotation } from '../models/annotations/temporary.annotation';
 import { MaterialManagerService } from './materials/material-manager.service';
 import { ElevationMaterialService } from './materials/elevation-material.service';
+import { temporarilySet$ } from '../functions/temporarily-set';
 
 @Injectable()
 export class CanvasService {
@@ -264,6 +265,10 @@ export class CanvasService {
     this.#embeddedAnnotationsVisibleSubject.next(
       !this.#embeddedAnnotationsVisibleSubject.value,
     );
+  }
+
+  temporarilySetEmbeddedAnnotations$(to: boolean) {
+    return temporarilySet$(this.#embeddedAnnotationsVisibleSubject, to);
   }
 
   /**

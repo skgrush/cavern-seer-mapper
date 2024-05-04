@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
-import { defer, first, map, Observable, of, switchMap, take, tap, timer } from 'rxjs';
+import { defer, first, map, Observable, of, Subscription, switchMap, take, tap, timer } from 'rxjs';
 import { ModelManagerService } from './model-manager.service';
 import { ModelLoadService } from './model-load.service';
 import { TransportProgressHandler } from '../models/transport-progress-handler';
@@ -9,6 +9,7 @@ import { Camera, Object3D } from 'three';
 import { ignoreNullish } from '../operators/ignore-nullish';
 import { CompressionService } from './compression.service';
 import { MaterialManagerService } from './materials/material-manager.service';
+import { traverseSome } from '../functions/traverse-some';
 
 export enum ModelExporterNames {
   OBJ = 'OBJ',
@@ -189,14 +190,24 @@ export class ExportService {
   }
 
   exportModel$<T extends ModelExporterNames>(type: T) {
-    const meshSub = this.#materialManager.temporarilySwitchMaterial$('standard').subscribe();
-    const fn = this.#parsers[type] as (o: Object3D) => Observable<ModelExporterReturnMap[T]>;
+    const encoderFn = (initialObject: Object3D) => {
+      const actualEncoderFn = this.#parsers[type] as (o: Object3D) => Observable<ModelExporterReturnMap[T]>;
+
+      return actualEncoderFn(this.#modelWithoutInvisible(initialObject));
+    }
+
+    let tempSwitchSub: Subscription | undefined;
+
     return this.#modelManager.currentOpenGroup$.pipe(
       ignoreNullish(),
       take(1),
-      switchMap(currentGroup => currentGroup.encode(fn)),
+      tap(() => {
+        tempSwitchSub = this.#materialManager.temporarilySwitchMaterial$('standard').subscribe();
+        tempSwitchSub.add(this.#canvasService.temporarilySetEmbeddedAnnotations$(false).subscribe());
+      }),
+      switchMap(currentGroup => currentGroup.encode(encoderFn)),
       tap({
-        finalize: () => meshSub.unsubscribe(),
+        finalize: () => tempSwitchSub?.unsubscribe(),
       }),
     );
   }
@@ -233,5 +244,28 @@ export class ExportService {
       return name;
     }
     return `${name}${extension}`;
+  }
+
+  /**
+   * If model has any invisible descendants, clone it and remove them and return the clone.
+   * @private
+   */
+  #modelWithoutInvisible(initialObject: Object3D): Object3D {
+    if (!traverseSome(initialObject, o => !o.visible)) {
+      return initialObject;
+    }
+
+    const finalObject = initialObject.clone(true);
+
+    finalObject.traverse(obj => {
+      // this SHOULD work because traverse calls its callback on the element
+      // first, then retrieves its children and iterates over them.
+      const invisibleChildren = obj.children.filter(c => !c.visible);
+      if (invisibleChildren.length) {
+        obj.remove(...invisibleChildren);
+      }
+    });
+
+    return finalObject;
   }
 }
