@@ -9,7 +9,7 @@ export class ToggleEmbeddedAnnotationsToolService extends BaseClickToolService {
 
   override readonly id = 'toggle-embedded-annotations';
   override readonly label = 'Toggle embedded annotations';
-  override readonly icon$ = this.#canvasService.gridVisible$.pipe(
+  override readonly icon$ = this.#canvasService.embeddedAnnotationsVisible$.pipe(
     map(visible => ({
       icon: 'sticky_note_2',
       fontSet: visible ? 'material-icons' : 'material-icons-outlined',
