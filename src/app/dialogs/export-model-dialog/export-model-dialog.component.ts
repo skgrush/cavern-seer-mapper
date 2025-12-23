@@ -14,7 +14,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { AsyncPipe, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { BytesPipe } from '../../shared/pipes/bytes.pipe';
 import { MatButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
@@ -35,14 +35,11 @@ export type IExportModelDialogData = {
     MatLabel,
     MatButtonToggle,
     MatButtonToggleGroup,
-    NgIf,
     AsyncPipe,
     BytesPipe,
     MatButton,
     MatDialogActions,
     MatDialogClose,
-    NgSwitch,
-    NgSwitchCase,
     MatCheckbox,
   ],
   templateUrl: './export-model-dialog.component.html',

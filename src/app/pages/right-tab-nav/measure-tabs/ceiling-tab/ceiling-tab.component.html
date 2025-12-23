@@ -12,14 +12,15 @@
   Ceiling
 
   <span>
-    <button
-      mat-icon-button
-      *ngIf="{ visible: ceilingHeightTool.showCeilingHeights$ | async } as visibilityState"
-      (click)="ceilingHeightTool.toggleCeilingHeights(!visibilityState.visible)"
-      matTooltip="Toggle measure visibility"
-    >
-      <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
-    </button>
+    @if ({ visible: ceilingHeightTool.showCeilingHeights$ | async }; as visibilityState) {
+      <button
+        mat-icon-button
+        (click)="ceilingHeightTool.toggleCeilingHeights(!visibilityState.visible)"
+        matTooltip="Toggle measure visibility"
+      >
+        <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+      </button>
+    }
   </span>
 
   <span [style.flex-grow]="1"></span>
@@ -45,16 +46,18 @@
 <mat-selection-list #selectionList multiple [formControl]="ceilingHeightSelectControl">
 
   @for (measure of (ceilingHeightTool.ceilingDistances$ | async); track measure) {
-  <mat-list-option (click)="ceilingHeightTool.lookAt(measure)" [value]="measure">
-    <h3 matListItemTitle> {{ measure.identifier }} </h3>
-    <p matListItemLine class="vector-length-line">
-      <span>{{ measure.worldPoint | vector }}</span>
-      <span>+</span>
-      <span>{{ measure.distance | length }}</span>
-    </p>
-    <p matListItemLine *ngIf="measure.firstParentName as parent">
-      {{ parent }}
-    </p>
-  </mat-list-option>
+    <mat-list-option (click)="ceilingHeightTool.lookAt(measure)" [value]="measure">
+      <h3 matListItemTitle> {{ measure.identifier }} </h3>
+      <p matListItemLine class="vector-length-line">
+        <span>{{ measure.worldPoint | vector }}</span>
+        <span>+</span>
+        <span>{{ measure.distance | length }}</span>
+      </p>
+      @if (measure.firstParentName; as parent) {
+        <p matListItemLine>
+          {{ parent }}
+        </p>
+      }
+    </mat-list-option>
   }
 </mat-selection-list>

@@ -1,4 +1,4 @@
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Injector, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -21,7 +21,7 @@ export type IZipDownloadModelDialogData = {
   templateUrl: './zip-download-model-dialog.component.html',
   styleUrl: './zip-download-model-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, NgIf, AsyncPipe, MatProgressBarModule, MatButtonModule, BytesPipe]
+  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, AsyncPipe, MatProgressBarModule, MatButtonModule, BytesPipe]
 })
 export class ZipDownloadModelDialogComponent {
 

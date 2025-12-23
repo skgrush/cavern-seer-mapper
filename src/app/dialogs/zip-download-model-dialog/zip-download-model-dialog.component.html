@@ -19,33 +19,45 @@
       </mat-form-field>
     </div>
 
-    <ng-container *ngIf="uploadProgress.progress$ | async as progress">
-      <div class="loading-container" *ngIf="progress.active">
-        <div *ngIf="progress.stage">Stage: {{ progress.stage }}</div>
-        <div>{{ progress.loaded | bytes }} / {{ progress.total | bytes }}</div>
-        <mat-progress-bar [mode]="progress.determinate ? 'determinate' : 'indeterminate'"
-          [value]="100 * progress.loaded / progress.total" />
+    @if (uploadProgress.progress$ | async; as progress) {
+      @if (progress.active) {
+        <div class="loading-container">
+          @if (progress.stage) {
+            <div>Stage: {{ progress.stage }}</div>
+          }
+          <div>{{ progress.loaded | bytes }} / {{ progress.total | bytes }}</div>
+          <mat-progress-bar [mode]="progress.determinate ? 'determinate' : 'indeterminate'"
+            [value]="100 * progress.loaded / progress.total" />
+        </div>
+      }
+    }
+    @if (resultSubject | async; as result) {
+      <div class="success-container">
+        Successfully downloaded {{ result.name }}, compressed to {{ result.size | bytes }}.
       </div>
-    </ng-container>
-    <div class="success-container" *ngIf="resultSubject | async as result">
-      Successfully downloaded {{ result.name }}, compressed to {{ result.size | bytes }}.
-    </div>
-    <div class="error-container" *ngIf="errorSubject | async as error">
-      <h3>Error</h3>
-      <div>{{ error.name }}</div>
-      <div>{{ error.toString() }}</div>
-    </div>
+    }
+    @if (errorSubject | async; as error) {
+      <div class="error-container">
+        <h3>Error</h3>
+        <div>{{ error.name }}</div>
+        <div>{{ error.toString() }}</div>
+      </div>
+    }
   </div>
 
   <div mat-dialog-actions>
     <button type="button" mat-button [disabled]="uploadProgress.isActive$| async" mat-dialog-close cdkFocusInitial>
       Cancel
     </button>
-    <button *ngIf="!(resultSubject | async)" type="submit" mat-button [disabled]="!formGroup.valid">
-      Zip
-    </button>
-    <button *ngIf="resultSubject | async" type="reset" mat-button mat-dialog-close>
-      Close
-    </button>
+    @let result = resultSubject | async;
+    @if (!result) {
+      <button type="submit" mat-button [disabled]="!formGroup.valid">
+        Zip
+      </button>
+    } @else {
+      <button type="reset" mat-button mat-dialog-close>
+        Close
+      </button>
+    }
   </div>
 </form>

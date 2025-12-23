@@ -2,9 +2,11 @@
 <div mat-dialog-content>
   <canvas #canvas></canvas>
   <button mat-icon-button (click)="toggleMaterial.click()" [matTooltip]="toggleMaterial.label">
-    <mat-icon *ngIf="toggleMaterial.icon$ | async as icon" [fontSet]="icon.fontSet">
-      {{ icon.icon }}
-    </mat-icon>
+    @if (toggleMaterial.icon$ | async; as icon) {
+      <mat-icon [fontSet]="icon.fontSet">
+        {{ icon.icon }}
+      </mat-icon>
+    }
   </button>
   <mapper-cross-section-details-form [crossSection]="crossSection" [formGroup]="formGroup" />
 </div>

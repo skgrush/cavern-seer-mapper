@@ -1,6 +1,7 @@
-<ng-container *ngIf="fileTypeIcons[type] as icon">
-  <mat-icon *ngIf="icon.includes(':'); else standardIcon" [svgIcon]="icon" />
-  <ng-template #standardIcon>
+@if (fileTypeIcons[type]; as icon) {
+  @if (icon.includes(':')) {
+    <mat-icon [svgIcon]="icon" />
+  } @else {
     <mat-icon>{{ icon }}</mat-icon>
-  </ng-template>
-</ng-container>
+  }
+}

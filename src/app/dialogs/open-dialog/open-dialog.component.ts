@@ -1,4 +1,4 @@
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Injector, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -28,7 +28,7 @@ export type IOpenDialogData = {
   templateUrl: './open-dialog.component.html',
   styleUrl: './open-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, FileIconComponent, MatButtonModule, BytesPipe],
+  imports: [MatDialogModule, MatListModule, AsyncPipe, MatProgressBarModule, FileIconComponent, MatButtonModule, BytesPipe],
 })
 export class OpenDialogComponent implements OnInit {
 

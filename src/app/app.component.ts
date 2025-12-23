@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,7 +11,7 @@ import { KeyBindService } from './shared/services/key-bind.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterOutlet, MatSidenavModule, MatButtonModule, MatIconModule, MatTooltipModule]
+  imports: [RouterOutlet, MatSidenavModule, MatButtonModule, MatIconModule, MatTooltipModule]
 })
 export class AppComponent {
   readonly #keybind = inject(KeyBindService);

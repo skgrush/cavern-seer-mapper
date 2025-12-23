@@ -13,7 +13,7 @@
     "sourceMap": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "resolveJsonModule": true,
     "target": "ES2022",
@@ -23,7 +23,7 @@
       "ES2022",
       "ES2023.Array",
       "dom"
-    ],
+    ]
   },
   "include": [
     "src/types.d.ts"

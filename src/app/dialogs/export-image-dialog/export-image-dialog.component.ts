@@ -1,4 +1,4 @@
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Injector, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,7 +23,7 @@ export type IExportImageDialogData = {
   templateUrl: './export-image-dialog.component.html',
   styleUrl: './export-image-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, NgIf, AsyncPipe, MatButtonModule, MatButtonToggleModule, BytesPipe],
+  imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, AsyncPipe, MatButtonModule, MatButtonToggleModule, BytesPipe],
 })
 export class ExportImageDialogComponent {
 

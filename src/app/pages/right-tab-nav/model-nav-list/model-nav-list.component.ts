@@ -6,7 +6,7 @@ import { MatTreeModule, MatTreeNestedDataSource } from '@angular/material/tree';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { GroupRenderModel } from '../../../shared/models/render/group.render-model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ModelDetailFormComponent } from '../../../shared/components/model-detail-form/model-detail-form.component';
 import { FileModelType } from '../../../shared/models/model-type.enum';
 import { FileIconComponent } from '../../../shared/components/file-icon/file-icon.component';
@@ -40,7 +40,7 @@ function transformToNode(model: BaseRenderModel<any>, parent?: GroupRenderModel)
   templateUrl: './model-nav-list.component.html',
   styleUrl: './model-nav-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatTreeModule, NgIf, AsyncPipe, ModelDetailFormComponent, FileIconComponent, MatRippleModule, MatDividerModule, DragDropModule, MatIcon],
+  imports: [MatTreeModule, AsyncPipe, ModelDetailFormComponent, FileIconComponent, MatRippleModule, MatDividerModule, DragDropModule, MatIcon],
 })
 export class ModelNavListComponent {
 

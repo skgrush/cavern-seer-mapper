@@ -45,9 +45,10 @@
 
 <div>
   <mat-divider/>
-  <mapper-model-detail-form
-    *ngIf="selectedModel$ | async as selectedModel"
-    [model]="selectedModel"
-    (modelDeleted)="selectedModel$.next(undefined)"
-  />
+  @if (selectedModel$ | async; as selectedModel) {
+    <mapper-model-detail-form
+      [model]="selectedModel"
+      (modelDeleted)="selectedModel$.next(undefined)"
+    />
+  }
 </div>
