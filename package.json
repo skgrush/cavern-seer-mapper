@@ -61,15 +61,12 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.8"
+    "typescript": "~5.9.3"
   },
   "browserslist": [
     "last 3 Chrome versions",
     "last 3 Firefox version",
-    "last 3 Edge major versions",
     "last 2 Safari major versions",
-    "last 2 iOS major versions",
-    "not Safari <16.5",
-    "not iOS <16.5"
+    "last 2 iOS major versions"
   ]
 }
