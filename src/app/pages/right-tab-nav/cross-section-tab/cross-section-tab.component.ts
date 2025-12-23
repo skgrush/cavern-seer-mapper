@@ -88,7 +88,6 @@ export class CrossSectionTabComponent {
     });
     this.formGroup.controls.details.controls.position.valueChanges.pipe(
       takeUntilDestroyed(),
-      ignoreNullish(),
       filter(() => this.formGroup.controls.details.controls.position.valid),
     ).subscribe(pos => {
       const selected = this.formGroup.value.selected?.[0];

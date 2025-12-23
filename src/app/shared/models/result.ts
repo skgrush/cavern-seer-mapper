@@ -16,11 +16,11 @@ export type Result<TExpected> =
 
 export function filterSuccesses<TExpected>(results: Iterable<Result<TExpected>>) {
   return [...results]
-    .filter((r): r is ResultSuccess<TExpected> => r.success);
+    .filter((r) => r.success);
 }
 export function filterErrors<TExpected>(results: Iterable<Result<TExpected>>) {
   return [...results]
-    .filter((r): r is ResultFailure<TExpected> => r.failure);
+    .filter((r) => r.failure);
 }
 
 

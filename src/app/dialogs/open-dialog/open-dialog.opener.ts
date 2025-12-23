@@ -1,5 +1,5 @@
 import { EnvironmentInjector, inject, Injectable } from '@angular/core';
-import { defer, map, switchMap } from 'rxjs';
+import { defer, filter, map, switchMap } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { FileTypeService } from '../../shared/services/file-type.service';
 import { ignoreNullish } from '../../shared/operators/ignore-nullish';
@@ -25,7 +25,7 @@ export class OpenDialogOpener {
             accept: this.#fileTypeService.getAllExtensionsAndMimes().join(','),
           }).afterClosed(),
       ),
-      ignoreNullish(),
+      filter(x => !!x),
       map(result => this.#modelManager.resetToNonGroupModel(result[0])),
     );
   }

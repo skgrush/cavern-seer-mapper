@@ -10,7 +10,6 @@ import { AggregateError2 } from '../../shared/errors/aggregate.error';
 import { BaseRenderModel } from '../../shared/models/render/base.render-model';
 import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
 import { UploadFileModel } from '../../shared/models/upload-file-model';
-import { ignoreNullishArray } from '../../shared/operators/ignore-nullish';
 import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 import { ErrorService } from '../../shared/services/error.service';
 import { FileTypeService } from '../../shared/services/file-type.service';
@@ -108,7 +107,7 @@ export class OpenDialogComponent implements OnInit {
     forkJoin(fileObservables).subscribe({
       next: results => {
         const errors = results.flatMap(r => r.errors);
-        const successes = results.map(r => r.result).filter(ignoreNullishArray);
+        const successes = results.map(r => r.result).filter(x => !!x);
         if (errors.length) {
           this.#errorService.alertError(new AggregateError2(
             'While opening dialog',

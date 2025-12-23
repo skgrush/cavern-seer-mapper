@@ -40,7 +40,7 @@ export class CeilingHeightToolService extends BaseExclusiveToolService {
       // when the group changes, pull all the annotations out and put them in the subject
       const annos = group
         ?.getAllAnnotationsRecursively()
-        .filter((anno): anno is CeilingHeightAnnotation => anno instanceof CeilingHeightAnnotation)
+        .filter((anno) => anno instanceof CeilingHeightAnnotation)
         ?? [];
       this.#ceilingDistancesSubject.next(Object.freeze(annos));
     });

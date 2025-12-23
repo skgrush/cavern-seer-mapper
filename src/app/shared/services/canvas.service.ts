@@ -180,7 +180,7 @@ export class CanvasService {
       switchMap(visible => this.#modelManager.currentOpenGroup$.pipe(map(cog => ({ cog, visible })))),
     ).subscribe(({ visible, cog }) => {
       cog?.getAllAnnotationsRecursively()
-        .filter((anno): anno is TemporaryAnnotation<any> => anno instanceof TemporaryAnnotation)
+        .filter((anno) => anno instanceof TemporaryAnnotation)
         .forEach(anno => anno.toggleVisibility(visible));
       markSceneOfItemForReRender(this.#scene);
     });

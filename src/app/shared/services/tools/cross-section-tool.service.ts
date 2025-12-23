@@ -70,7 +70,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
     ).subscribe(group => {
       const annos = group
         ?.getAllAnnotationsRecursively()
-        .filter((anno): anno is CrossSectionAnnotation => anno instanceof CrossSectionAnnotation)
+        .filter((anno) => anno instanceof CrossSectionAnnotation)
         ?? [];
 
       this.#crossSectionsSubject.next(Object.freeze(annos));

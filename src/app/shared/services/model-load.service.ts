@@ -25,7 +25,6 @@ import { ObjRenderModel } from '../models/render/obj.render-model';
 import { UnknownRenderModel } from '../models/render/unknown.render-model';
 import { TransportProgressHandler } from '../models/transport-progress-handler';
 import { UploadFileModel } from '../models/upload-file-model';
-import { ignoreNullishArray } from '../operators/ignore-nullish';
 import { AnnotationBuilderService } from './annotation-builder.service';
 import { FileTypeService } from './file-type.service';
 import type { IUnzipDirEntry, IUnzipFileEntry, IZipEntry } from './zip.service';
@@ -43,7 +42,7 @@ function flattenModelLoadResults<T extends BaseRenderModel<any>>(results: IModel
   errors: Error[]
 } {
   return {
-    result: results.map(r => r.result).filter(ignoreNullishArray),
+    result: results.map(r => r.result).filter(x => !!x),
     errors: results.flatMap(r => r.errors),
   };
 }
@@ -477,7 +476,7 @@ export class ModelLoadService {
       return of(undefined);
     }
     const mtlModel = parentDirectory.childOpeners
-      .filter((opener): opener is UnzippedFileOpener => !!opener.uploadFileModel)
+      .filter((opener) => !!opener.uploadFileModel)
       .find(opener =>
         opener.uploadFileModel.type === FileModelType.mtl &&
         opener.unzipEntry.name === libName
