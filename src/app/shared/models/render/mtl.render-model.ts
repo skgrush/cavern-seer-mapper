@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { ModelChangeType } from '../model-change-type.enum';
 import { Group, Object3DEventMap, Vector3 } from 'three';
 import { UploadFileModel } from '../upload-file-model';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 
 export class MtlRenderModel extends BaseRenderModel<FileModelType.mtl> {
   override readonly type = FileModelType.mtl;

@@ -1,4 +1,4 @@
-import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
+import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { BaseVisibleRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BoxHelper, Camera, Group, Object3DEventMap, Vector3 } from "three";

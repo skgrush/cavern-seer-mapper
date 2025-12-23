@@ -1,4 +1,3 @@
-import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, Injector, OnInit, inject, DOCUMENT } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,7 +7,6 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { tap } from 'rxjs';
-import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 import { ByteFormatType } from '../../shared/services/localize.service';
 import { MeasurementSystem } from '../../shared/services/settings/measurement-system';
 import { SettingsService } from '../../shared/services/settings/settings.service';
@@ -18,7 +16,7 @@ import { SettingsService } from '../../shared/services/settings/settings.service
   templateUrl: './settings-dialog.component.html',
   styleUrl: './settings-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatDialogModule, AsyncPipe, MatButtonModule, FormsModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, MatButtonToggleModule, BytesPipe]
+  imports: [MatDialogModule, MatButtonModule, FormsModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, MatButtonToggleModule]
 })
 export class SettingsDialogComponent implements OnInit {
   protected readonly MeasurementSystem = MeasurementSystem;
