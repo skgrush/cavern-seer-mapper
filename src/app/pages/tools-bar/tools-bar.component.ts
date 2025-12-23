@@ -15,7 +15,6 @@ import { map } from 'rxjs';
 
 @Component({
   selector: 'mapper-tools-bar',
-  standalone: true,
   imports: [MatButtonToggleModule, MatButtonModule, MatIconModule, FormsModule, AsyncPipe, MatTooltipModule, NgIf, MatMenuModule, LengthPipe],
   templateUrl: './tools-bar.component.html',
   styleUrl: './tools-bar.component.scss',

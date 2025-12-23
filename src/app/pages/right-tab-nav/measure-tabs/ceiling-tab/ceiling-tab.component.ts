@@ -14,7 +14,6 @@ import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'mapper-ceiling-tab',
-  standalone: true,
   templateUrl: './ceiling-tab.component.html',
   styleUrl: './ceiling-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

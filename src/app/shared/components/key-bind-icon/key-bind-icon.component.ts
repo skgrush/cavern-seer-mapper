@@ -10,7 +10,6 @@ import { AsyncPipe } from '@angular/common';
  */
 @Component({
   selector: 'mapper-key-bind-icon',
-  standalone: true,
   imports: [
     AsyncPipe,
   ],

@@ -26,7 +26,6 @@ export type IExportModelDialogData = {
 
 @Component({
   selector: 'mapper-export-model-dialog',
-  standalone: true,
   imports: [
     MatDialogContent,
     MatDialogTitle,

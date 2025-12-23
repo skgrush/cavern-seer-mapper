@@ -15,7 +15,6 @@ import { SettingsService } from '../../shared/services/settings/settings.service
 
 @Component({
   selector: 'mapper-settings-dialog',
-  standalone: true,
   templateUrl: './settings-dialog.component.html',
   styleUrl: './settings-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

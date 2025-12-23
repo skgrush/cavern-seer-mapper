@@ -5,7 +5,6 @@ import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'mapper-file-icon',
-  standalone: true,
   imports: [MatIconModule, NgIf],
   templateUrl: './file-icon.component.html',
   styleUrl: './file-icon.component.scss',

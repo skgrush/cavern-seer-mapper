@@ -20,7 +20,6 @@ export type IExportImageDialogData = {
 
 @Component({
   selector: 'mapper-export-image-dialog',
-  standalone: true,
   templateUrl: './export-image-dialog.component.html',
   styleUrl: './export-image-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

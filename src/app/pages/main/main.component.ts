@@ -14,7 +14,6 @@ import { OpenDialogOpener } from '../../dialogs';
 
 @Component({
   selector: 'mapper-main',
-  standalone: true,
   templateUrl: './main.component.html',
   styleUrl: './main.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

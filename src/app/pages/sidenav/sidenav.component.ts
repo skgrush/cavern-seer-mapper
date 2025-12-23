@@ -15,7 +15,6 @@ import { KeyBindIconComponent } from '../../shared/components/key-bind-icon/key-
 
 @Component({
   selector: 'mapper-sidenav',
-  standalone: true,
   imports: [MatListModule, AsyncPipe, NgIf, KeyBindDirective, KeyBindIconComponent],
   templateUrl: './sidenav.component.html',
   styleUrl: './sidenav.component.scss',

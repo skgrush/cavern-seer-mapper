@@ -33,7 +33,6 @@ import { CrossSectionRenderDialogOpener } from '../../../dialogs';
 
 @Component({
   selector: 'mapper-cross-section-tab',
-  standalone: true,
   templateUrl: './cross-section-tab.component.html',
   styleUrl: './cross-section-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

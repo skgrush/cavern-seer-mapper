@@ -9,7 +9,6 @@ import { ToolManagerService } from '../../shared/services/tool-manager.service';
 
 @Component({
   selector: 'mapper-canvas',
-  standalone: true,
   imports: [AsyncPipe],
   templateUrl: './canvas.component.html',
   styleUrl: './canvas.component.scss',

@@ -26,7 +26,6 @@ export type IOpenDialogData = {
 
 @Component({
   selector: 'mapper-open-dialog',
-  standalone: true,
   templateUrl: './open-dialog.component.html',
   styleUrl: './open-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

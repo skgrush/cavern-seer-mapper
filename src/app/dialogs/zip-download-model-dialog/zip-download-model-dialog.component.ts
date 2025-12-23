@@ -18,7 +18,6 @@ export type IZipDownloadModelDialogData = {
 
 @Component({
   selector: 'mapper-zip-download-model-dialog',
-  standalone: true,
   templateUrl: './zip-download-model-dialog.component.html',
   styleUrl: './zip-download-model-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -20,7 +20,6 @@ export type ICrossSectionRenderDialogData = {
 
 @Component({
   selector: 'mapper-cross-section-render-dialog',
-  standalone: true,
   templateUrl: './cross-section-render-dialog.component.html',
   styleUrl: './cross-section-render-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

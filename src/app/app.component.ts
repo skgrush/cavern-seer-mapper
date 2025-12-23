@@ -9,7 +9,6 @@ import { KeyBindService } from './shared/services/key-bind.service';
 
 @Component({
   selector: 'mapper-root',
-  standalone: true,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -37,7 +37,6 @@ function transformToNode(model: BaseRenderModel<any>, parent?: GroupRenderModel)
 
 @Component({
   selector: 'mapper-model-nav-list',
-  standalone: true,
   templateUrl: './model-nav-list.component.html',
   styleUrl: './model-nav-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
