@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, HostBinding, HostListener, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { CompassComponent } from '../../shared/components/compass/compass.component';
 import { CanvasComponent } from '../canvas/canvas.component';
 import { FileUrlLoaderComponent } from '../file-url-loader/file-url-loader.component';
@@ -11,17 +18,17 @@ import { OpenDialogOpener } from '../../dialogs';
   templateUrl: './main.component.html',
   styleUrl: './main.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ToolsBarComponent, CompassComponent, CanvasComponent, FileUrlLoaderComponent]
+  imports: [ToolsBarComponent, CompassComponent, CanvasComponent, FileUrlLoaderComponent],
+  host: {
+    '[class.file-is-dragging-over]': 'fileIsDraggingOver()',
+    '[attr.data-draggable]': '"main"',
+  }
 })
 export class MainComponent {
 
   readonly #openDialog = inject(OpenDialogOpener);
 
-  @HostBinding('attr.data-draggable')
-  readonly dataDraggable = 'main';
-
-  @HostBinding('class.file-is-dragging-over')
-  fileIsDraggingOver = false;
+  readonly fileIsDraggingOver = signal(false);
 
   @HostListener('dragenter', ['$event'])
   dragEnter(e: DragEvent) {
@@ -53,14 +60,14 @@ export class MainComponent {
     if (e.target instanceof HTMLElement) {
       const targetDataset = e.target.dataset;
       if (targetDataset['draggable'] === 'main') {
-        this.fileIsDraggingOver = false;
+        this.fileIsDraggingOver.set(false);
       }
     }
     console.debug('dragleave', {
       related: e.relatedTarget,
       target: e.target,
       current: e.currentTarget,
-      leaving: !this.fileIsDraggingOver,
+      leaving: !untracked(this.fileIsDraggingOver),
     });
   }
 
@@ -73,7 +80,7 @@ export class MainComponent {
       console.debug('dragOver with files');
       e.preventDefault();
       e.stopPropagation();
-      this.fileIsDraggingOver = true;
+      this.fileIsDraggingOver.set(true);
     }
     else {
       console.debug('dragOver non-files:', ...e.dataTransfer.types);
@@ -84,7 +91,7 @@ export class MainComponent {
   drop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    this.fileIsDraggingOver = false;
+    this.fileIsDraggingOver.set(false);
 
     const files = e.dataTransfer?.files;
     if (!files?.length) {
