@@ -45,9 +45,9 @@ type ModelExporterReturnMap = {
   GLB: ArrayBuffer,
   PLY: ArrayBuffer | null,
   PLYAscii: string | null,
-  STL: DataView,
+  STL: DataView<ArrayBuffer>,
   STLAscii: string,
-  USDZ: Uint8Array,
+  USDZ: Uint8Array<ArrayBuffer>,
 };
 
 @Injectable()
