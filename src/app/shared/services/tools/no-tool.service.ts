@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { of } from 'rxjs';
 import { BaseExclusiveToolService } from './base-tool.service';
 
@@ -7,7 +7,7 @@ export class NoToolService extends BaseExclusiveToolService {
 
   override readonly id = 'no-tool';
   override readonly label = 'No tool';
-  override readonly icon$ = of({ icon: 'open_with' });
+  override readonly icon = signal(({ icon: 'open_with' } as const)).asReadonly();
   override readonly cursor$ = of('grab');
 
   override start() {

@@ -1,6 +1,6 @@
 <p>
   Results of using
-  <mat-icon>{{ (crossSectionTool.icon$ | async)?.icon }}</mat-icon> {{ crossSectionTool.label }}
+  <mat-icon>{{ crossSectionTool.icon().icon }}</mat-icon> {{ crossSectionTool.label }}
   tool
 </p>
 
@@ -11,16 +11,14 @@
     Render
   </button>
 
-  <!-- TODO: rewrite -->
-  @if ({ visible: crossSectionTool.visibility$ | async }; as visibilityState) {
-    <button
-      mat-icon-button
-      (click)="crossSectionTool.toggleVisibility(!visibilityState.visible)"
-      matTooltip="Toggle cross-section visibility"
-    >
-      <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
-    </button>
-  }
+  @let visible = crossSectionTool.visibility$ | async;
+  <button
+    mat-icon-button
+    (click)="crossSectionTool.toggleVisibility(!visible)"
+    matTooltip="Toggle cross-section visibility"
+  >
+    <mat-icon>{{ visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+  </button>
 
   <span [style.flex-grow]="1"></span>
 

@@ -1,5 +1,5 @@
-import { InjectionToken } from "@angular/core";
-import { Observable, of } from "rxjs";
+import { InjectionToken, Signal } from '@angular/core';
+import { Observable } from "rxjs";
 
 export const EXCLUSIVE_TOOL_SERVICES = new InjectionToken<readonly BaseExclusiveToolService[]>('exclusive-tool-services');
 export const NONEXCLUSIVE_TOOL_SERVICES = new InjectionToken<readonly BaseClickToolService[]>('non-exclusive-tool-services');
@@ -12,7 +12,7 @@ export type Icon$Type = {
 export abstract class BaseToolService {
   abstract readonly id: string;
   abstract readonly label: string;
-  abstract readonly icon$: Observable<Icon$Type>;
+  abstract readonly icon: Signal<Icon$Type>;
 }
 
 export abstract class BaseClickToolService extends BaseToolService {

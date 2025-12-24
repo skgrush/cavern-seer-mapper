@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, distinctUntilChanged, map, of, Subject, take, takeUntil, tap } from 'rxjs';
 import { Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
@@ -32,7 +32,7 @@ export class DistanceMeasureToolService extends BaseExclusiveToolService {
 
   override readonly id = 'distance';
   override readonly label = 'Distance measure';
-  override readonly icon$ = of({ icon: 'square_foot' });
+  override readonly icon = signal({ icon: 'square_foot' } as const).asReadonly();
   override readonly cursor$ = of('crosshair');
 
   constructor() {

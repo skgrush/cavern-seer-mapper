@@ -1,5 +1,5 @@
 <p>Results of using
-  <mat-icon>{{ (measureTool.icon$ | async)?.icon }}</mat-icon> {{ measureTool.label }}
+  <mat-icon>{{ measureTool.icon().icon }}</mat-icon> {{ measureTool.label }}
   tool
 </p>
 
@@ -19,15 +19,14 @@
     </mat-select>
   </mat-form-field>
   <span>
-    @if ({ visible: measureTool.showMeasures$ | async }; as visibilityState) {
-      <button
-        mat-icon-button
-        (click)="measureTool.toggleMeasureVisibility(!visibilityState.visible)"
-        matTooltip="Toggle measure visibility"
-        >
-        <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
-      </button>
-    }
+    @let visible = measureTool.showMeasures$ | async;
+    <button
+      mat-icon-button
+      (click)="measureTool.toggleMeasureVisibility(!visible)"
+      matTooltip="Toggle measure visibility"
+      >
+      <mat-icon>{{ visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+    </button>
   </span>
 
   <span [style.flex-grow]="1"></span>

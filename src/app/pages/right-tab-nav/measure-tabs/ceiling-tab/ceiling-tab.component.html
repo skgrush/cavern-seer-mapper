@@ -1,5 +1,5 @@
 <p>Results of using
-  <mat-icon>{{ (ceilingHeightTool.icon$ | async)?.icon }}</mat-icon> {{ ceilingHeightTool.label }}
+  <mat-icon>{{ ceilingHeightTool.icon().icon }}</mat-icon> {{ ceilingHeightTool.label }}
   tool
 </p>
 
@@ -12,15 +12,14 @@
   Ceiling
 
   <span>
-    @if ({ visible: ceilingHeightTool.showCeilingHeights$ | async }; as visibilityState) {
-      <button
-        mat-icon-button
-        (click)="ceilingHeightTool.toggleCeilingHeights(!visibilityState.visible)"
-        matTooltip="Toggle measure visibility"
-      >
-        <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
-      </button>
-    }
+    @let visible = ceilingHeightTool.showCeilingHeights$ | async;
+    <button
+      mat-icon-button
+      (click)="ceilingHeightTool.toggleCeilingHeights(!visible)"
+      matTooltip="Toggle measure visibility"
+    >
+      <mat-icon>{{ visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+    </button>
   </span>
 
   <span [style.flex-grow]="1"></span>

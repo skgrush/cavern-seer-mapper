@@ -1,7 +1,6 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 import { BaseClickToolService } from './base-tool.service';
 import { CanvasService } from '../canvas.service';
-import { map } from 'rxjs';
 
 @Injectable()
 export class ToggleEmbeddedAnnotationsToolService extends BaseClickToolService {
@@ -9,12 +8,14 @@ export class ToggleEmbeddedAnnotationsToolService extends BaseClickToolService {
 
   override readonly id = 'toggle-embedded-annotations';
   override readonly label = 'Toggle embedded annotations';
-  override readonly icon$ = this.#canvasService.embeddedAnnotationsVisible$.pipe(
-    map(visible => ({
+  override readonly icon = computed(() => {
+    const visible = this.#canvasService.embeddedAnnotationsVisible();
+
+    return ({
       icon: 'sticky_note_2',
       fontSet: visible ? 'material-icons' : 'material-icons-outlined',
-    } as const)),
-  );
+    } as const);
+  });
 
   override click() {
     this.#canvasService.toggleEmbeddedAnnotationsVisible();

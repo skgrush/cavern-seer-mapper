@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, distinctUntilChanged, map, of, Subject, takeUntil } from 'rxjs';
 import { Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
@@ -27,7 +27,7 @@ export class CeilingHeightToolService extends BaseExclusiveToolService {
 
   override readonly id = 'ceiling-height';
   override readonly label = 'Ceiling height';
-  override readonly icon$ = of({ icon: 'biotech' });
+  override readonly icon = signal({ icon: 'biotech' } as const).asReadonly();
   override readonly cursor$ = of('crosshair');
 
   constructor() {

@@ -1,12 +1,10 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   BehaviorSubject,
-  catchError,
   distinctUntilChanged,
   filter,
   merge,
-  of,
   Subject,
   switchMap,
   takeUntil,
@@ -51,7 +49,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
 
   override readonly id = 'cross-section';
   override readonly label = 'Cross section';
-  override readonly icon$ = of({ icon: 'looks' });
+  override readonly icon = signal({ icon: 'looks' } as const).asReadonly();
   override readonly cursor$ = this.#cursor.pipe(distinctUntilChanged());
 
   #currentModelRef?: WeakRef<GroupRenderModel>;

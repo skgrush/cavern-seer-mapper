@@ -1,6 +1,6 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, signal, untracked } from '@angular/core';
 import { BaseClickToolService } from './base-tool.service';
-import { BehaviorSubject, map, of, switchMap, take, tap, timer } from 'rxjs';
+import { of, switchMap, take, tap, timer } from 'rxjs';
 import { ModelManagerService } from '../model-manager.service';
 import { ignoreNullish } from '../../operators/ignore-nullish';
 import { TemporaryAnnotation } from '../../models/annotations/temporary.annotation';
@@ -143,17 +143,19 @@ export class FullHeightMapToolService extends BaseClickToolService {
   readonly #localize = inject(LocalizeService);
   readonly #alert = inject(AlertService);
 
-  readonly #ceilingHeightsGroup$ = new BehaviorSubject<undefined | TemporaryAnnotation<Group>>(undefined);
+  readonly #ceilingHeightsGroup = signal<undefined | TemporaryAnnotation<Group>>(undefined);
+  readonly hasGroup = computed(() => !!this.#ceilingHeightsGroup());
 
   #stepSize = 0.25;
 
   override readonly id = 'full-height-map';
   override readonly label = 'Fully map ceiling heights';
-  override readonly icon$ = this.#ceilingHeightsGroup$.pipe(
-    map(annos => ({
-      icon: annos ? 'delete_forever' : 'map',
-    })),
-  );
+  override readonly icon = computed(() => {
+    const hasGroup = this.hasGroup();
+    return ({
+      icon: hasGroup ? 'delete_forever' : 'map',
+    } as const);
+  });
 
   override click() {
     this.#modelManager.currentOpenGroup$.pipe(
@@ -161,7 +163,8 @@ export class FullHeightMapToolService extends BaseClickToolService {
       take(1),
       ignoreNullish(),
       switchMap(group => {
-        if (this.#ceilingHeightsGroup$.value !== undefined) {
+        const hasGroup = untracked(this.hasGroup);
+        if (hasGroup) {
           this.#clearAnnotations(group);
           return of();
         }
@@ -240,7 +243,7 @@ export class FullHeightMapToolService extends BaseClickToolService {
 
     group.addAnnotation(anno);
 
-    this.#ceilingHeightsGroup$.next(anno);
+    this.#ceilingHeightsGroup.set(anno);
 
     this.#alert.alert(AlertType.info, `Generated full height-map in ${Math.round(ts1 - ts0) / 1e3} sec`, 'X', {
       duration: 15e3,
@@ -248,14 +251,12 @@ export class FullHeightMapToolService extends BaseClickToolService {
   }
 
   #clearAnnotations(group?: GroupRenderModel) {
-    const anno = this.#ceilingHeightsGroup$.value;
+    const anno = untracked(this.#ceilingHeightsGroup);
     if (!anno) {
       return;
     }
     group?.removeAnnotations(new Set([anno]));
 
-    this.#ceilingHeightsGroup$.next(undefined);
+    this.#ceilingHeightsGroup.set(undefined);
   }
-
-
 }
