@@ -1,4 +1,3 @@
-import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
 import { ServiceWorkerService } from '../../shared/services/service-worker.service';
@@ -15,8 +14,7 @@ import { KeyBindIconComponent } from '../../shared/components/key-bind-icon/key-
 
 @Component({
   selector: 'mapper-sidenav',
-  standalone: true,
-  imports: [MatListModule, AsyncPipe, NgIf, KeyBindDirective, KeyBindIconComponent],
+  imports: [MatListModule, KeyBindDirective, KeyBindIconComponent],
   templateUrl: './sidenav.component.html',
   styleUrl: './sidenav.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

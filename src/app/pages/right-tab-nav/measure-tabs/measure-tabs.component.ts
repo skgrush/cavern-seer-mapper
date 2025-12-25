@@ -5,7 +5,6 @@ import { DistanceMeasureTabComponent } from "./distance-measure-tab/distance-mea
 
 @Component({
   selector: 'mapper-measure-tabs',
-  standalone: true,
   templateUrl: './measure-tabs.component.html',
   styleUrl: './measure-tabs.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

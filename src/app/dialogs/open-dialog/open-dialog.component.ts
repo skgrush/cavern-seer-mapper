@@ -1,4 +1,4 @@
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Injector, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -10,7 +10,6 @@ import { AggregateError2 } from '../../shared/errors/aggregate.error';
 import { BaseRenderModel } from '../../shared/models/render/base.render-model';
 import { TransportProgressHandler } from '../../shared/models/transport-progress-handler';
 import { UploadFileModel } from '../../shared/models/upload-file-model';
-import { ignoreNullishArray } from '../../shared/operators/ignore-nullish';
 import { BytesPipe } from "../../shared/pipes/bytes.pipe";
 import { ErrorService } from '../../shared/services/error.service';
 import { FileTypeService } from '../../shared/services/file-type.service';
@@ -26,11 +25,10 @@ export type IOpenDialogData = {
 
 @Component({
   selector: 'mapper-open-dialog',
-  standalone: true,
   templateUrl: './open-dialog.component.html',
   styleUrl: './open-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatDialogModule, MatListModule, NgFor, NgIf, AsyncPipe, MatProgressBarModule, FileIconComponent, MatButtonModule, BytesPipe],
+  imports: [MatDialogModule, MatListModule, AsyncPipe, MatProgressBarModule, FileIconComponent, MatButtonModule, BytesPipe],
 })
 export class OpenDialogComponent implements OnInit {
 
@@ -109,7 +107,7 @@ export class OpenDialogComponent implements OnInit {
     forkJoin(fileObservables).subscribe({
       next: results => {
         const errors = results.flatMap(r => r.errors);
-        const successes = results.map(r => r.result).filter(ignoreNullishArray);
+        const successes = results.map(r => r.result).filter(x => !!x);
         if (errors.length) {
           this.#errorService.alertError(new AggregateError2(
             'While opening dialog',

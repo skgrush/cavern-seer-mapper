@@ -17,7 +17,6 @@ import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'mapper-distance-measure-tab',
-  standalone: true,
   templateUrl: './distance-measure-tab.component.html',
   styleUrl: './distance-measure-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

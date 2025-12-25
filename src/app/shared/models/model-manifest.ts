@@ -1,4 +1,3 @@
-import { ignoreNullishArray } from "../operators/ignore-nullish";
 import { AnnotationBuilderService } from "../services/annotation-builder.service";
 import { BaseAnnotation } from "./annotations/base.annotation";
 import { TemporaryAnnotation } from "./annotations/temporary.annotation";
@@ -100,7 +99,7 @@ export class ModelManifestV0 extends BaseModelManifest {
       const serializedAnnos = model.getAnnotations()
         .filter(anno => !(anno instanceof TemporaryAnnotation))
         .map(anno => anno.serializeToManifest(0))
-        .filter(ignoreNullishArray);
+        .filter(x => !!x);
 
       if (serializedAnnos.length > 0) {
         return serializedAnnos;

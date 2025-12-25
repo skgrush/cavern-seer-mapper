@@ -1,7 +1,8 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, signal, untracked } from '@angular/core';
 import { BaseMaterialService, MATERIAL_SERVICES } from './base-material.service';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { FrontSide, Side } from 'three';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Injectable()
 export class MaterialManagerService {
@@ -12,22 +13,21 @@ export class MaterialManagerService {
   );
   readonly #defaultMaterialType = 'normal';
 
-  readonly #currentMaterialSubject = new BehaviorSubject(this.#materials.get(this.#defaultMaterialType)!);
-  readonly currentMaterial$ = this.#currentMaterialSubject.asObservable();
-  get currentMaterial() {
-    return this.#currentMaterialSubject.value;
-  }
-  readonly currentMaterialType$ = this.currentMaterial$.pipe(map(m => m.type));
+  readonly #currentMaterial = signal(this.#materials.get(this.#defaultMaterialType)!);
+  readonly currentMaterial$ = toObservable(this.#currentMaterial);
+  readonly currentMaterial = this.#currentMaterial.asReadonly();
+  readonly currentMaterialType = computed(() => this.currentMaterial().type);
 
-  readonly #materialSideSubject = new BehaviorSubject<Side>(FrontSide);
-  readonly materialSide$ = this.#materialSideSubject.asObservable();
+  readonly #materialSide = signal<Side>(FrontSide);
+  readonly materialSide = this.#materialSide.asReadonly();
+  readonly materialSide$ = toObservable(this.#materialSide);
 
   readonly materialOptions = Object.freeze(
     [...this.#materials.values()].map(({ type, description }) => ({ type, description })),
   )
 
   constructor() {
-    if (!this.#currentMaterialSubject.value) {
+    if (!untracked(this.#currentMaterial)) {
       throw new Error('#currentTool failed to find default material service');
     }
   }
@@ -47,7 +47,7 @@ export class MaterialManagerService {
    */
   temporarilySwitchMaterial$(to: string) {
     return new Observable<void>(subscriber => {
-      const oldMaterialService = this.#currentMaterialSubject.value;
+      const oldMaterialService = untracked(this.#currentMaterial);
       this.changeMaterial(to);
 
       return () => this.#changeMaterialService(oldMaterialService);
@@ -55,12 +55,14 @@ export class MaterialManagerService {
   }
 
   #changeMaterialService(materialService: BaseMaterialService<any>) {
-    this.#currentMaterialSubject.next(materialService);
+    this.#currentMaterial.set(materialService);
   }
 
   toggleDoubleSideMaterial() {
-    this.#materialSideSubject.next(
-      this.#currentMaterialSubject.value.toggleDoubleSideFrom(this.#materialSideSubject.value),
-    );
+    this.#materialSide.update(materialSide => {
+      const currentMaterial = untracked(this.#currentMaterial);
+
+      return currentMaterial.toggleDoubleSideFrom(materialSide);
+    });
   }
 }

@@ -1,5 +1,5 @@
 <p>Results of using
-  <mat-icon>{{ (measureTool.icon$ | async)?.icon }}</mat-icon> {{ measureTool.label }}
+  <mat-icon>{{ measureTool.icon().icon }}</mat-icon> {{ measureTool.label }}
   tool
 </p>
 
@@ -14,18 +14,18 @@
     <mat-select [formControl]="formGroup.controls.selectedMeasure">
       <mat-option [value]="null">-</mat-option>
       @for (opt of measureTool.measures$ | async; track opt) {
-      <mat-option [value]="opt">{{ opt.identifier }}</mat-option>
+        <mat-option [value]="opt">{{ opt.identifier }}</mat-option>
       }
     </mat-select>
   </mat-form-field>
   <span>
+    @let visible = measureTool.showMeasures$ | async;
     <button
       mat-icon-button
-      *ngIf="{ visible: measureTool.showMeasures$ | async } as visibilityState"
-      (click)="measureTool.toggleMeasureVisibility(!visibilityState.visible)"
+      (click)="measureTool.toggleMeasureVisibility(!visible)"
       matTooltip="Toggle measure visibility"
-    >
-      <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+      >
+      <mat-icon>{{ visible ? 'visibility' : 'visibility_off' }}</mat-icon>
     </button>
   </span>
 
@@ -44,17 +44,21 @@
   </span>
 </div>
 
-<ng-container *ngIf="measureTool.selectedMeasure$ | async as selectedMeasure">
+@if (measureTool.selectedMeasure$ | async; as selectedMeasure) {
   <div>
     Total: {{ selectedMeasure.distance | length }}
   </div>
   <mat-selection-list multiple [formControl]="formGroup.controls.selectedPoints">
     @for (point of selectedMeasure.allPoints; track point) {
-    <mat-list-option [value]="point" (click)="measureTool.lookAt(point)" [disabled]="$first">
-      <p matListItemTitle>{{ point | vector }}</p>
-      <p matListItemLine *ngIf="$first">Anchor point</p>
-      <p matListItemLine *ngIf="$first">{{ selectedMeasure.firstParentName }}</p>
-    </mat-list-option>
+      <mat-list-option [value]="point" (click)="measureTool.lookAt(point)" [disabled]="$first">
+        <p matListItemTitle>{{ point | vector }}</p>
+        @if ($first) {
+          <p matListItemLine>Anchor point</p>
+        }
+        @if ($first) {
+          <p matListItemLine>{{ selectedMeasure.firstParentName }}</p>
+        }
+      </mat-list-option>
     }
   </mat-selection-list>
-</ng-container>
+}

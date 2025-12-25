@@ -1,6 +1,6 @@
-import { inject, Injectable } from '@angular/core';
+import { effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, distinctUntilChanged, map, of, Subject, takeUntil } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map, of, Subject, takeUntil, tap } from 'rxjs';
 import { Group, Intersection, Mesh, Object3D, Vector2, Vector3 } from 'three';
 import { CeilingHeightAnnotation } from '../../models/annotations/ceiling-height.annotation';
 import { IMapperUserData } from '../../models/user-data';
@@ -20,14 +20,14 @@ export class CeilingHeightToolService extends BaseExclusiveToolService {
   readonly #stopSubject = new Subject<void>();
 
   readonly #ceilingDistancesSubject = new BehaviorSubject<readonly CeilingHeightAnnotation[]>([]);
-  readonly #showCeilingHeightsSubject = new BehaviorSubject(true);
+  readonly #showCeilingHeights = signal(true);
 
   readonly ceilingDistances$ = this.#ceilingDistancesSubject.asObservable();
-  readonly showCeilingHeights$ = this.#showCeilingHeightsSubject.asObservable();
+  readonly showCeilingHeights = this.#showCeilingHeights.asReadonly();
 
   override readonly id = 'ceiling-height';
   override readonly label = 'Ceiling height';
-  override readonly icon$ = of({ icon: 'biotech' });
+  override readonly icon = signal({ icon: 'biotech' } as const).asReadonly();
   override readonly cursor$ = of('crosshair');
 
   constructor() {
@@ -40,20 +40,34 @@ export class CeilingHeightToolService extends BaseExclusiveToolService {
       // when the group changes, pull all the annotations out and put them in the subject
       const annos = group
         ?.getAllAnnotationsRecursively()
-        .filter((anno): anno is CeilingHeightAnnotation => anno instanceof CeilingHeightAnnotation)
+        .filter((anno) => anno instanceof CeilingHeightAnnotation)
         ?? [];
       this.#ceilingDistancesSubject.next(Object.freeze(annos));
     });
   }
 
-  toggleCeilingHeights(show: boolean) {
-    if (show === this.#showCeilingHeightsSubject.value) {
-      return;
-    }
-    this.#showCeilingHeightsSubject.next(show);
-    for (const ch of this.#ceilingDistancesSubject.value) {
-      ch.toggleVisibility(show);
-    }
+  toggleCeilingHeights(show?: boolean) {
+    this.#showCeilingHeights.update(currentValue => {
+      if (show === undefined) {
+        show = !currentValue;
+      } else if (show === currentValue) {
+        return show;
+      }
+      for (const ch of this.#ceilingDistancesSubject.value) {
+        ch.toggleVisibility(show);
+      }
+      return show;
+    });
+    // const currentValue = untracked(this.#showCeilingHeights);
+    // if (show === undefined) {
+    //   show = !currentValue;
+    // } else if (show === currentValue) {
+    //   return;
+    // }
+    // this.#showCeilingHeights.set(show);
+    // for (const ch of this.#ceilingDistancesSubject.value) {
+    //   ch.toggleVisibility(show);
+    // }
   }
 
   lookAt(anno: CeilingHeightAnnotation) {

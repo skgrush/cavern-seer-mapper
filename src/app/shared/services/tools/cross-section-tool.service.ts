@@ -1,12 +1,10 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   BehaviorSubject,
-  catchError,
   distinctUntilChanged,
   filter,
   merge,
-  of,
   Subject,
   switchMap,
   takeUntil,
@@ -51,7 +49,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
 
   override readonly id = 'cross-section';
   override readonly label = 'Cross section';
-  override readonly icon$ = of({ icon: 'looks' });
+  override readonly icon = signal({ icon: 'looks' } as const).asReadonly();
   override readonly cursor$ = this.#cursor.pipe(distinctUntilChanged());
 
   #currentModelRef?: WeakRef<GroupRenderModel>;
@@ -70,7 +68,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
     ).subscribe(group => {
       const annos = group
         ?.getAllAnnotationsRecursively()
-        .filter((anno): anno is CrossSectionAnnotation => anno instanceof CrossSectionAnnotation)
+        .filter((anno) => anno instanceof CrossSectionAnnotation)
         ?? [];
 
       this.#crossSectionsSubject.next(Object.freeze(annos));
@@ -302,7 +300,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
         this.#preview.origin,
         this.#preview.dest,
       ]);
-      markSceneOfItemForReRender(this.#preview.lineAnno.object);
+      markSceneOfItemForReRender(this.#preview.lineAnno.object, ngDevMode && 'cross section tool draw line');
 
     } else {
       const group = this.#currentModelRef?.deref();

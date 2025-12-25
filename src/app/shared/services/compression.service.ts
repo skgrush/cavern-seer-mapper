@@ -32,7 +32,7 @@ export class CompressionService {
 }
 
 
-class ByteLoggerStream extends TransformStream<Uint8Array, Uint8Array> {
+class ByteLoggerStream extends TransformStream<Uint8Array<ArrayBuffer>, Uint8Array<ArrayBuffer>> {
   constructor(cb: (bytes: number) => void) {
     super({
       start() { },

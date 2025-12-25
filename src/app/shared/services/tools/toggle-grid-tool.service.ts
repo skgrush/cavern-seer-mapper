@@ -1,6 +1,5 @@
-import {inject, Injectable} from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 import {BaseClickToolService} from "./base-tool.service";
-import {map} from "rxjs";
 import {CanvasService} from "../canvas.service";
 
 @Injectable()
@@ -9,11 +8,13 @@ export class ToggleGridToolService extends BaseClickToolService {
 
   override readonly id = 'toggle-grid';
   override readonly label = 'Toggle grid';
-  override readonly icon$ = this.#canvasService.gridVisible$.pipe(
-    map(visible => ({
-      icon: visible ? 'grid_on' : 'grid_off',
-    })),
-  );
+  override readonly icon = computed(() => {
+    const gridVisible = this.#canvasService.gridVisible();
+
+    return {
+      icon: gridVisible ? 'grid_on' : 'grid_off',
+    } as const;
+  });
 
   override click() {
     this.#canvasService.toggleGridVisible();

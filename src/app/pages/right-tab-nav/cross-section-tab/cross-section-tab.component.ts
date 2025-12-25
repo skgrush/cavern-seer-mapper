@@ -25,7 +25,6 @@ import { zeroVector3 } from '../../../shared/constants/zero-vectors';
 import { CrossSectionAnnotation } from '../../../shared/models/annotations/cross-section.annotation';
 import { ISimpleVector3, vector3FromSimpleVector3 } from '../../../shared/models/simple-types';
 import { ignoreNullish } from '../../../shared/operators/ignore-nullish';
-import { VectorPipe } from '../../../shared/pipes/vector.pipe';
 import { LocalizeService } from '../../../shared/services/localize.service';
 import { CrossSectionToolService } from '../../../shared/services/tools/cross-section-tool.service';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -33,11 +32,10 @@ import { CrossSectionRenderDialogOpener } from '../../../dialogs';
 
 @Component({
   selector: 'mapper-cross-section-tab',
-  standalone: true,
   templateUrl: './cross-section-tab.component.html',
   styleUrl: './cross-section-tab.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatListModule, CommonModule, MatIconModule, MatButtonModule, MatMenuModule, MatSelectModule, FormsModule, ReactiveFormsModule, VectorPipe, AsyncPipe, CrossSectionDetailsFormComponent, MatTooltip],
+  imports: [MatListModule, CommonModule, MatIconModule, MatButtonModule, MatMenuModule, MatSelectModule, FormsModule, ReactiveFormsModule, AsyncPipe, CrossSectionDetailsFormComponent, MatTooltip],
 })
 export class CrossSectionTabComponent {
   readonly #dialog = inject(MatDialog);
@@ -89,7 +87,6 @@ export class CrossSectionTabComponent {
     });
     this.formGroup.controls.details.controls.position.valueChanges.pipe(
       takeUntilDestroyed(),
-      ignoreNullish(),
       filter(() => this.formGroup.controls.details.controls.position.valid),
     ).subscribe(pos => {
       const selected = this.formGroup.value.selected?.[0];

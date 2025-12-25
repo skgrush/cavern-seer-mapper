@@ -136,6 +136,7 @@ export class ControlViewHelper<TControls extends ICameraControl> extends Object3
     this.#interactiveObjects.push(this.#negYAxisHelper);
     this.#interactiveObjects.push(this.#negZAxisHelper);
 
+    ngDevMode && console.debug('ControlViewHelper updateMatrix traverse');
     this.traverse(c => c.updateMatrix());
   }
 
@@ -270,6 +271,7 @@ export class ControlViewHelper<TControls extends ICameraControl> extends Object3
     q1.rotateTowards(q2, step);
     camera.position.set(0, 0, 1).applyQuaternion(q1).multiplyScalar(this.#radius).add(this.#worldControls.target);
     camera.updateMatrixWorld(true);
+    ngDevMode && console.debug('ControlViewHelper updateMatrix[World] update');
 
     // animate orientation
 

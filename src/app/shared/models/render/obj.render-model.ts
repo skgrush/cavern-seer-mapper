@@ -90,7 +90,7 @@ export class ObjRenderModel extends BaseVisibleRenderModel<FileModelType.obj> {
 
   override setVisibility(visible: boolean) {
     this.#object.visible = visible;
-    markSceneOfItemForReRender(this.#object);
+    markSceneOfItemForReRender(this.#object, ngDevMode && 'obj model set visibility');
   }
 
   override addToGroup(group: Group): void {

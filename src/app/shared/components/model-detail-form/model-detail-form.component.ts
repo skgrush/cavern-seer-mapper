@@ -1,4 +1,4 @@
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -40,8 +40,7 @@ import { ModelManagerService } from '../../services/model-manager.service';
 
 @Component({
   selector: 'mapper-model-detail-form',
-  standalone: true,
-  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, NgIf, MatIconModule, MatIconButton, AsyncPipe, MatTooltip, MatButton],
+  imports: [MatInputModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, MatIconModule, MatIconButton, AsyncPipe, MatTooltip, MatButton],
   templateUrl: './model-detail-form.component.html',
   styleUrl: './model-detail-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,5 +1,4 @@
-import { DOCUMENT } from '@angular/common';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, DOCUMENT } from '@angular/core';
 import { defer, first, map, Observable, of, Subscription, switchMap, take, tap, timer } from 'rxjs';
 import { ModelManagerService } from './model-manager.service';
 import { ModelLoadService } from './model-load.service';
@@ -46,9 +45,9 @@ type ModelExporterReturnMap = {
   GLB: ArrayBuffer,
   PLY: ArrayBuffer | null,
   PLYAscii: string | null,
-  STL: DataView,
+  STL: DataView<ArrayBuffer>,
   STLAscii: string,
-  USDZ: Uint8Array,
+  USDZ: Uint8Array<ArrayBuffer>,
 };
 
 @Injectable()

@@ -31,7 +31,6 @@ export type ITextInputDialogData = {
 
 @Component({
   selector: 'mapper-text-input-dialog',
-  standalone: true,
   imports: [MatDialogModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule, MatButtonModule],
   templateUrl: './text-input-dialog.component.html',
   styleUrl: './text-input-dialog.component.scss',

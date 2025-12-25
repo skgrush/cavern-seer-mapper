@@ -2,8 +2,8 @@
 <div mat-dialog-content>
   <canvas #canvas></canvas>
   <button mat-icon-button (click)="toggleMaterial.click()" [matTooltip]="toggleMaterial.label">
-    <mat-icon *ngIf="toggleMaterial.icon$ | async as icon" [fontSet]="icon.fontSet">
-      {{ icon.icon }}
+    <mat-icon [fontSet]="toggleMaterial.icon().fontSet">
+      {{ toggleMaterial.icon().icon }}
     </mat-icon>
   </button>
   <mapper-cross-section-details-form [crossSection]="crossSection" [formGroup]="formGroup" />

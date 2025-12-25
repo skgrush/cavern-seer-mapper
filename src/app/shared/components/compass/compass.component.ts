@@ -4,7 +4,6 @@ import { CanvasService } from '../../services/canvas.service';
 
 @Component({
   selector: 'mapper-compass',
-  standalone: true,
   imports: [],
   template: '',
   styleUrl: './compass.component.scss',

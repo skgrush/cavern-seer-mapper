@@ -25,7 +25,6 @@ export type CrossSectionDetailsForm = FormGroup<{
 
 @Component({
   selector: 'mapper-cross-section-details-form',
-  standalone: true,
   templateUrl: './cross-section-details-form.component.html',
   styleUrl: './cross-section-details-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -15,43 +15,59 @@
           }
         </mat-button-toggle-group>
 
-        <p *ngIf="wikiLink as link">
-          <a [href]="link" target="_blank">Wikipedia Link</a>
-        </p>
-        <ng-container [ngSwitch]="formGroup.controls.type.value">
-          <p *ngSwitchCase="ModelExporterNames.OBJ">
-            OBJ is the most widely supported format by almost all viewers (e.g. Windows and macOS viewers),
-            but also one of the least space efficient.
+        @if (wikiLink; as link) {
+          <p>
+            <a [href]="link" target="_blank">Wikipedia Link</a>
           </p>
-          <p *ngSwitchCase="ModelExporterNames.GLTF">
-            gLTF is supported by many modeling systems; less-space-efficient version of GLB.
-            Supported by Windows 3D viewer.
-          </p>
-          <p *ngSwitchCase="ModelExporterNames.GLB">
-            gLTF-binary is supported by many modeling systems; more-space-efficient version of gLTF.
-            Supported by Windows 3D viewer.
-          </p>
-          <p *ngSwitchCase="ModelExporterNames.STL">
-            STL is a CAD modeling format supported by many systems.<br/>
-            It seems to be one of the <b>least-space-efficient</b> binary formats for CavernSeer.
-            Supported by Windows and macOS 3D viewers.
-          </p>
-          <p *ngSwitchCase="ModelExporterNames.PLY">
-            PLY is a format for storing polygonal data.<br/>
-            It seems to be the <b>most-space-efficient</b> binary format for CavernSeer.
-            Supported by Windows 3D viewer.
-          </p>
-          <p *ngSwitchCase="ModelExporterNames.USDZ">
-            USD is a format for 3D graphics designers, but with limited viewer support.<br>
-            It is the <b>least-space-efficient</b> when un-compressed, but when compressed
-            is nearly as small as PLY compressed.
-          </p>
-        </ng-container>
+        }
+        @switch (formGroup.controls.type.value) {
+          @case (ModelExporterNames.OBJ) {
+            <p>
+              OBJ is the most widely supported format by almost all viewers (e.g. Windows and macOS viewers),
+              but also one of the least space efficient.
+            </p>
+          }
+          @case (ModelExporterNames.GLTF) {
+            <p>
+              gLTF is supported by many modeling systems; less-space-efficient version of GLB.
+              Supported by Windows 3D viewer.
+            </p>
+          }
+          @case (ModelExporterNames.GLB) {
+            <p>
+              gLTF-binary is supported by many modeling systems; more-space-efficient version of gLTF.
+              Supported by Windows 3D viewer.
+            </p>
+          }
+          @case (ModelExporterNames.STL) {
+            <p>
+              STL is a CAD modeling format supported by many systems.<br/>
+              It seems to be one of the <b>least-space-efficient</b> binary formats for CavernSeer.
+              Supported by Windows and macOS 3D viewers.
+            </p>
+          }
+          @case (ModelExporterNames.PLY) {
+            <p>
+              PLY is a format for storing polygonal data.<br/>
+              It seems to be the <b>most-space-efficient</b> binary format for CavernSeer.
+              Supported by Windows 3D viewer.
+            </p>
+          }
+          @case (ModelExporterNames.USDZ) {
+            <p>
+              USD is a format for 3D graphics designers, but with limited viewer support.<br>
+              It is the <b>least-space-efficient</b> when un-compressed, but when compressed
+              is nearly as small as PLY compressed.
+            </p>
+          }
+        }
 
-        <p class="ascii-warning" *ngIf="modelExporterAsciis.has(formGroup.controls.type.value)">
-          This format is a plaintext/ASCII format, which can create excessively large, or even un-exportable, files.<br/>
-          It is highly recommended to compress any ASCII format.
-        </p>
+        @if (modelExporterAsciis.has(formGroup.controls.type.value)) {
+          <p class="ascii-warning">
+            This format is a plaintext/ASCII format, which can create excessively large, or even un-exportable, files.<br/>
+            It is highly recommended to compress any ASCII format.
+          </p>
+        }
       </section>
 
       <section>
@@ -59,9 +75,11 @@
       </section>
     </div>
 
-    <div *ngIf="resultSubject | async as result">
-      Successfully exported {{ result.name }} at {{ result.size | bytes }}.
-    </div>
+    @if (resultSubject | async; as result) {
+      <div>
+        Successfully exported {{ result.name }} at {{ result.size | bytes }}.
+      </div>
+    }
 
     <div mat-dialog-actions>
       <button type="button" mat-button mat-dialog-close cdkFocusInitial>

@@ -1,6 +1,6 @@
 <p>
   Results of using
-  <mat-icon>{{ (crossSectionTool.icon$ | async)?.icon }}</mat-icon> {{ crossSectionTool.label }}
+  <mat-icon>{{ crossSectionTool.icon().icon }}</mat-icon> {{ crossSectionTool.label }}
   tool
 </p>
 
@@ -11,13 +11,13 @@
     Render
   </button>
 
+  @let visible = crossSectionTool.visibility$ | async;
   <button
     mat-icon-button
-    *ngIf="{ visible: crossSectionTool.visibility$ | async } as visibilityState"
-    (click)="crossSectionTool.toggleVisibility(!visibilityState.visible)"
+    (click)="crossSectionTool.toggleVisibility(!visible)"
     matTooltip="Toggle cross-section visibility"
   >
-    <mat-icon>{{ visibilityState.visible ? 'visibility' : 'visibility_off' }}</mat-icon>
+    <mat-icon>{{ visible ? 'visibility' : 'visibility_off' }}</mat-icon>
   </button>
 
   <span [style.flex-grow]="1"></span>
@@ -40,12 +40,12 @@
 <mat-selection-list [multiple]="false" [formControl]="formGroup.controls.selected">
 
   @for (crossSection of (crossSectionTool.crossSections$ | async); track crossSection) {
-  <mat-list-option [value]="crossSection" (click)="crossSectionTool.lookAt(crossSection)">
-    <h3 matListItemTitle>{{ crossSection.identifier }}</h3>
-  </mat-list-option>
+    <mat-list-option [value]="crossSection" (click)="crossSectionTool.lookAt(crossSection)">
+      <h3 matListItemTitle>{{ crossSection.identifier }}</h3>
+    </mat-list-option>
   }
 </mat-selection-list>
 
 @if (!(dialogOpen$ | async) && formGroup.controls.selected.value[0]; as crossSection) {
-<mapper-cross-section-details-form [crossSection]="crossSection" [formGroup]="formGroup.controls.details" />
+  <mapper-cross-section-details-form [crossSection]="crossSection" [formGroup]="formGroup.controls.details" />
 }

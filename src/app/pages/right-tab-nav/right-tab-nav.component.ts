@@ -6,7 +6,6 @@ import { CrossSectionTabComponent } from "./cross-section-tab/cross-section-tab.
 
 @Component({
   selector: 'mapper-right-tab-nav',
-  standalone: true,
   templateUrl: './right-tab-nav.component.html',
   styleUrl: './right-tab-nav.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

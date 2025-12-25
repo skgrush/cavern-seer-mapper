@@ -126,7 +126,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
       ...this.#additionalPoints,
     ]);
 
-    markSceneOfItemForReRender(this.#line);
+    markSceneOfItemForReRender(this.#line, ngDevMode && 'measure distance rebuildGeometry');
   }
 
   override rename(newIdentifier: string): void {
@@ -148,7 +148,7 @@ export class MeasureDistanceAnnotation extends BaseAnnotation {
 
   override toggleVisibility(show: boolean): void {
     this.#lineGroup.visible = show;
-    markSceneOfItemForReRender(this.#lineGroup);
+    markSceneOfItemForReRender(this.#lineGroup, ngDevMode && 'measure distance toggleVisibility');
   }
 
   override addToGroup(group: Group): void {

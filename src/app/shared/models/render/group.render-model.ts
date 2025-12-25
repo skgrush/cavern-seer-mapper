@@ -192,7 +192,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
 
   override setVisibility(visible: boolean) {
     this.#group.visible = visible;
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'group model set visibility');
   }
 
   override addToGroup(group: Group<Object3DEventMap>): void {
@@ -248,7 +248,7 @@ export class GroupRenderModel extends BaseVisibleRenderModel<FileModelType.group
   }
 
   override removeAnnotations(annosToDelete: Set<BaseAnnotation>): void {
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && `group removing ${annosToDelete.size} annotations`);
 
     for (const anno of annosToDelete) {
       if (this.#annotations.has(anno)) {

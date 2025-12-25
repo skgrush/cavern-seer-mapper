@@ -11,7 +11,6 @@ import { MatButton } from '@angular/material/button';
 
 @Component({
   selector: 'mapper-confirmation-dialog',
-  standalone: true,
   imports: [
     MatDialogTitle,
     MatDialogContent,

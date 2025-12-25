@@ -24,7 +24,6 @@ type OpenerResult = {
 
 @Component({
   selector: 'mapper-file-url-loader',
-  standalone: true,
   templateUrl: './file-url-loader.component.html',
   styleUrl: './file-url-loader.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

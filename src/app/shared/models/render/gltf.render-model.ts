@@ -1,4 +1,4 @@
-import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
+import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { BaseVisibleRenderModel } from "./base.render-model";
 import { FileModelType } from "../model-type.enum";
 import { BoxHelper, Camera, Group, Object3DEventMap, Vector3 } from "three";
@@ -95,7 +95,7 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
 
   override setVisibility(visible: boolean) {
     this.#gltf.scene.visible = visible;
-    markSceneOfItemForReRender(this.#gltf.scene);
+    markSceneOfItemForReRender(this.#gltf.scene, ngDevMode && 'gltf model set visibility');
   }
 
   override addToGroup(group: Group<Object3DEventMap>): void {

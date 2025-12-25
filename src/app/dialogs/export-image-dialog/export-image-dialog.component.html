@@ -11,34 +11,44 @@
         <h4>File type</h4>
         <mat-button-toggle-group [formControl]="formGroup.controls.type">
           @for(fileType of fileTypes; track fileType) {
-          <mat-button-toggle [value]="fileType">{{ fileType }}</mat-button-toggle>
+            <mat-button-toggle [value]="fileType">{{ fileType }}</mat-button-toggle>
           }
         </mat-button-toggle-group>
-        <p *ngIf="formGroup.controls.type.value === 'webp'">
-          WebP is not supported and all browsers and may fall back to JPG.
-        </p>
-        <p *ngIf="formGroup.controls.type.value === 'svg'">
-          This is not recommended and will generate massive SVG files but go off.
-        </p>
+        @if (formGroup.controls.type.value === 'webp') {
+          <p>
+            WebP is not supported and all browsers and may fall back to JPG.
+          </p>
+        }
+        @if (formGroup.controls.type.value === 'svg') {
+          <p>
+            This is not recommended and will generate massive SVG files but go off.
+          </p>
+        }
       </section>
 
-      <section *ngIf="selectedTypeIsScalable">
-        <h4>Scale factor</h4>
-        <mat-button-toggle-group [formControl]="formGroup.controls.scaleFactor">
-          @for(scaleFactor of scaleFactors; track scaleFactors) {
-          <mat-button-toggle [value]="scaleFactor">{{ scaleFactor }}</mat-button-toggle>
+      @if (selectedTypeIsScalable) {
+        <section>
+          <h4>Scale factor</h4>
+          <mat-button-toggle-group [formControl]="formGroup.controls.scaleFactor">
+            @for(scaleFactor of scaleFactors; track scaleFactors) {
+              <mat-button-toggle [value]="scaleFactor">{{ scaleFactor }}</mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+          @if (scaledCanvasSize; as scaled) {
+            <div>
+              {{ scaled.x }}px X {{ scaled.y }}px
+            </div>
           }
-        </mat-button-toggle-group>
-        <div *ngIf="scaledCanvasSize as scaled">
-          {{ scaled.x }}px X {{ scaled.y }}px
-        </div>
-      </section>
+        </section>
+      }
     </div>
   </div>
 
-  <div *ngIf="resultSubject | async as result">
-    Successfully exported {{ result.name }} at {{ result.size | bytes }}.
-  </div>
+  @if (resultSubject | async; as result) {
+    <div>
+      Successfully exported {{ result.name }} at {{ result.size | bytes }}.
+    </div>
+  }
 
   <div mat-dialog-actions>
     <button type="button" mat-button mat-dialog-close cdkFocusInitial>

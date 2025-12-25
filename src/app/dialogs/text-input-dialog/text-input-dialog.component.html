@@ -6,7 +6,7 @@
         <mat-label>{{ fieldLabel }}</mat-label>
         <input matInput [type]="inputType" [formControl]="formControl">
         @if (formControl.invalid) {
-        <mat-error>{{ getError() }}</mat-error>
+          <mat-error>{{ getError() }}</mat-error>
         }
       </mat-form-field>
     </div>

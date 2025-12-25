@@ -14,7 +14,6 @@ import {
 } from 'three';
 import { float4x4ToMatrix4 } from '../../functions/float4x4-to-matrix4';
 import { markSceneOfItemForReRender } from '../../functions/mark-scene-of-item-for-rerender';
-import { ignoreNullishArray } from '../../operators/ignore-nullish';
 import type { CSMeshSnapshot, SurveyLine, SurveyStation } from '../../types/cavern-seer-scan';
 import { BaseAnnotation } from '../annotations/base.annotation';
 import { TemporaryAnnotation } from '../annotations/temporary.annotation';
@@ -39,7 +38,7 @@ export interface IScanFileParsed {
 
 export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelType.cavernseerscan> {
   override readonly type = FileModelType.cavernseerscan;
-  override readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
+  readonly #childOrPropertyChanged = new Subject<ModelChangeType>();
   override readonly childOrPropertyChanged$ = this.#childOrPropertyChanged.asObservable();
   override identifier: string;
   override comment: string | null;
@@ -119,13 +118,13 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#group.position.set(x, y, z);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'cssr model position changed');
     return true;
   }
 
   override setVisibility(visible: boolean) {
     this.#group.visible = visible;
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'cssr model visibility changed');
   }
 
   override addToGroup(group: Group<Object3DEventMap>): void {
@@ -245,7 +244,7 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
   #createImageAnchors({ startSnapshot, endSnapshot }: IScanFileParsed) {
     return [startSnapshot, endSnapshot]
       .map(snapshot => this.#createImageAnchor(snapshot))
-      .filter(ignoreNullishArray);
+      .filter(x => !!x);
   }
 
   #createImageAnchor(snapshot: CSMeshSnapshot | null) {

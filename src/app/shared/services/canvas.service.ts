@@ -1,5 +1,5 @@
-import { inject, Injectable } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { inject, Injectable, signal, untracked } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
   animationFrames,
   BehaviorSubject,
@@ -34,8 +34,10 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three';
-import { markSceneOfItemForReRender } from '../functions/mark-scene-of-item-for-rerender';
-import { traverseSome } from '../functions/traverse-some';
+import {
+  markSceneOfItemForReRender,
+  sceneNeedsReRenderOrHasChildNeedingUpdate,
+} from '../functions/mark-scene-of-item-for-rerender';
 import { ModelChangeType } from '../models/model-change-type.enum';
 import { ControlViewHelper } from '../models/objects/control-view-helper';
 import { OrthographicMapControls } from '../models/objects/orthographic-map-controls';
@@ -49,7 +51,7 @@ import { SVGRenderer } from 'three/examples/jsm/renderers/SVGRenderer.js';
 import { TemporaryAnnotation } from '../models/annotations/temporary.annotation';
 import { MaterialManagerService } from './materials/material-manager.service';
 import { ElevationMaterialService } from './materials/elevation-material.service';
-import { temporarilySet$ } from '../functions/temporarily-set';
+import { temporarilySetSignal } from '../functions/temporarily-set';
 
 @Injectable()
 export class CanvasService {
@@ -81,11 +83,13 @@ export class CanvasService {
   readonly #compassDivSubject = new BehaviorSubject<HTMLElement | undefined>(undefined);
   #compass?: ControlViewHelper<OrthographicMapControls>;
 
-  readonly #gridVisibleSubject = new BehaviorSubject(true);
-  readonly gridVisible$ = this.#gridVisibleSubject.asObservable();
+  readonly #gridVisible = signal(true);
+  readonly gridVisible = this.#gridVisible.asReadonly();
+  readonly gridVisible$ = toObservable(this.#gridVisible);
 
-  readonly #embeddedAnnotationsVisibleSubject = new BehaviorSubject(true);
-  readonly embeddedAnnotationsVisible$ = this.#embeddedAnnotationsVisibleSubject.asObservable();
+  readonly #embeddedAnnotationsVisible = signal(true);
+  readonly embeddedAnnotationsVisible = this.#embeddedAnnotationsVisible.asReadonly();
+  readonly embeddedAnnotationsVisible$ = toObservable(this.#embeddedAnnotationsVisible);
 
   readonly #boundingBoxForBottomGrid$ = new BehaviorSubject<Box3>(new Box3(new Vector3(), new Vector3(1, 1, 1)));
   readonly #cameraTargetHeight$ = new BehaviorSubject<number>(0);
@@ -119,7 +123,7 @@ export class CanvasService {
       // if there's a group, update the scene
       if (group) {
         group.addToScene(this.#scene);
-        group.setMaterial(this.#materialManager.currentMaterial);
+        group.setMaterial(untracked(this.#materialManager.currentMaterial));
 
         const bounds = group.getBoundingBox();
 
@@ -135,12 +139,12 @@ export class CanvasService {
       takeUntilDestroyed(),
     ).subscribe(mat => {
       this.#currentGroupInScene?.setMaterial(mat);
-      markSceneOfItemForReRender(this.#scene);
+      markSceneOfItemForReRender(this.#scene, ngDevMode && 'current material manager changed');
     });
     this.#materialManager.materialSide$.pipe(
       takeUntilDestroyed(),
     ).subscribe(() => {
-      markSceneOfItemForReRender(this.#scene);
+      markSceneOfItemForReRender(this.#scene, ngDevMode && 'material side manager changed');
     });
 
     this.#boundingBoxForBottomGrid$.pipe(
@@ -172,7 +176,7 @@ export class CanvasService {
       takeUntilDestroyed()
     ).subscribe(visible => {
       this.#bottomGrid.visible = visible;
-      markSceneOfItemForReRender(this.#bottomGrid);
+      markSceneOfItemForReRender(this.#bottomGrid, ngDevMode && 'grid visible changed');
     });
 
     this.embeddedAnnotationsVisible$.pipe(
@@ -180,9 +184,9 @@ export class CanvasService {
       switchMap(visible => this.#modelManager.currentOpenGroup$.pipe(map(cog => ({ cog, visible })))),
     ).subscribe(({ visible, cog }) => {
       cog?.getAllAnnotationsRecursively()
-        .filter((anno): anno is TemporaryAnnotation<any> => anno instanceof TemporaryAnnotation)
+        .filter((anno) => anno instanceof TemporaryAnnotation)
         .forEach(anno => anno.toggleVisibility(visible));
-      markSceneOfItemForReRender(this.#scene);
+      markSceneOfItemForReRender(this.#scene, ngDevMode && 'embeddedAnnotationsVisible changed');
     });
 
     combineLatest({
@@ -256,19 +260,15 @@ export class CanvasService {
   }
 
   toggleGridVisible() {
-    this.#gridVisibleSubject.next(
-      !this.#gridVisibleSubject.value,
-    );
+    this.#gridVisible.update(x => !x);
   }
 
   toggleEmbeddedAnnotationsVisible() {
-    this.#embeddedAnnotationsVisibleSubject.next(
-      !this.#embeddedAnnotationsVisibleSubject.value,
-    );
+    this.#embeddedAnnotationsVisible.update(x => !x);
   }
 
   temporarilySetEmbeddedAnnotations$(to: boolean) {
-    return temporarilySet$(this.#embeddedAnnotationsVisibleSubject, to);
+    return temporarilySetSignal(this.#embeddedAnnotationsVisible, to);
   }
 
   /**
@@ -450,7 +450,7 @@ export class CanvasService {
     cam.updateProjectionMatrix();
 
     this.#mainRenderer.setSize(width, height, updateStyle);
-    markSceneOfItemForReRender(this.#scene);
+    markSceneOfItemForReRender(this.#scene, ngDevMode && 'resize');
   }
 
   render$() {
@@ -477,15 +477,17 @@ export class CanvasService {
     if (this.#compass.animating) {
       this.#compass.update(delta);
       sceneUserData.needsReRender = true;
+      if (!!ngDevMode) {
+        sceneUserData.DEBUG_needsReRenderReason = 'compass animating';
+      }
     }
 
-    if (sceneUserData.needsReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {
-      console.count('didRender');
+    if (sceneNeedsReRenderOrHasChildNeedingUpdate(this.#scene)) {
       this.#mainRenderer.clear();
       this.#mainRenderer.render(this.#scene, this.#orthoControls.camera);
       this.#compass.render(this.#mainRenderer);
 
-      sceneUserData.needsReRender = undefined;
+      sceneUserData.needsReRender = sceneUserData.DEBUG_needsReRenderReason = undefined;
     }
 
     return true;
@@ -534,7 +536,7 @@ export class CanvasService {
       zDelta = this.#localize.localLengthToMeters(Math.round(this.#localize.metersToLocalLength(zDelta)));
     }
 
-    gridHelper.visible = this.#gridVisibleSubject.value;
+    gridHelper.visible = untracked(this.#gridVisible);
     gridHelper.position.set(
       boundsMin.x + xDelta,
       boundsMin.y,
