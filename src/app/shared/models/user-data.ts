@@ -11,4 +11,5 @@ export type IMapperUserData = {
   isTemporaryAnnotation?: true,
   /** should only be used on Scenes to mark that they need to rerender */
   needsReRender?: true,
+  DEBUG_needsReRenderReason?: string | null;
 }

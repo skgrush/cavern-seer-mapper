@@ -13,6 +13,10 @@ class UncaughtError extends Error {
 export class ErrorService implements ErrorHandler {
   handleError(error: any): void {
     console.error('uncaught', error);
+    if (ngDevMode && error && typeof error.code === 'number' && error.message?.startsWith('NG')) {
+      debugger;
+      return;
+    }
     this.alertError(new UncaughtError(error));
   }
 

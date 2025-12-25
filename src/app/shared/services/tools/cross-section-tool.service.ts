@@ -300,7 +300,7 @@ export class CrossSectionToolService extends BaseExclusiveToolService {
         this.#preview.origin,
         this.#preview.dest,
       ]);
-      markSceneOfItemForReRender(this.#preview.lineAnno.object);
+      markSceneOfItemForReRender(this.#preview.lineAnno.object, ngDevMode && 'cross section tool draw line');
 
     } else {
       const group = this.#currentModelRef?.deref();

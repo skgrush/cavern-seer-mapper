@@ -134,7 +134,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     cam.near = 0;
     cam.far = dims.z;
     cam.updateProjectionMatrix();
-    markSceneOfItemForReRender(cam);
+    markSceneOfItemForReRender(cam, ngDevMode && 'cross section cam update');
   }
 
   #drawLine() {
@@ -178,7 +178,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
     this.#boxMesh.position.setZ(-newDimensions.z / 2);
     this.#boxMesh.geometry = new BoxGeometry(newDimensions.x, newDimensions.y, newDimensions.z);
-    markSceneOfItemForReRender(this.#boxMesh);
+    markSceneOfItemForReRender(this.#boxMesh, ngDevMode && 'cross section changed dimensions');
     this.#dimensions = newDimensions.clone();
     this.#updateCamera();
     this.#updateLine();
@@ -188,7 +188,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
     this.#radiansToNorthAroundY = angleDegrees / degreesPerRadian;
 
     this.#group.setRotationFromAxisAngle(new Vector3(0, 1, 0), -this.#radiansToNorthAroundY);
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'cross section changed rotation');
 
     this.#updateCamera();
     this.#updateLine();
@@ -196,7 +196,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
 
   changeCenterPoint(pos: Vector3) {
     this.#group.position.copy(pos);
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'cross section changed centerPoint');
   }
 
   override rename(newIdentifier: string): void {
@@ -223,7 +223,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
   }
   override toggleVisibility(show: boolean): void {
     this.#group.visible = show;
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'cross section toggleVisibility');
   }
 
   /**
@@ -253,7 +253,7 @@ export class CrossSectionAnnotation extends BaseAnnotation {
             this.#removeCamera();
             this.#group.remove(...this.#measureLines!);
             this.#measureLines = undefined;
-            markSceneOfItemForReRender(this.#group);
+            markSceneOfItemForReRender(this.#group, ngDevMode && 'cross section cleanup');
           },
         })
       ),

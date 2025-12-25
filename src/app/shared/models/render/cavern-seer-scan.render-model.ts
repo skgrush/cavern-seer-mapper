@@ -118,13 +118,13 @@ export class CavernSeerScanRenderModel extends BaseVisibleRenderModel<FileModelT
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#group.position.set(x, y, z);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'cssr model position changed');
     return true;
   }
 
   override setVisibility(visible: boolean) {
     this.#group.visible = visible;
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'cssr model visibility changed');
   }
 
   override addToGroup(group: Group<Object3DEventMap>): void {

@@ -95,7 +95,7 @@ export class GltfRenderModel extends BaseVisibleRenderModel<FileModelType.gLTF> 
 
   override setVisibility(visible: boolean) {
     this.#gltf.scene.visible = visible;
-    markSceneOfItemForReRender(this.#gltf.scene);
+    markSceneOfItemForReRender(this.#gltf.scene, ngDevMode && 'gltf model set visibility');
   }
 
   override addToGroup(group: Group<Object3DEventMap>): void {

@@ -34,8 +34,10 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three';
-import { markSceneOfItemForReRender } from '../functions/mark-scene-of-item-for-rerender';
-import { traverseSome } from '../functions/traverse-some';
+import {
+  markSceneOfItemForReRender,
+  sceneNeedsReRenderOrHasChildNeedingUpdate,
+} from '../functions/mark-scene-of-item-for-rerender';
 import { ModelChangeType } from '../models/model-change-type.enum';
 import { ControlViewHelper } from '../models/objects/control-view-helper';
 import { OrthographicMapControls } from '../models/objects/orthographic-map-controls';
@@ -137,12 +139,12 @@ export class CanvasService {
       takeUntilDestroyed(),
     ).subscribe(mat => {
       this.#currentGroupInScene?.setMaterial(mat);
-      markSceneOfItemForReRender(this.#scene);
+      markSceneOfItemForReRender(this.#scene, ngDevMode && 'current material manager changed');
     });
     this.#materialManager.materialSide$.pipe(
       takeUntilDestroyed(),
     ).subscribe(() => {
-      markSceneOfItemForReRender(this.#scene);
+      markSceneOfItemForReRender(this.#scene, ngDevMode && 'material side manager changed');
     });
 
     this.#boundingBoxForBottomGrid$.pipe(
@@ -174,7 +176,7 @@ export class CanvasService {
       takeUntilDestroyed()
     ).subscribe(visible => {
       this.#bottomGrid.visible = visible;
-      markSceneOfItemForReRender(this.#bottomGrid);
+      markSceneOfItemForReRender(this.#bottomGrid, ngDevMode && 'grid visible changed');
     });
 
     this.embeddedAnnotationsVisible$.pipe(
@@ -184,7 +186,7 @@ export class CanvasService {
       cog?.getAllAnnotationsRecursively()
         .filter((anno) => anno instanceof TemporaryAnnotation)
         .forEach(anno => anno.toggleVisibility(visible));
-      markSceneOfItemForReRender(this.#scene);
+      markSceneOfItemForReRender(this.#scene, ngDevMode && 'embeddedAnnotationsVisible changed');
     });
 
     combineLatest({
@@ -448,7 +450,7 @@ export class CanvasService {
     cam.updateProjectionMatrix();
 
     this.#mainRenderer.setSize(width, height, updateStyle);
-    markSceneOfItemForReRender(this.#scene);
+    markSceneOfItemForReRender(this.#scene, ngDevMode && 'resize');
   }
 
   render$() {
@@ -475,15 +477,17 @@ export class CanvasService {
     if (this.#compass.animating) {
       this.#compass.update(delta);
       sceneUserData.needsReRender = true;
+      if (!!ngDevMode) {
+        sceneUserData.DEBUG_needsReRenderReason = 'compass animating';
+      }
     }
 
-    if (sceneUserData.needsReRender || traverseSome(this.#scene, o => o.matrixWorldNeedsUpdate)) {
-      console.count('didRender');
+    if (sceneNeedsReRenderOrHasChildNeedingUpdate(this.#scene)) {
       this.#mainRenderer.clear();
       this.#mainRenderer.render(this.#scene, this.#orthoControls.camera);
       this.#compass.render(this.#mainRenderer);
 
-      sceneUserData.needsReRender = undefined;
+      sceneUserData.needsReRender = sceneUserData.DEBUG_needsReRenderReason = undefined;
     }
 
     return true;

@@ -1,6 +1,14 @@
-import { ApplicationConfig, ErrorHandler, LOCALE_ID, importProvidersFrom, isDevMode } from '@angular/core';
+import {
+  ApplicationConfig,
+  ErrorHandler,
+  LOCALE_ID,
+  importProvidersFrom,
+  isDevMode,
+  provideZonelessChangeDetection,
+  provideCheckNoChangesConfig,
+  EnvironmentProviders,
+} from '@angular/core';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS, MatSnackBarConfig, MatSnackBarModule } from '@angular/material/snack-bar';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import versionObject from '../version.json';
@@ -17,11 +25,14 @@ import { provideHttpClient } from '@angular/common/http';
 import { KeyBindService } from './shared/services/key-bind.service';
 import { PlatformService } from './shared/services/platform.service';
 
-
 export const appConfig: ApplicationConfig = {
   providers: [
+    ngDevMode
+      ? provideCheckNoChangesConfig({ exhaustive: true, interval: 100 })
+      : provideCheckNoChangesConfig({ exhaustive: false })
+    ,
+    provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideAnimations(),
     provideHttpClient(),
     ErrorService,
     AlertService,

@@ -11,6 +11,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltip } from '@angular/material/tooltip';
+import { controlValueSignal } from '../../../../shared/functions/control-value-signal';
 
 @Component({
   selector: 'mapper-ceiling-tab',
@@ -23,7 +24,9 @@ export class CeilingTabComponent {
   protected readonly ceilingHeightTool = inject(CeilingHeightToolService);
   readonly #dialog = inject(MatDialog);
 
-  readonly ceilingHeightSelectControl = new FormControl<CeilingHeightAnnotation[]>([], { nonNullable: true });
+  readonly ceilingHeightSelectControl = new FormControl<readonly CeilingHeightAnnotation[]>([], { nonNullable: true });
+
+  readonly ceilingHeightSelectValue = controlValueSignal(this.ceilingHeightSelectControl);
 
   clearSelection() {
     this.ceilingHeightSelectControl.reset();

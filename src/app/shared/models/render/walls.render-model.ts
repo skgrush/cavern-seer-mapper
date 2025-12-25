@@ -110,12 +110,12 @@ export class WallsRenderModel extends BaseVisibleRenderModel<FileModelType.walls
   override setPosition({ x, y, z }: ISimpleVector3): boolean {
     this.#group.position.set(x, y, z);
     this.#childOrPropertyChanged.next(ModelChangeType.PositionChanged);
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'walls model set position');
     return true;
   }
   override setVisibility(visible: boolean): void {
     this.#group.visible = visible;
-    markSceneOfItemForReRender(this.#group);
+    markSceneOfItemForReRender(this.#group, ngDevMode && 'walls model set visibility');
   }
   override rename(name: string): boolean {
     this.identifier = name;
